@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    CDH6.1.1离线部署 |  大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-CDH/CDH6.1.1离线部署" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  CDH6.1.1离线部署
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/" class="article-date">
+  <time datetime="2020-01-01T14:00:00.000Z" itemprop="datePublished">2020-01-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/CDH/">CDH</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">3k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">14 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="CDH6-1-1离线部署"><a href="#CDH6-1-1离线部署" class="headerlink" title="CDH6.1.1离线部署"></a>CDH6.1.1离线部署</h1><h2 id="节点规划"><a href="#节点规划" class="headerlink" title="节点规划"></a>节点规划</h2><table>
+<thead>
+<tr>
+<th>节点</th>
+<th>JDK1.8</th>
+<th>Parcel文件离线源</th>
+<th>MySQL5.7</th>
+<th>CM服务进程</th>
+<th>大数据组件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>node01</td>
+<td>√</td>
+<td>√</td>
+<td>√</td>
+<td>Activity Monitor等</td>
+<td>NN、JournalNode</td>
+</tr>
+<tr>
+<td>node02</td>
+<td>√</td>
+<td></td>
+<td></td>
+<td></td>
+<td>NN、JournalNode</td>
+</tr>
+<tr>
+<td>node03</td>
+<td>√</td>
+<td></td>
+<td></td>
+<td></td>
+<td>DN、ZK、JournalNode</td>
+</tr>
+<tr>
+<td>node04</td>
+<td>√</td>
+<td></td>
+<td></td>
+<td></td>
+<td>DN、ZK</td>
+</tr>
+<tr>
+<td>node05</td>
+<td>√</td>
+<td></td>
+<td></td>
+<td></td>
+<td>DN、ZK</td>
+</tr>
+</tbody></table>
+<h2 id="相关资源"><a href="#相关资源" class="headerlink" title="相关资源"></a>相关资源</h2><h3 id="文档资源"><a href="#文档资源" class="headerlink" title="文档资源"></a>文档资源</h3><ul>
+<li>Cloudera官网文档：<a href="https://docs.cloudera.com/documentation/index.html" target="_blank" rel="noopener">https://docs.cloudera.com/documentation/index.html</a></li>
+</ul>
+<h3 id="下载资源"><a href="#下载资源" class="headerlink" title="下载资源"></a>下载资源</h3><ul>
+<li><p>Cloudera Manager下载：<a href="https://archive.cloudera.com/cm6/6.1.1/repo-as-tarball/" target="_blank" rel="noopener">https://archive.cloudera.com/cm6/6.1.1/repo-as-tarball/</a></p>
+</li>
+<li><p>Cloudera CDH下载：<a href="https://archive.cloudera.com/cdh6/6.1.1/parcels/" target="_blank" rel="noopener">https://archive.cloudera.com/cdh6/6.1.1/parcels/</a></p>
+</li>
+<li><p>MySQL相关jar包：<a href="https://mvnrepository.com/artifact/mysql/mysql-connector-java" target="_blank" rel="noopener">https://mvnrepository.com/artifact/mysql/mysql-connector-java</a></p>
+</li>
+<li><p>MySQL下载：<a href="https://downloads.mysql.com/archives/community/" target="_blank" rel="noopener">https://downloads.mysql.com/archives/community/</a></p>
+</li>
+<li><p>JDK下载：<a href="https://www.oracle.com/java/technologies/javase-jdk8-downloads.html" target="_blank" rel="noopener">https://www.oracle.com/java/technologies/javase-jdk8-downloads.html</a></p>
+</li>
+</ul>
+<h2 id="集群初始化准备"><a href="#集群初始化准备" class="headerlink" title="集群初始化准备"></a>集群初始化准备</h2><h3 id="服务器准备"><a href="#服务器准备" class="headerlink" title="服务器准备"></a>服务器准备</h3><p>阿里云服务器五台，基本配置：2核16G,CentOS7.2 64位</p>
+<h3 id="配置所有节点hostname"><a href="#配置所有节点hostname" class="headerlink" title="配置所有节点hostname"></a>配置所有节点hostname</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 opt]<span class="comment"># hostnamectl set-hostname node01</span></span><br><span class="line">[root@node02 opt]<span class="comment"># hostnamectl set-hostname node02</span></span><br><span class="line">[root@node03 opt]<span class="comment"># hostnamectl set-hostname node03</span></span><br><span class="line">[root@node04 opt]<span class="comment"># hostnamectl set-hostname node04</span></span><br><span class="line">[root@node05 opt]<span class="comment"># hostnamectl set-hostname node05</span></span><br></pre></td></tr></table></figure>
+<h3 id="配置所有节点主机名与IP地址对应关系"><a href="#配置所有节点主机名与IP地址对应关系" class="headerlink" title="配置所有节点主机名与IP地址对应关系"></a>配置所有节点主机名与IP地址对应关系</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 阿里云服务器统一使用内网IP</span></span><br><span class="line">[root@node01 opt]<span class="comment"># cat /etc/hosts</span></span><br><span class="line">127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4</span><br><span class="line">::1         localhost localhost.localdomain localhost6 localhost6.localdomain6</span><br><span class="line">172.26.56.41 node01</span><br><span class="line">172.26.56.42 node02</span><br><span class="line">172.26.56.43 node03</span><br><span class="line">172.26.56.44 node04</span><br><span class="line">172.26.56.45 node05</span><br></pre></td></tr></table></figure>
+<h3 id="关闭所有节点防火墙并清空规则"><a href="#关闭所有节点防火墙并清空规则" class="headerlink" title="关闭所有节点防火墙并清空规则"></a>关闭所有节点防火墙并清空规则</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 opt]<span class="comment"># systemctl stop firewalld</span></span><br><span class="line">[root@node01 opt]<span class="comment"># systemctl disable firewalld</span></span><br><span class="line">[root@node01 opt]<span class="comment"># iptables -F</span></span><br></pre></td></tr></table></figure>
+<h3 id="关闭所有节点selinux"><a href="#关闭所有节点selinux" class="headerlink" title="关闭所有节点selinux"></a>关闭所有节点selinux</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 opt]<span class="comment"># cat /etc/selinux/config </span></span><br><span class="line"><span class="comment"># This file controls the state of SELinux on the system.</span></span><br><span class="line"><span class="comment"># SELINUX= can take one of these three values:</span></span><br><span class="line"><span class="comment">#     enforcing - SELinux security policy is enforced.</span></span><br><span class="line"><span class="comment">#     permissive - SELinux prints warnings instead of enforcing.</span></span><br><span class="line"><span class="comment">#     disabled - No SELinux policy is loaded.</span></span><br><span class="line">SELINUX=disabled</span><br><span class="line"><span class="comment"># SELINUXTYPE= can take one of three two values:</span></span><br><span class="line"><span class="comment">#     targeted - Targeted processes are protected,</span></span><br><span class="line"><span class="comment">#     minimum - Modification of targeted policy. Only selected processes are protected. </span></span><br><span class="line"><span class="comment">#     mls - Multi Level Security protection.</span></span><br><span class="line">SELINUXTYPE=targeted</span><br></pre></td></tr></table></figure>
+<h3 id="安装python-psycopg2"><a href="#安装python-psycopg2" class="headerlink" title="安装python-psycopg2"></a>安装python-psycopg2</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## psycopg2 库是 python 用来操作 postgreSQL 数据库的第三方库。使用时需要先进行安装。</span></span><br><span class="line"><span class="comment">## 这一步可以忽略，主要是为了后续HUE的使用。根据官方文档安装相关插件即可</span></span><br><span class="line">[root@node01 tools]<span class="comment">#  yum -y install python-pip</span></span><br><span class="line"><span class="comment">## 如果这一步提示报错，需要下载相关依赖插件，再次执行</span></span><br><span class="line">[root@node01 tools]<span class="comment"># yum -y install epel-release</span></span><br><span class="line">[root@node01 tools]<span class="comment"># yum -y install python-pip</span></span><br><span class="line">[root@node01 tools]<span class="comment"># pip install psycopg2==2.7.5 --ignore-installed</span></span><br></pre></td></tr></table></figure>
+<h3 id="集群时间同步（云服务器省略）"><a href="#集群时间同步（云服务器省略）" class="headerlink" title="集群时间同步（云服务器省略）"></a>集群时间同步（云服务器省略）</h3><h3 id="JDK安装"><a href="#JDK安装" class="headerlink" title="JDK安装"></a>JDK安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 为了避免后期环境冲突，建议将JDK安装在/usr/java目录下面</span></span><br><span class="line">[root@node01 tools]<span class="comment"># mkdir /usr/java</span></span><br><span class="line">[root@node01 tools]<span class="comment"># tar -zxvf jdk-8u162-linux-x64.tar.gz -C /usr/java/</span></span><br><span class="line"><span class="comment">## 修正所属用户及用户组</span></span><br><span class="line">[root@node01 tools]<span class="comment"># cd /usr/java/</span></span><br><span class="line">[root@node01 java]<span class="comment"># ll</span></span><br><span class="line">drwxr-xr-x. 8 10 143 255 12月 20 2017 jdk1.8.0_162</span><br><span class="line">[root@node01 java]<span class="comment"># chown -R root:root /usr/java/jdk1.8.0_162/</span></span><br><span class="line">[root@node01 java]<span class="comment"># ll</span></span><br><span class="line">drwxr-xr-x. 8 root root 255 12月 20 2017 jdk1.8.0_162</span><br><span class="line"><span class="comment">## 配置环境变量,末尾追加</span></span><br><span class="line">[root@node01 java]<span class="comment"># vim /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/usr/java/jdk1.8.0_162</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$JAVA_HOME</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"><span class="comment">## 使配置生效并查看</span></span><br><span class="line">[root@node01 java]<span class="comment"># source /etc/profile</span></span><br><span class="line">[root@node01 java]<span class="comment"># java -version</span></span><br><span class="line">java version <span class="string">"1.8.0_162"</span></span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_162-b12)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.162-b12, mixed mode)</span><br></pre></td></tr></table></figure>
+<h2 id="核心模块部署"><a href="#核心模块部署" class="headerlink" title="核心模块部署"></a>核心模块部署</h2><p>主要分为三个模块：MySQL部署、CM部署（Cloudera Manager）和 Parcel文件离线部署（Cloudera CDH）</p>
+<h3 id="MySQL部署"><a href="#MySQL部署" class="headerlink" title="MySQL部署"></a>MySQL部署</h3><p>说明：为了快捷，这里暂时采用RPM包部署，部署成功之后创建相关数据库，统一采用utf8编码格式。</p>
+<h4 id="检查是否安装MySQL"><a href="#检查是否安装MySQL" class="headerlink" title="检查是否安装MySQL"></a>检查是否安装MySQL</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 检查Linux是否安装MySQL</span></span><br><span class="line">rpm -qa|grep mysql</span><br><span class="line">mysql-community-libs-5.7.27-1.el7.x86_64</span><br><span class="line">mysql-community-client-5.7.27-1.el7.x86_64</span><br><span class="line">mysql-community-common-5.7.27-1.el7.x86_64</span><br><span class="line">mysql-community-libs-compat-5.7.27-1.el7.x86_64</span><br><span class="line">mysql-community-server-5.7.27-1.el7.x86_64</span><br><span class="line"><span class="comment">## 如果存在MySQL版本，卸载所有相关依赖。</span></span><br><span class="line">rpm -e --nodeps mysql-community-libs-5.7.27-1.el7.x86_64</span><br><span class="line">rpm -e --nodeps mysql-community-client-5.7.27-1.el7.x86_64</span><br><span class="line">rpm -e --nodeps mysql-community-common-5.7.27-1.el7.x86_64</span><br><span class="line">rpm -e --nodeps mysql-community-libs-compat-5.7.27-1.el7.x86_64</span><br><span class="line">rpm -e --nodeps mysql-community-server-5.7.27-1.el7.x86_64</span><br><span class="line"><span class="comment">## 注意：如果使用普通删除模式rpm -e mysql报错，可以采用强力删除模式rpm -e --nodeps mysql。</span></span><br><span class="line"><span class="comment">## 同时，如果存在已安装MySQL，这里还需要卸载相关配置文件，保证整个系统环境彻底干净。</span></span><br><span class="line">[root@hadoop01 opt]<span class="comment"># find / -name mysql</span></span><br><span class="line">/etc/selinux/targeted/active/modules/100/mysql</span><br><span class="line">/var/lib/mysql</span><br><span class="line">/var/lib/mysql/mysql</span><br><span class="line">/usr/share/mysql</span><br><span class="line"><span class="comment">## 这里我们直接采用`rm -rf`删除对应文件夹，同时删除MySQL配置文件`/etc/my.cnf`。</span></span><br></pre></td></tr></table></figure>
+<h4 id="检查是否安装MariaDB"><a href="#检查是否安装MariaDB" class="headerlink" title="检查是否安装MariaDB"></a>检查是否安装MariaDB</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 检查Linux是否安装MariaDB，如果是CentOS7版本，应该都有自带安装MariaDB。</span></span><br><span class="line">[root@node01 ~]<span class="comment"># rpm -qa|grep mariadb</span></span><br><span class="line">mariadb-libs-5.5.56-2.el7.x86_64</span><br><span class="line"><span class="comment">## 由于安装MySQL会和MariaDB的文件冲突，为了确保顺利安装，这里我们卸载MariaDB。</span></span><br><span class="line">[root@node01 ~]<span class="comment"># rpm -e mariadb-libs-5.5.56-2.el7.x86_64</span></span><br><span class="line">错误：依赖检测失败：</span><br><span class="line">	libmysqlclient.so.18()(64bit) 被 (已安裝) postfix-2:2.10.1-6.el7.x86_64 需要</span><br><span class="line">	libmysqlclient.so.18(libmysqlclient_18)(64bit) 被 (已安裝) postfix-2:2.10.1-6.el7.x86_64 需要</span><br><span class="line">[root@node01 ~]<span class="comment"># rpm -e --nodeps mariadb-libs-5.5.56-2.el7.x86_64</span></span><br><span class="line">[root@node01 ~]<span class="comment"># rpm -qa|grep mariadb</span></span><br></pre></td></tr></table></figure>
+<h4 id="解压安装"><a href="#解压安装" class="headerlink" title="解压安装"></a>解压安装</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 解压到指定目录</span></span><br><span class="line">[root@node01 tools]<span class="comment"># tar -xvf mysql-5.7.29-1.el7.x86_64.rpm-bundle.tar -C /opt/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 依次安装，注意：最后安装server的时候可能缺少依赖，根据实际情况下载相关依赖即可</span></span><br><span class="line">[root@node01 tools]<span class="comment">#   rpm -ivh mysql-community-common-5.7.27-1.el7.x86_64.rpm</span></span><br><span class="line">[root@node01 tools]<span class="comment">#   rpm -ivh mysql-community-libs-5.7.27-1.el7.x86_64.rpm</span></span><br><span class="line">[root@node01 tools]<span class="comment">#   rpm -ivh mysql-community-libs-compat-5.7.27-1.el7.x86_64.rpm</span></span><br><span class="line">[root@node01 tools]<span class="comment">#   rpm -ivh mysql-community-client-5.7.27-1.el7.x86_64.rpm</span></span><br><span class="line">[root@node01 tools]<span class="comment">#   rpm -ivh mysql-community-server-5.7.27-1.el7.x86_64.rpm</span></span><br><span class="line"><span class="comment">## 启动MySQL服务</span></span><br><span class="line">[root@node01 tools]<span class="comment"># systemctl status mysqld</span></span><br><span class="line">[root@node01 tools]<span class="comment"># systemctl start mysqld</span></span><br></pre></td></tr></table></figure>
+<h4 id="修改密码"><a href="#修改密码" class="headerlink" title="修改密码"></a>修改密码</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 我们先通过相关命令获取默认初始密码。</span></span><br><span class="line">[root@node01 opt]<span class="comment"># grep 'temporary password' /var/log/mysqld.log</span></span><br><span class="line">2019-07-24T13:21:36.471365Z 1 [Note] A temporary password is generated <span class="keyword">for</span> root@localhost: 6eNegsd3U!aC</span><br><span class="line"><span class="comment">## 根据临时密码登录MySQL</span></span><br><span class="line">[root@hadoop01 opt]<span class="comment"># mysql -u root -p</span></span><br><span class="line">Enter password: </span><br><span class="line">Welcome to the MySQL monitor.  Commands end with ; or \g.</span><br><span class="line">Your MySQL connection id is 2</span><br><span class="line">Server version: 5.7.27</span><br><span class="line"><span class="comment">## 登录成功之后，我们修改密码。需要注意的是，我们的密码如果太过简单，会被MySQL拒绝。具体如下：</span></span><br><span class="line">mysql&gt; ALTER USER <span class="string">'root'</span>@<span class="string">'localhost'</span> IDENTIFIED BY <span class="string">'root'</span> ;</span><br><span class="line">ERROR 1819 (HY000): Your password does not satisfy the current policy requirements</span><br><span class="line"><span class="comment">## 设置符合MySQL5.7规范的密码样式</span></span><br><span class="line">mysql&gt; alter user <span class="string">'root'</span>@<span class="string">'localhost'</span> identified by <span class="string">'Root_123456'</span>;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure>
+<h4 id="设置远程登录"><a href="#设置远程登录" class="headerlink" title="设置远程登录"></a>设置远程登录</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; use mysql;</span><br><span class="line">mysql&gt;update user set host&#x3D;&#39;%&#39; where user &#x3D;&#39;root&#39; and host like &#39;localhost%&#39;;</span><br><span class="line">mysql&gt;flush privileges;</span><br></pre></td></tr></table></figure>
+<h4 id="创建相关数据库及用户组"><a href="#创建相关数据库及用户组" class="headerlink" title="创建相关数据库及用户组"></a>创建相关数据库及用户组</h4><table>
+<thead>
+<tr>
+<th>数据库</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>cmf</td>
+<td>CDH的元数据库和用户</td>
+</tr>
+<tr>
+<td>amon</td>
+<td>amon服务的数据库和用户</td>
+</tr>
+</tbody></table>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create database amon default character set utf8;</span><br><span class="line">mysql&gt; create database cmf default character set utf8;</span><br><span class="line">mysql&gt; grant all on cmf.* to &#39;cmf&#39;@&#39;%&#39; identified by &#39;Root_123456&#39;;</span><br><span class="line">mysql&gt; grant all on amon.* to &#39;amon&#39;@&#39;%&#39; identified by &#39;Root_123456&#39;;</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+<h3 id="MySQL依赖jar包放入指定路径"><a href="#MySQL依赖jar包放入指定路径" class="headerlink" title="MySQL依赖jar包放入指定路径"></a>MySQL依赖jar包放入指定路径</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 创建指定目录</span></span><br><span class="line">[root@node01 opt]<span class="comment"># mkdir /usr/share/java</span></span><br><span class="line">[root@node01 opt]<span class="comment"># mv mysql-connector-java-5.1.48.jar /usr/share/java/</span></span><br><span class="line">[root@node01 opt]<span class="comment"># cd /usr/share/java/</span></span><br><span class="line"><span class="comment">## 修改jar包名称，去掉版本号</span></span><br><span class="line">[root@node01 java]<span class="comment"># mv mysql-connector-java-5.1.48.jar mysql-connector-java.jar</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="CM部署"><a href="#CM部署" class="headerlink" title="CM部署"></a>CM部署</h3><p>这里采用RPM包的形式部署</p>
+<h4 id="主节点部署server服务"><a href="#主节点部署server服务" class="headerlink" title="主节点部署server服务"></a>主节点部署server服务</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 解压文件得到相关rpm包，解压好之后rpm包位于./cm6.1.1/RPMS/x86_64/</span></span><br><span class="line">[root@node01 tools]<span class="comment"># tar -zxvf cm6.1.1-redhat7.tar.gz</span></span><br><span class="line"><span class="comment">## 这里根据实际情况采用yum install （依赖外网）或者rpm -ivh 安装（不依赖外网）</span></span><br><span class="line">[root@node01 x86_64]<span class="comment"># rpm -ivh cloudera-manager-daemons-6.1.1-853290.el7.x86_64.rpm --nodeps --force</span></span><br><span class="line">[root@node01 x86_64]<span class="comment"># rpm -ivh cloudera-manager-server-6.1.1-853290.el7.x86_64.rpm --nodeps --force</span></span><br><span class="line"><span class="comment">## 安装完成之后修改配置文件/etc/cloudera-scm-server/db.properties,根据实际情况修改</span></span><br><span class="line">com.cloudera.cmf.db.type=mysql</span><br><span class="line">com.cloudera.cmf.db.host=node01</span><br><span class="line"><span class="comment">## 这里使用我们之前创建的cmf元数据库信息</span></span><br><span class="line">com.cloudera.cmf.db.name=cmf</span><br><span class="line">com.cloudera.cmf.db.user=cmf</span><br><span class="line">com.cloudera.cmf.db.password=Root_123456</span><br><span class="line"><span class="comment">## 这里务必使用EXTERNAL类型</span></span><br><span class="line"><span class="comment"># If scm-server uses Embedded DB then it is set to EMBEDDED</span></span><br><span class="line"><span class="comment"># If scm-server uses External DB then it is set to EXTERNAL</span></span><br><span class="line">com.cloudera.cmf.db.setupType=EXTERNAL</span><br></pre></td></tr></table></figure>
+<h4 id="主节点启动server服务，配置阿里云安全组规则"><a href="#主节点启动server服务，配置阿里云安全组规则" class="headerlink" title="主节点启动server服务，配置阿里云安全组规则"></a>主节点启动server服务，配置阿里云安全组规则</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 opt]<span class="comment"># systemctl status cloudera-scm-server</span></span><br><span class="line">● cloudera-scm-server.service - Cloudera CM Server Service</span><br><span class="line">   Loaded: loaded (/usr/lib/systemd/system/cloudera-scm-server.service; enabled; vendor preset: disabled)</span><br><span class="line">   Active: inactive (dead)</span><br><span class="line">[root@node01 opt]<span class="comment"># systemctl start cloudera-scm-server</span></span><br><span class="line"><span class="comment">## 到指定路径查看日志信息，初始化一般需要等待一分钟</span></span><br><span class="line">[root@node01 opt]<span class="comment"># cd /var/log/cloudera-scm-server</span></span><br><span class="line"><span class="comment">## 启动成功之后配置阿里云安全组规则，开启7180端口（默认账号为admin/admin）</span></span><br></pre></td></tr></table></figure>
+<h4 id="主节点部署agent服务，修改配置文件"><a href="#主节点部署agent服务，修改配置文件" class="headerlink" title="主节点部署agent服务，修改配置文件"></a>主节点部署agent服务，修改配置文件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 安装agent</span></span><br><span class="line">[root@node01 x86_64]<span class="comment"># rpm -ivh cloudera-manager-agent-6.1.1-853290.el7.x86_64.rpm --nodeps --force</span></span><br><span class="line"><span class="comment">## 修改配置文件，指定server服务</span></span><br><span class="line">[root@node01 cloudera-scm-agent]<span class="comment"># vim config.ini </span></span><br><span class="line">[General]</span><br><span class="line"><span class="comment"># Hostname of the CM server.</span></span><br><span class="line">server_host=node01</span><br></pre></td></tr></table></figure>
+<h4 id="其它从节点部署agent服务，修改配置文件"><a href="#其它从节点部署agent服务，修改配置文件" class="headerlink" title="其它从节点部署agent服务，修改配置文件"></a>其它从节点部署agent服务，修改配置文件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node02 x86_64]<span class="comment"># rpm -ivh cloudera-manager-daemons-6.1.1-853290.el7.x86_64.rpm --nodeps --force</span></span><br><span class="line">[root@node02 x86_64]<span class="comment"># rpm -ivh cloudera-manager-agent-6.1.1-853290.el7.x86_64.rpm --nodeps --force</span></span><br><span class="line"><span class="comment">## 修改配置文件，指定server服务</span></span><br><span class="line"><span class="comment">## 配置完成之后，启动所有节点agent服务</span></span><br><span class="line">[root@node01 opt]<span class="comment"># systemctl start cloudera-scm-agent</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Parcel包裹文件部署"><a href="#Parcel包裹文件部署" class="headerlink" title="Parcel包裹文件部署"></a>Parcel包裹文件部署</h3><h4 id="Parcel文件校验"><a href="#Parcel文件校验" class="headerlink" title="Parcel文件校验"></a>Parcel文件校验</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##文件内容</span></span><br><span class="line">[root@node01 tools]<span class="comment"># cat CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel.sha256 </span></span><br><span class="line">3ff9368f46363a6a31ada79c176945f6a6efa6ccf1a5b441f2854bafa7c12be4</span><br><span class="line"><span class="comment">##校验值，与文件内容一致说明文件完整</span></span><br><span class="line">[root@node01 tools]<span class="comment"># sha256sum CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel</span></span><br><span class="line">3ff9368f46363a6a31ada79c176945f6a6efa6ccf1a5b441f2854bafa7c12be4  CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel</span><br></pre></td></tr></table></figure>
+<h4 id="修改文件后缀名"><a href="#修改文件后缀名" class="headerlink" title="修改文件后缀名"></a>修改文件后缀名</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 去掉末尾数字</span></span><br><span class="line">[root@node01 tools]<span class="comment"># mv CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel.sha256 CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel.sha</span></span><br></pre></td></tr></table></figure>
+<h4 id="安装httpd"><a href="#安装httpd" class="headerlink" title="安装httpd"></a>安装httpd</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 tools]<span class="comment"># yum install -y httpd</span></span><br><span class="line"><span class="comment">## 将parcel包裹文件移动至指定目录</span></span><br><span class="line">[root@node01 tools]<span class="comment"># mkdir /var/www/html/cdh6_parcel</span></span><br><span class="line">[root@node01 tools]<span class="comment"># mv CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel* manifest.json /var/www/html/cdh6_parcel/</span></span><br><span class="line"><span class="comment">## 启动httpd服务，可以通过web访问：node01:80/cdh6_parcel</span></span><br><span class="line">[root@node01 tools]<span class="comment"># systemctl start httpd</span></span><br></pre></td></tr></table></figure>
+<h3 id="web界面操作"><a href="#web界面操作" class="headerlink" title="web界面操作"></a>web界面操作</h3><p>这一步主要是选择parcel离线源:<a href="http://node01/cdh6_parcel/" target="_blank" rel="noopener">http://node01/cdh6_parcel/</a><br>注意事项一：选用阿里云内网地址（正常情况下在集群初始化中已经配置到hosts文件中）<br>注意事项二：选用http协议，不要使用https<br>注意事项三：部署过程中的Cloudera Management Service中的其它节点如果选择非node01,需要保证相关节点存在/usr/share/java/mysql-connector-java.jar文件，否则会报错<br>注意事项四：一定要选择自定义服务</p>
+<h4 id="Step1：选择版本"><a href="#Step1：选择版本" class="headerlink" title="Step1：选择版本"></a>Step1：选择版本</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_select_edition.png" class="">
+<h4 id="Step2：选择主机"><a href="#Step2：选择主机" class="headerlink" title="Step2：选择主机"></a>Step2：选择主机</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_specify_hosts.png" class="">
+<h4 id="Step3：选择存储库"><a href="#Step3：选择存储库" class="headerlink" title="Step3：选择存储库"></a>Step3：选择存储库</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_select_repository_01.png" class="">
+<img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_select_repository_02.png" class="">
+<h4 id="Step4：检查主机正确性"><a href="#Step4：检查主机正确性" class="headerlink" title="Step4：检查主机正确性"></a>Step4：检查主机正确性</h4><p>这一步可能会出现部分问题，具体解决方案可以根据实际情况自行处理。CDH官方文档中都有详细的解决方案。</p>
+<h5 id="问题一：Cloudera-建议将-proc-sys-vm-swappiness-设置为最大值-10"><a href="#问题一：Cloudera-建议将-proc-sys-vm-swappiness-设置为最大值-10" class="headerlink" title="问题一：Cloudera 建议将 /proc/sys/vm/swappiness 设置为最大值 10"></a>问题一：Cloudera 建议将 /proc/sys/vm/swappiness 设置为最大值 10</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">## 临时处理</span><br><span class="line">[root@node01 tools]# sysctl vm.swappiness&#x3D;10</span><br><span class="line">## 永久处理</span><br><span class="line">[root@node01 tools]# echo &#39;vm.swappiness&#x3D;10&#39;&gt;&gt; &#x2F;etc&#x2F;sysctl.conf</span><br></pre></td></tr></table></figure>
+<h5 id="问题二：已启用透明大页面压缩，可能会导致重大性能问题。"><a href="#问题二：已启用透明大页面压缩，可能会导致重大性能问题。" class="headerlink" title="问题二：已启用透明大页面压缩，可能会导致重大性能问题。"></a>问题二：已启用透明大页面压缩，可能会导致重大性能问题。</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 临时处理</span></span><br><span class="line">[root@node01 tools]<span class="comment"># echo never &gt; /sys/kernel/mm/transparent_hugepage/defrag</span></span><br><span class="line">[root@node01 tools]<span class="comment"># echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled</span></span><br><span class="line"><span class="comment">## 永久处理</span></span><br><span class="line">[root@node01 tools]<span class="comment"># vim /etc/rc.local</span></span><br><span class="line"><span class="comment">## 末尾追加</span></span><br><span class="line"><span class="built_in">echo</span> never &gt; /sys/kernel/mm/transparent_hugepage/defrag</span><br><span class="line"><span class="built_in">echo</span> never &gt; /sys/kernel/mm/transparent_hugepage/enabled</span><br><span class="line"><span class="comment">## 根据提示，给文件重新赋权</span></span><br><span class="line"><span class="comment"># Please note that you must run 'chmod +x /etc/rc.d/rc.local' to ensure</span></span><br><span class="line"><span class="comment"># that this script will be executed during boot.</span></span><br><span class="line">[root@node01 tools]<span class="comment"># chmod +x /etc/rc.d/rc.local</span></span><br></pre></td></tr></table></figure>
+<img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_inspect_hosts.png" class="">
+<h4 id="Step5：自定义服务"><a href="#Step5：自定义服务" class="headerlink" title="Step5：自定义服务"></a>Step5：自定义服务</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_custom_services.png" class="">
+<h4 id="Step6：自定义角色分配"><a href="#Step6：自定义角色分配" class="headerlink" title="Step6：自定义角色分配"></a>Step6：自定义角色分配</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_assign_roles.png" class="">
+<h4 id="Step7：数据库设置"><a href="#Step7：数据库设置" class="headerlink" title="Step7：数据库设置"></a>Step7：数据库设置</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_setup_database.png" class="">
+<h4 id="Step8：主页展示"><a href="#Step8：主页展示" class="headerlink" title="Step8：主页展示"></a>Step8：主页展示</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_home_page.png" class="">
+<h5 id="主页告警及配置问题解决"><a href="#主页告警及配置问题解决" class="headerlink" title="主页告警及配置问题解决"></a>主页告警及配置问题解决</h5><p>这里出现红色配置告警：Cloudera Manager Server GC cpu usage is at 10% or more of total process time.<br>暂不影响，稍等一会儿刷新即可。<br>其它非红色警告，前期可以直接抑制处理。</p>
+<h2 id="HDFS-HA配置"><a href="#HDFS-HA配置" class="headerlink" title="HDFS HA配置"></a>HDFS HA配置</h2><p>官方文档：<a href="https://docs.cloudera.com/documentation/enterprise/6/6.1/topics/cdh_hag_hdfs_ha_intro.html" target="_blank" rel="noopener">https://docs.cloudera.com/documentation/enterprise/6/6.1/topics/cdh_hag_hdfs_ha_intro.html</a></p>
+<h3 id="Step1：启用HA"><a href="#Step1：启用HA" class="headerlink" title="Step1：启用HA"></a>Step1：启用HA</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_hdfs_ha_startup.png" class="">
+<h3 id="Step2：nameservice名称"><a href="#Step2：nameservice名称" class="headerlink" title="Step2：nameservice名称"></a>Step2：nameservice名称</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_hdfs_ha_nameservice.png" class="">
+<h3 id="Step3：分配角色"><a href="#Step3：分配角色" class="headerlink" title="Step3：分配角色"></a>Step3：分配角色</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_hdfs_ha_assign_roles.png" class="">
+<h3 id="Step4：编辑目录"><a href="#Step4：编辑目录" class="headerlink" title="Step4：编辑目录"></a>Step4：编辑目录</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_hdfs_ha_edit_directory.png" class="">
+<h3 id="Step5：启动服务"><a href="#Step5：启动服务" class="headerlink" title="Step5：启动服务"></a>Step5：启动服务</h3><p>注意：这里会出现 Failed to format NameNode<br>原因分析：正常现象，这是有以前集群的数据同步到HA集群中，可忽略，直接下一步操作，等待HA部署完成即可。</p>
+<img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_hdfs_ha_startup_service.png" class="">
+
+<h2 id="YARN-HA配置"><a href="#YARN-HA配置" class="headerlink" title="YARN HA配置"></a>YARN HA配置</h2><h3 id="Step1：启用HA-1"><a href="#Step1：启用HA-1" class="headerlink" title="Step1：启用HA"></a>Step1：启用HA</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_yarn_ha_startup.png" class="">
+<h3 id="Step2：配置主机"><a href="#Step2：配置主机" class="headerlink" title="Step2：配置主机"></a>Step2：配置主机</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_yarn_ha_assign_roles.png" class="">
+<h3 id="Step3：启动服务"><a href="#Step3：启动服务" class="headerlink" title="Step3：启动服务"></a>Step3：启动服务</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_yarn_ha_startup_service.png" class="">
+
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CDH%E9%83%A8%E7%BD%B2/" rel="tag">CDH部署</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2020
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+  
+<script src="/js/clickLove.js"></script>
+
+
+
+<!-- 复制 -->
+
+  
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+
+    
+  </div>
+</body>
+
+</html>
