@@ -1,700 +1,711 @@
 <!DOCTYPE html>
-<html>
+
+
+<html lang="zh-CN">
+
+
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+     大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
   
 
   
-  <title>大数据学习笔记</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="try everything!">
-<meta property="og:type" content="website">
-<meta property="og:title" content="大数据学习笔记">
-<meta property="og:url" content="http://yoursite.com/index.html">
-<meta property="og:site_name" content="大数据学习笔记">
-<meta property="og:description" content="try everything!">
-<meta property="og:locale" content="zh_CN">
-<meta property="article:author" content="henrrywan">
-<meta property="article:tag" content="hadoop">
-<meta property="article:tag" content="hive">
-<meta property="article:tag" content="spark">
-<meta name="twitter:card" content="summary">
-  
-    <link rel="alternate" href="/atom.xml" title="大数据学习笔记" type="application/atom+xml">
-  
-  
-    <link rel="icon" href="/favicon.png">
-  
-  
-    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
-  
-  
-<link rel="stylesheet" href="/css/style.css">
 
-<meta name="generator" content="Hexo 4.2.0"></head>
+</head>
+
+</html>
 
 <body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">大数据学习笔记</a>
-      </h1>
+  <div id="app">
+    <main class="content on">
       
-        <h2 id="subtitle-wrap">
-          <a href="/" id="subtitle">henrrywan</a>
-        </h2>
-      
+<section class="cover">
+    
+  <div class="cover-frame">
+    <div class="bg-box">
+      <img src="/images/cover1.jpg" alt="image frame" />
     </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
+    <div class="cover-inner text-center text-white">
+      <h1><a href="/">大数据学习笔记</a></h1>
+      <div id="subtitle-box">
         
-          <a class="main-nav-link" href="/">Home</a>
+          <span id="subtitle">henrrywan</span>
         
-          <a class="main-nav-link" href="/archives">Archives</a>
+      </div>
+      <div>
         
-      </nav>
-      <nav id="sub-nav">
-        
-          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
-        
-        <a id="nav-search-btn" class="nav-icon" title="搜索"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
       </div>
     </div>
   </div>
-</header>
-      <div class="outer">
-        <section id="main">
-  
-    <article id="post-Flink/初识Flink" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/" class="article-date">
+  <div class="cover-learn-more">
+    <a href="javascript:void(0)" class="anchor"><i class="ri-arrow-down-line"></i></a>
+  </div>
+</section>
+
+
+
+<div id="main">
+  <section class="outer">
+  <article class="articles">
+    
+    
+    
+    
+    <article id="post-Flink/初识Flink" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/"
+    >初识Flink</a> 
+</h2>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/" class="article-date">
   <time datetime="2020-03-01T02:00:00.000Z" itemprop="datePublished">2020-03-01</time>
 </a>
-    
+      
   <div class="article-category">
     <a class="article-category-link" href="/categories/Flink/">Flink</a>
   </div>
 
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/">初识Flink</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="初识Flink"><a href="#初识Flink" class="headerlink" title="初识Flink"></a>初识Flink</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这个章节是Flink入门学习的开篇。在这一章中我们主要学习以下内容：</p>
-<ul>
-<li>Flink的定义</li>
-<li>Flink的常用场景</li>
-</ul>
-<h2 id="Apache-Flink是什么？"><a href="#Apache-Flink是什么？" class="headerlink" title="Apache Flink是什么？"></a>Apache Flink是什么？</h2><p>在<a href="https://flink.apache.org/" target="_blank" rel="noopener">Flink官网</a>首页，首先用了很简短的一句话来介绍Flink：<br><strong>Apache Flink——Stateful Computations over Data Streams</strong>（数据流上的有状态计算）<br>从这句话我们可以看出，Flink最重要的部分应该就是“Stateful Computations（有状态的计算）”。那么，什么是“有状态的计算”？这个需要我们在学习中慢慢去理解，这里先不展开说明。<br>接下来，官网又对Flink进行了进一步的说明：<br><strong>Apache Flink is a framework and distributed processing engine for stateful computations over unbounded and bounded data streams</strong>（Apache Flink 是一个框架和分布式处理引擎，用于在无边界和有边界数据流上进行有状态的计算。）<br>相较于上面的介绍，下里的介绍中引入了一个新的概念：<strong>unbounded and bounded</strong>（无边界和有边界）。我们首先来学习一下Flink中对“边界”的定义。</p>
-<h4 id="处理无界和有界数据"><a href="#处理无界和有界数据" class="headerlink" title="处理无界和有界数据"></a>处理无界和有界数据</h4><p>首先我们需要明确流的概念：任何类型的数据都可以形成一种事件流。例如信用卡交易数据、传感器测量数据、机器日志数据等，所有的这些数据都可以形成一种流。<br>数据可以被作为无界或者有界流来处理。</p>
-<img src="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/bounded-unbounded.png" class="">
-<p>从这张图片我们可以清楚的看出两者的区别：<br><strong>无界流（unbounded stream）：定义流的开始，但是没有定义流的结束。</strong> 它们会无休止地产生数据。无界流的数据必须持续处理，即数据被摄取后需要立刻处理。我们不能等到所有数据都到达再处理，因为输入是无限的，在任何时候输入都不会完成。处理无界流数据通常要求以特定顺序摄取事件，例如事件发生的顺序，以便能够推断结果的完整性。<br><strong>有界流（bounded stream）：定义流的开始，也有定义流的结束。</strong> 有界流可以在摄取所有数据后再进行计算。有界流所有数据都可以被排序，所以并不需要有序摄取。<strong>有界流处理通常被称为批处理。</strong></p>
-<h2 id="Use-Cases（应用场景）"><a href="#Use-Cases（应用场景）" class="headerlink" title="Use Cases（应用场景）"></a>Use Cases（应用场景）</h2><p>Flink的常见应用场景，主要分为以下三个方向。</p>
-<ul>
-<li>Event-driven Applications （事件驱动型应用）</li>
-<li>Data Analytics Applications（数据分析应用）</li>
-<li>Data Pipeline Applications （数据管道应用）</li>
-</ul>
-<h3 id="事件驱动型应用"><a href="#事件驱动型应用" class="headerlink" title="事件驱动型应用"></a>事件驱动型应用</h3><h4 id="什么是事件驱动型应用？"><a href="#什么是事件驱动型应用？" class="headerlink" title="什么是事件驱动型应用？"></a>什么是事件驱动型应用？</h4><p>事件驱动型应用是一类具有状态的应用，它从一个或多个事件流提取数据，并根据到来的事件触发计算、状态更新或其它外部操作。<br>事件驱动型应用是在计算存储分离的传统应用基础上进化而来。在传统架构中，应用需要读写远程事务型数据库。<br>相反，事件驱动型应用是<strong>基于状态化流处理</strong>来完成。在该设计中，数据和计算不会分离，应用只需要访问本地（内存或磁盘）即可获取数据。<strong>系统容错性的实现依赖于定期向远程持久化存储写入checkpoint。</strong> 下图描述了传统应用和事件驱动型应用架构的区别。</p>
-<img src="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/usecases-eventdrivenapps.png" class="">
-
-<h4 id="事件驱动型应用的优势？"><a href="#事件驱动型应用的优势？" class="headerlink" title="事件驱动型应用的优势？"></a>事件驱动型应用的优势？</h4><p>事件驱动型应用<strong>无须查询远程数据库，本地数据访问使得它具有更高的吞吐和更低的延迟</strong>。而由于定期向远程持久化存储的checkpoint工作可以异步、增量式完成，因此对于正常事件处理的影响甚微。<br>事件驱动型应用的<strong>优势不仅限于本地数据访问</strong>。 传统分层架构下，通常多个应用会共享同一个数据库，因而任何对数据库自身的更改（例如：由应用更新或服务扩容导致数据布局发生改变）都需要谨慎协调。反观事件驱动型应用，由于只需要考虑自身数据，因此在更改数据表示或服务扩容时所需的协调工作将大大减少。</p>
-<h4 id="Flink如何支持事件驱动型应用？"><a href="#Flink如何支持事件驱动型应用？" class="headerlink" title="Flink如何支持事件驱动型应用？"></a>Flink如何支持事件驱动型应用？</h4><p>事件驱动型应用会受制于底层流处理系统对时间和状态的把控能力，Flink诸多优秀特质都是围绕这些方面来设计的。它提供了一系列丰富的状态操作原语，允许以<strong>exactly-once</strong> （精确一次）的一致性语义合并海量规模（TB级别）的状态数据。此外，Flink还支持<strong>event-time</strong>（事件时间）和自由度极高的定制化窗口逻辑，而且它内置的ProcessFunction支持细粒度时间控制，方便实现一些高级业务逻辑。同时Flink还拥有一个复杂事件处理（CEP）类库，可以用来检测数据流中的模式。<br>Flink中针对事件驱动型应用的明星特性当属<strong>savepoint</strong>。Savepoint是一个一致性的状态映像，它可以用来初始化任意状态兼容的应用。在完成一次savepoint后，即可放心对应用升级或扩容，还可以启动多个版本的应用来完成A/B测试。</p>
-<h4 id="典型的事件驱动型应用实例"><a href="#典型的事件驱动型应用实例" class="headerlink" title="典型的事件驱动型应用实例"></a>典型的事件驱动型应用实例</h4><ul>
-<li>反欺诈</li>
-<li>异常检测</li>
-<li>基于规则的报警</li>
-<li>业务流程监控</li>
-<li>（社交网络）Web应用</li>
-</ul>
-<h3 id="数据分析应用"><a href="#数据分析应用" class="headerlink" title="数据分析应用"></a>数据分析应用</h3><h4 id="什么是数据分析应用？"><a href="#什么是数据分析应用？" class="headerlink" title="什么是数据分析应用？"></a>什么是数据分析应用？</h4><p>数据分析应用需要从原始数据中提取有价值的信息和指标。传统的分析方式通常是利用批查询，或将事件记录下来并基于此有限数据集构建应用来完成。为了得到最新数据的分析结果，必须先将它们加入分析数据集并重新执行查询或运行应用，随后将结果写入存储系统或生成报告。<br>和传统模式下读取有限数据集不同，流式查询或应用会接入实时事件流，并随着事件消费持续产生和更新结果。这些结果数据可能会写入外部数据库系统或以内部状态的形式维护。仪表展示应用可以相应地从外部数据库读取数据或直接查询应用的内部状态。<br>如下图所示，Flink同时支持流式及批量分析应用。</p>
-<img src="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/usecases-analytics.png" class="">
-
-<h4 id="流式分析应用的优势？"><a href="#流式分析应用的优势？" class="headerlink" title="流式分析应用的优势？"></a>流式分析应用的优势？</h4><p>和批量分析相比，由于流式分析省掉了周期性的数据导入和查询过程。因此<strong>从事件中获取指标的延迟更低</strong>。不仅如此，批量查询必须处理那些定期导入和输入有界性导致的人工数据边界，而流式查询则无须考虑该问题。<br>另一方面，流式分析会简化应用抽象。批量查询的流水线通常由多个独立部件组成，需要周期性地调度提取数据和执行查询。如此复杂的流水线操作起来并不容易，一旦某个组件出错将会影响流水线的后续步骤。而流式分析应用整体运行在Flink之类的高端流处理系统之上，涵盖了从数据接入到连续结果计算的所有步骤，因此可以依赖底层引擎提供的故障恢复机制。</p>
-<h4 id="Flink如何支持数据分析类应用？"><a href="#Flink如何支持数据分析类应用？" class="headerlink" title="Flink如何支持数据分析类应用？"></a>Flink如何支持数据分析类应用？</h4><p>Flink为持续流式分析和批量都提供了良好的支持。具体而言，Flink内置了一个符合ANSI标准的SQL接口，将批、流查询的语义统一起来。无论是在记录事件的静态数据集上还是实时事件流上，相同SQL查询都会得到一致的结果。同时，Flink还支持丰富的用户自定义函数，允许在SQL中执行定制化代码。如果还需要进一步定制逻辑，可以利用Flink DataStream API和DataSet API进行更低层次的控制。此外，Flink的Gelly库为基于批量数据集的大规模高性能图分析提供了算法和构建模块支持。</p>
-<h4 id="典型的数据分析应用实例"><a href="#典型的数据分析应用实例" class="headerlink" title="典型的数据分析应用实例"></a>典型的数据分析应用实例</h4><ul>
-<li>电信网络质量监控</li>
-<li>移动应用中的产品更新及实验评估分析</li>
-<li>消费者技术中的实时数据即席分析</li>
-<li>大规模图分析</li>
-</ul>
-<h3 id="数据管道应用"><a href="#数据管道应用" class="headerlink" title="数据管道应用"></a>数据管道应用</h3><h4 id="什么是数据管道？"><a href="#什么是数据管道？" class="headerlink" title="什么是数据管道？"></a>什么是数据管道？</h4><p>ETL（抽取-转换-加载）是一种在存储系统之间进行数据转换和迁移的常用方法。ETL作业通常会周期性地触发，将数据从事务型数据库拷贝到分析型数据库或数据仓库。<br>数据管道和ETL作业的用途相似，都可以转换、丰富数据，并将其从某个存储系统中移动到另一个。但<strong>数据管道是以持续流模式运行</strong>，而非周期性触发。因此，它支持从一个不断生成数据的源头读取记录，并将它们以低延迟移动到终点。例如：数据管道可以用来监控文件系统目录中的新文件，并将数据写入事件日志；另一个应用可能会将事件流物化到数据库或增量构建和优化查询索引。<br>下图描述了周期性ETL作业和持续数据管道的差异。</p>
-<img src="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/usecases-datapipelines.png" class="">
-
-<h4 id="数据管道的优势"><a href="#数据管道的优势" class="headerlink" title="数据管道的优势"></a>数据管道的优势</h4><p>和周期性ETL作业相比，<strong>持续数据管道可以明显降低将数据移动到目的端的延迟</strong>。此外，由于它能够持续消费和发送数据，因此用途更广，支持用例更多。</p>
-<h4 id="Flink如何支持数据管道应用？"><a href="#Flink如何支持数据管道应用？" class="headerlink" title="Flink如何支持数据管道应用？"></a>Flink如何支持数据管道应用？</h4><p>很多常见的数据转换和增强操作都可以利用Flink的SQL接口（或Table API）及用户自定义函数解决。如果数据管道有更高级的需求，可以选择更通用的DataStream API来实现。Flink为多种数据存储系统（如Kafka、ElasticSearch、JDBC数据库系统等）内置了连接器。同时它还提供了文件系统的连续型数据源及数据汇，可用来监控目录变化和以时间分区的方式写入文件。</p>
-<h4 id="典型的数据管道应用实例"><a href="#典型的数据管道应用实例" class="headerlink" title="典型的数据管道应用实例"></a>典型的数据管道应用实例</h4><ul>
-<li>电子商务中的实时查询索引构建</li>
-<li>电子商务中的持续ETL</li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在这一章节中，我们初步了解了什么是Flink以及Flink的常用应用场景。在下一章节中，我们将学习如何在Linux和Mac OS X环境上搭建Flink。</p>
-
+      
       
     </div>
+    
+
+    
+
+    
+    
+    
+      <!-- copyright -->
+      
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/" data-id="ckazhz16700063ssr7f6ngok5" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" rel="tag">Flink入门学习</a></li></ul>
 
+
     </footer>
+
   </div>
+
   
+
+  
+
+  
+  
+  
+
 </article>
+    
+    <article id="post-CDH/CDH6.1.1离线部署" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
 
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/"
+    >CDH6.1.1离线部署</a> 
+</h2>
+ 
 
-  
-    <article id="post-CDH/CDH6.1.1离线部署" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/" class="article-date">
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/" class="article-date">
   <time datetime="2020-01-01T14:00:00.000Z" itemprop="datePublished">2020-01-01</time>
 </a>
-    
+      
   <div class="article-category">
     <a class="article-category-link" href="/categories/CDH/">CDH</a>
   </div>
 
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/">CDH6.1.1离线部署</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="CDH6-1-1离线部署"><a href="#CDH6-1-1离线部署" class="headerlink" title="CDH6.1.1离线部署"></a>CDH6.1.1离线部署</h1><h2 id="节点规划"><a href="#节点规划" class="headerlink" title="节点规划"></a>节点规划</h2><table>
-<thead>
-<tr>
-<th>节点</th>
-<th>JDK1.8</th>
-<th>Parcel文件离线源</th>
-<th>MySQL5.7</th>
-<th>CM服务进程</th>
-<th>大数据组件</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>node01</td>
-<td>√</td>
-<td>√</td>
-<td>√</td>
-<td>Activity Monitor等</td>
-<td>NN、JournalNode</td>
-</tr>
-<tr>
-<td>node02</td>
-<td>√</td>
-<td></td>
-<td></td>
-<td></td>
-<td>NN、JournalNode</td>
-</tr>
-<tr>
-<td>node03</td>
-<td>√</td>
-<td></td>
-<td></td>
-<td></td>
-<td>DN、ZK、JournalNode</td>
-</tr>
-<tr>
-<td>node04</td>
-<td>√</td>
-<td></td>
-<td></td>
-<td></td>
-<td>DN、ZK</td>
-</tr>
-<tr>
-<td>node05</td>
-<td>√</td>
-<td></td>
-<td></td>
-<td></td>
-<td>DN、ZK</td>
-</tr>
-</tbody></table>
-<h2 id="相关资源"><a href="#相关资源" class="headerlink" title="相关资源"></a>相关资源</h2><h3 id="文档资源"><a href="#文档资源" class="headerlink" title="文档资源"></a>文档资源</h3><ul>
-<li>Cloudera官网文档：<a href="https://docs.cloudera.com/documentation/index.html" target="_blank" rel="noopener">https://docs.cloudera.com/documentation/index.html</a></li>
-</ul>
-<h3 id="下载资源"><a href="#下载资源" class="headerlink" title="下载资源"></a>下载资源</h3><ul>
-<li><p>Cloudera Manager下载：<a href="https://archive.cloudera.com/cm6/6.1.1/repo-as-tarball/" target="_blank" rel="noopener">https://archive.cloudera.com/cm6/6.1.1/repo-as-tarball/</a></p>
-</li>
-<li><p>Cloudera CDH下载：<a href="https://archive.cloudera.com/cdh6/6.1.1/parcels/" target="_blank" rel="noopener">https://archive.cloudera.com/cdh6/6.1.1/parcels/</a></p>
-</li>
-<li><p>MySQL相关jar包：<a href="https://mvnrepository.com/artifact/mysql/mysql-connector-java" target="_blank" rel="noopener">https://mvnrepository.com/artifact/mysql/mysql-connector-java</a></p>
-</li>
-<li><p>MySQL下载：<a href="https://downloads.mysql.com/archives/community/" target="_blank" rel="noopener">https://downloads.mysql.com/archives/community/</a></p>
-</li>
-<li><p>JDK下载：<a href="https://www.oracle.com/java/technologies/javase-jdk8-downloads.html" target="_blank" rel="noopener">https://www.oracle.com/java/technologies/javase-jdk8-downloads.html</a></p>
-</li>
-</ul>
-<h2 id="集群初始化准备"><a href="#集群初始化准备" class="headerlink" title="集群初始化准备"></a>集群初始化准备</h2><h3 id="服务器准备"><a href="#服务器准备" class="headerlink" title="服务器准备"></a>服务器准备</h3><p>阿里云服务器五台，基本配置：2核16G,CentOS7.2 64位</p>
-<h3 id="配置所有节点hostname"><a href="#配置所有节点hostname" class="headerlink" title="配置所有节点hostname"></a>配置所有节点hostname</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 opt]<span class="comment"># hostnamectl set-hostname node01</span></span><br><span class="line">[root@node02 opt]<span class="comment"># hostnamectl set-hostname node02</span></span><br><span class="line">[root@node03 opt]<span class="comment"># hostnamectl set-hostname node03</span></span><br><span class="line">[root@node04 opt]<span class="comment"># hostnamectl set-hostname node04</span></span><br><span class="line">[root@node05 opt]<span class="comment"># hostnamectl set-hostname node05</span></span><br></pre></td></tr></table></figure>
-<h3 id="配置所有节点主机名与IP地址对应关系"><a href="#配置所有节点主机名与IP地址对应关系" class="headerlink" title="配置所有节点主机名与IP地址对应关系"></a>配置所有节点主机名与IP地址对应关系</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 阿里云服务器统一使用内网IP</span></span><br><span class="line">[root@node01 opt]<span class="comment"># cat /etc/hosts</span></span><br><span class="line">127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4</span><br><span class="line">::1         localhost localhost.localdomain localhost6 localhost6.localdomain6</span><br><span class="line">172.26.56.41 node01</span><br><span class="line">172.26.56.42 node02</span><br><span class="line">172.26.56.43 node03</span><br><span class="line">172.26.56.44 node04</span><br><span class="line">172.26.56.45 node05</span><br></pre></td></tr></table></figure>
-<h3 id="关闭所有节点防火墙并清空规则"><a href="#关闭所有节点防火墙并清空规则" class="headerlink" title="关闭所有节点防火墙并清空规则"></a>关闭所有节点防火墙并清空规则</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 opt]<span class="comment"># systemctl stop firewalld</span></span><br><span class="line">[root@node01 opt]<span class="comment"># systemctl disable firewalld</span></span><br><span class="line">[root@node01 opt]<span class="comment"># iptables -F</span></span><br></pre></td></tr></table></figure>
-<h3 id="关闭所有节点selinux"><a href="#关闭所有节点selinux" class="headerlink" title="关闭所有节点selinux"></a>关闭所有节点selinux</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 opt]<span class="comment"># cat /etc/selinux/config </span></span><br><span class="line"><span class="comment"># This file controls the state of SELinux on the system.</span></span><br><span class="line"><span class="comment"># SELINUX= can take one of these three values:</span></span><br><span class="line"><span class="comment">#     enforcing - SELinux security policy is enforced.</span></span><br><span class="line"><span class="comment">#     permissive - SELinux prints warnings instead of enforcing.</span></span><br><span class="line"><span class="comment">#     disabled - No SELinux policy is loaded.</span></span><br><span class="line">SELINUX=disabled</span><br><span class="line"><span class="comment"># SELINUXTYPE= can take one of three two values:</span></span><br><span class="line"><span class="comment">#     targeted - Targeted processes are protected,</span></span><br><span class="line"><span class="comment">#     minimum - Modification of targeted policy. Only selected processes are protected. </span></span><br><span class="line"><span class="comment">#     mls - Multi Level Security protection.</span></span><br><span class="line">SELINUXTYPE=targeted</span><br></pre></td></tr></table></figure>
-<h3 id="安装python-psycopg2"><a href="#安装python-psycopg2" class="headerlink" title="安装python-psycopg2"></a>安装python-psycopg2</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## psycopg2 库是 python 用来操作 postgreSQL 数据库的第三方库。使用时需要先进行安装。</span></span><br><span class="line"><span class="comment">## 这一步可以忽略，主要是为了后续HUE的使用。根据官方文档安装相关插件即可</span></span><br><span class="line">[root@node01 tools]<span class="comment">#  yum -y install python-pip</span></span><br><span class="line"><span class="comment">## 如果这一步提示报错，需要下载相关依赖插件，再次执行</span></span><br><span class="line">[root@node01 tools]<span class="comment"># yum -y install epel-release</span></span><br><span class="line">[root@node01 tools]<span class="comment"># yum -y install python-pip</span></span><br><span class="line">[root@node01 tools]<span class="comment"># pip install psycopg2==2.7.5 --ignore-installed</span></span><br></pre></td></tr></table></figure>
-<h3 id="集群时间同步（云服务器省略）"><a href="#集群时间同步（云服务器省略）" class="headerlink" title="集群时间同步（云服务器省略）"></a>集群时间同步（云服务器省略）</h3><h3 id="JDK安装"><a href="#JDK安装" class="headerlink" title="JDK安装"></a>JDK安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 为了避免后期环境冲突，建议将JDK安装在/usr/java目录下面</span></span><br><span class="line">[root@node01 tools]<span class="comment"># mkdir /usr/java</span></span><br><span class="line">[root@node01 tools]<span class="comment"># tar -zxvf jdk-8u162-linux-x64.tar.gz -C /usr/java/</span></span><br><span class="line"><span class="comment">## 修正所属用户及用户组</span></span><br><span class="line">[root@node01 tools]<span class="comment"># cd /usr/java/</span></span><br><span class="line">[root@node01 java]<span class="comment"># ll</span></span><br><span class="line">drwxr-xr-x. 8 10 143 255 12月 20 2017 jdk1.8.0_162</span><br><span class="line">[root@node01 java]<span class="comment"># chown -R root:root /usr/java/jdk1.8.0_162/</span></span><br><span class="line">[root@node01 java]<span class="comment"># ll</span></span><br><span class="line">drwxr-xr-x. 8 root root 255 12月 20 2017 jdk1.8.0_162</span><br><span class="line"><span class="comment">## 配置环境变量,末尾追加</span></span><br><span class="line">[root@node01 java]<span class="comment"># vim /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/usr/java/jdk1.8.0_162</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$JAVA_HOME</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"><span class="comment">## 使配置生效并查看</span></span><br><span class="line">[root@node01 java]<span class="comment"># source /etc/profile</span></span><br><span class="line">[root@node01 java]<span class="comment"># java -version</span></span><br><span class="line">java version <span class="string">"1.8.0_162"</span></span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_162-b12)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.162-b12, mixed mode)</span><br></pre></td></tr></table></figure>
-<h2 id="核心模块部署"><a href="#核心模块部署" class="headerlink" title="核心模块部署"></a>核心模块部署</h2><p>主要分为三个模块：MySQL部署、CM部署（Cloudera Manager）和 Parcel文件离线部署（Cloudera CDH）</p>
-<h3 id="MySQL部署"><a href="#MySQL部署" class="headerlink" title="MySQL部署"></a>MySQL部署</h3><p>说明：为了快捷，这里暂时采用RPM包部署，部署成功之后创建相关数据库，统一采用utf8编码格式。</p>
-<h4 id="检查是否安装MySQL"><a href="#检查是否安装MySQL" class="headerlink" title="检查是否安装MySQL"></a>检查是否安装MySQL</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 检查Linux是否安装MySQL</span></span><br><span class="line">rpm -qa|grep mysql</span><br><span class="line">mysql-community-libs-5.7.27-1.el7.x86_64</span><br><span class="line">mysql-community-client-5.7.27-1.el7.x86_64</span><br><span class="line">mysql-community-common-5.7.27-1.el7.x86_64</span><br><span class="line">mysql-community-libs-compat-5.7.27-1.el7.x86_64</span><br><span class="line">mysql-community-server-5.7.27-1.el7.x86_64</span><br><span class="line"><span class="comment">## 如果存在MySQL版本，卸载所有相关依赖。</span></span><br><span class="line">rpm -e --nodeps mysql-community-libs-5.7.27-1.el7.x86_64</span><br><span class="line">rpm -e --nodeps mysql-community-client-5.7.27-1.el7.x86_64</span><br><span class="line">rpm -e --nodeps mysql-community-common-5.7.27-1.el7.x86_64</span><br><span class="line">rpm -e --nodeps mysql-community-libs-compat-5.7.27-1.el7.x86_64</span><br><span class="line">rpm -e --nodeps mysql-community-server-5.7.27-1.el7.x86_64</span><br><span class="line"><span class="comment">## 注意：如果使用普通删除模式rpm -e mysql报错，可以采用强力删除模式rpm -e --nodeps mysql。</span></span><br><span class="line"><span class="comment">## 同时，如果存在已安装MySQL，这里还需要卸载相关配置文件，保证整个系统环境彻底干净。</span></span><br><span class="line">[root@hadoop01 opt]<span class="comment"># find / -name mysql</span></span><br><span class="line">/etc/selinux/targeted/active/modules/100/mysql</span><br><span class="line">/var/lib/mysql</span><br><span class="line">/var/lib/mysql/mysql</span><br><span class="line">/usr/share/mysql</span><br><span class="line"><span class="comment">## 这里我们直接采用`rm -rf`删除对应文件夹，同时删除MySQL配置文件`/etc/my.cnf`。</span></span><br></pre></td></tr></table></figure>
-<h4 id="检查是否安装MariaDB"><a href="#检查是否安装MariaDB" class="headerlink" title="检查是否安装MariaDB"></a>检查是否安装MariaDB</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 检查Linux是否安装MariaDB，如果是CentOS7版本，应该都有自带安装MariaDB。</span></span><br><span class="line">[root@node01 ~]<span class="comment"># rpm -qa|grep mariadb</span></span><br><span class="line">mariadb-libs-5.5.56-2.el7.x86_64</span><br><span class="line"><span class="comment">## 由于安装MySQL会和MariaDB的文件冲突，为了确保顺利安装，这里我们卸载MariaDB。</span></span><br><span class="line">[root@node01 ~]<span class="comment"># rpm -e mariadb-libs-5.5.56-2.el7.x86_64</span></span><br><span class="line">错误：依赖检测失败：</span><br><span class="line">	libmysqlclient.so.18()(64bit) 被 (已安裝) postfix-2:2.10.1-6.el7.x86_64 需要</span><br><span class="line">	libmysqlclient.so.18(libmysqlclient_18)(64bit) 被 (已安裝) postfix-2:2.10.1-6.el7.x86_64 需要</span><br><span class="line">[root@node01 ~]<span class="comment"># rpm -e --nodeps mariadb-libs-5.5.56-2.el7.x86_64</span></span><br><span class="line">[root@node01 ~]<span class="comment"># rpm -qa|grep mariadb</span></span><br></pre></td></tr></table></figure>
-<h4 id="解压安装"><a href="#解压安装" class="headerlink" title="解压安装"></a>解压安装</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 解压到指定目录</span></span><br><span class="line">[root@node01 tools]<span class="comment"># tar -xvf mysql-5.7.29-1.el7.x86_64.rpm-bundle.tar -C /opt/</span></span><br><span class="line"></span><br><span class="line"><span class="comment">## 依次安装，注意：最后安装server的时候可能缺少依赖，根据实际情况下载相关依赖即可</span></span><br><span class="line">[root@node01 tools]<span class="comment">#   rpm -ivh mysql-community-common-5.7.27-1.el7.x86_64.rpm</span></span><br><span class="line">[root@node01 tools]<span class="comment">#   rpm -ivh mysql-community-libs-5.7.27-1.el7.x86_64.rpm</span></span><br><span class="line">[root@node01 tools]<span class="comment">#   rpm -ivh mysql-community-libs-compat-5.7.27-1.el7.x86_64.rpm</span></span><br><span class="line">[root@node01 tools]<span class="comment">#   rpm -ivh mysql-community-client-5.7.27-1.el7.x86_64.rpm</span></span><br><span class="line">[root@node01 tools]<span class="comment">#   rpm -ivh mysql-community-server-5.7.27-1.el7.x86_64.rpm</span></span><br><span class="line"><span class="comment">## 启动MySQL服务</span></span><br><span class="line">[root@node01 tools]<span class="comment"># systemctl status mysqld</span></span><br><span class="line">[root@node01 tools]<span class="comment"># systemctl start mysqld</span></span><br></pre></td></tr></table></figure>
-<h4 id="修改密码"><a href="#修改密码" class="headerlink" title="修改密码"></a>修改密码</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 我们先通过相关命令获取默认初始密码。</span></span><br><span class="line">[root@node01 opt]<span class="comment"># grep 'temporary password' /var/log/mysqld.log</span></span><br><span class="line">2019-07-24T13:21:36.471365Z 1 [Note] A temporary password is generated <span class="keyword">for</span> root@localhost: 6eNegsd3U!aC</span><br><span class="line"><span class="comment">## 根据临时密码登录MySQL</span></span><br><span class="line">[root@hadoop01 opt]<span class="comment"># mysql -u root -p</span></span><br><span class="line">Enter password: </span><br><span class="line">Welcome to the MySQL monitor.  Commands end with ; or \g.</span><br><span class="line">Your MySQL connection id is 2</span><br><span class="line">Server version: 5.7.27</span><br><span class="line"><span class="comment">## 登录成功之后，我们修改密码。需要注意的是，我们的密码如果太过简单，会被MySQL拒绝。具体如下：</span></span><br><span class="line">mysql&gt; ALTER USER <span class="string">'root'</span>@<span class="string">'localhost'</span> IDENTIFIED BY <span class="string">'root'</span> ;</span><br><span class="line">ERROR 1819 (HY000): Your password does not satisfy the current policy requirements</span><br><span class="line"><span class="comment">## 设置符合MySQL5.7规范的密码样式</span></span><br><span class="line">mysql&gt; alter user <span class="string">'root'</span>@<span class="string">'localhost'</span> identified by <span class="string">'Root_123456'</span>;</span><br><span class="line">Query OK, 0 rows affected (0.00 sec)</span><br></pre></td></tr></table></figure>
-<h4 id="设置远程登录"><a href="#设置远程登录" class="headerlink" title="设置远程登录"></a>设置远程登录</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; use mysql;</span><br><span class="line">mysql&gt;update user set host&#x3D;&#39;%&#39; where user &#x3D;&#39;root&#39; and host like &#39;localhost%&#39;;</span><br><span class="line">mysql&gt;flush privileges;</span><br></pre></td></tr></table></figure>
-<h4 id="创建相关数据库及用户组"><a href="#创建相关数据库及用户组" class="headerlink" title="创建相关数据库及用户组"></a>创建相关数据库及用户组</h4><table>
-<thead>
-<tr>
-<th>数据库</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>cmf</td>
-<td>CDH的元数据库和用户</td>
-</tr>
-<tr>
-<td>amon</td>
-<td>amon服务的数据库和用户</td>
-</tr>
-</tbody></table>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; create database amon default character set utf8;</span><br><span class="line">mysql&gt; create database cmf default character set utf8;</span><br><span class="line">mysql&gt; grant all on cmf.* to &#39;cmf&#39;@&#39;%&#39; identified by &#39;Root_123456&#39;;</span><br><span class="line">mysql&gt; grant all on amon.* to &#39;amon&#39;@&#39;%&#39; identified by &#39;Root_123456&#39;;</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
-<h3 id="MySQL依赖jar包放入指定路径"><a href="#MySQL依赖jar包放入指定路径" class="headerlink" title="MySQL依赖jar包放入指定路径"></a>MySQL依赖jar包放入指定路径</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 创建指定目录</span></span><br><span class="line">[root@node01 opt]<span class="comment"># mkdir /usr/share/java</span></span><br><span class="line">[root@node01 opt]<span class="comment"># mv mysql-connector-java-5.1.48.jar /usr/share/java/</span></span><br><span class="line">[root@node01 opt]<span class="comment"># cd /usr/share/java/</span></span><br><span class="line"><span class="comment">## 修改jar包名称，去掉版本号</span></span><br><span class="line">[root@node01 java]<span class="comment"># mv mysql-connector-java-5.1.48.jar mysql-connector-java.jar</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="CM部署"><a href="#CM部署" class="headerlink" title="CM部署"></a>CM部署</h3><p>这里采用RPM包的形式部署</p>
-<h4 id="主节点部署server服务"><a href="#主节点部署server服务" class="headerlink" title="主节点部署server服务"></a>主节点部署server服务</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 解压文件得到相关rpm包，解压好之后rpm包位于./cm6.1.1/RPMS/x86_64/</span></span><br><span class="line">[root@node01 tools]<span class="comment"># tar -zxvf cm6.1.1-redhat7.tar.gz</span></span><br><span class="line"><span class="comment">## 这里根据实际情况采用yum install （依赖外网）或者rpm -ivh 安装（不依赖外网）</span></span><br><span class="line">[root@node01 x86_64]<span class="comment"># rpm -ivh cloudera-manager-daemons-6.1.1-853290.el7.x86_64.rpm --nodeps --force</span></span><br><span class="line">[root@node01 x86_64]<span class="comment"># rpm -ivh cloudera-manager-server-6.1.1-853290.el7.x86_64.rpm --nodeps --force</span></span><br><span class="line"><span class="comment">## 安装完成之后修改配置文件/etc/cloudera-scm-server/db.properties,根据实际情况修改</span></span><br><span class="line">com.cloudera.cmf.db.type=mysql</span><br><span class="line">com.cloudera.cmf.db.host=node01</span><br><span class="line"><span class="comment">## 这里使用我们之前创建的cmf元数据库信息</span></span><br><span class="line">com.cloudera.cmf.db.name=cmf</span><br><span class="line">com.cloudera.cmf.db.user=cmf</span><br><span class="line">com.cloudera.cmf.db.password=Root_123456</span><br><span class="line"><span class="comment">## 这里务必使用EXTERNAL类型</span></span><br><span class="line"><span class="comment"># If scm-server uses Embedded DB then it is set to EMBEDDED</span></span><br><span class="line"><span class="comment"># If scm-server uses External DB then it is set to EXTERNAL</span></span><br><span class="line">com.cloudera.cmf.db.setupType=EXTERNAL</span><br></pre></td></tr></table></figure>
-<h4 id="主节点启动server服务，配置阿里云安全组规则"><a href="#主节点启动server服务，配置阿里云安全组规则" class="headerlink" title="主节点启动server服务，配置阿里云安全组规则"></a>主节点启动server服务，配置阿里云安全组规则</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 opt]<span class="comment"># systemctl status cloudera-scm-server</span></span><br><span class="line">● cloudera-scm-server.service - Cloudera CM Server Service</span><br><span class="line">   Loaded: loaded (/usr/lib/systemd/system/cloudera-scm-server.service; enabled; vendor preset: disabled)</span><br><span class="line">   Active: inactive (dead)</span><br><span class="line">[root@node01 opt]<span class="comment"># systemctl start cloudera-scm-server</span></span><br><span class="line"><span class="comment">## 到指定路径查看日志信息，初始化一般需要等待一分钟</span></span><br><span class="line">[root@node01 opt]<span class="comment"># cd /var/log/cloudera-scm-server</span></span><br><span class="line"><span class="comment">## 启动成功之后配置阿里云安全组规则，开启7180端口（默认账号为admin/admin）</span></span><br></pre></td></tr></table></figure>
-<h4 id="主节点部署agent服务，修改配置文件"><a href="#主节点部署agent服务，修改配置文件" class="headerlink" title="主节点部署agent服务，修改配置文件"></a>主节点部署agent服务，修改配置文件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 安装agent</span></span><br><span class="line">[root@node01 x86_64]<span class="comment"># rpm -ivh cloudera-manager-agent-6.1.1-853290.el7.x86_64.rpm --nodeps --force</span></span><br><span class="line"><span class="comment">## 修改配置文件，指定server服务</span></span><br><span class="line">[root@node01 cloudera-scm-agent]<span class="comment"># vim config.ini </span></span><br><span class="line">[General]</span><br><span class="line"><span class="comment"># Hostname of the CM server.</span></span><br><span class="line">server_host=node01</span><br></pre></td></tr></table></figure>
-<h4 id="其它从节点部署agent服务，修改配置文件"><a href="#其它从节点部署agent服务，修改配置文件" class="headerlink" title="其它从节点部署agent服务，修改配置文件"></a>其它从节点部署agent服务，修改配置文件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node02 x86_64]<span class="comment"># rpm -ivh cloudera-manager-daemons-6.1.1-853290.el7.x86_64.rpm --nodeps --force</span></span><br><span class="line">[root@node02 x86_64]<span class="comment"># rpm -ivh cloudera-manager-agent-6.1.1-853290.el7.x86_64.rpm --nodeps --force</span></span><br><span class="line"><span class="comment">## 修改配置文件，指定server服务</span></span><br><span class="line"><span class="comment">## 配置完成之后，启动所有节点agent服务</span></span><br><span class="line">[root@node01 opt]<span class="comment"># systemctl start cloudera-scm-agent</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Parcel包裹文件部署"><a href="#Parcel包裹文件部署" class="headerlink" title="Parcel包裹文件部署"></a>Parcel包裹文件部署</h3><h4 id="Parcel文件校验"><a href="#Parcel文件校验" class="headerlink" title="Parcel文件校验"></a>Parcel文件校验</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##文件内容</span></span><br><span class="line">[root@node01 tools]<span class="comment"># cat CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel.sha256 </span></span><br><span class="line">3ff9368f46363a6a31ada79c176945f6a6efa6ccf1a5b441f2854bafa7c12be4</span><br><span class="line"><span class="comment">##校验值，与文件内容一致说明文件完整</span></span><br><span class="line">[root@node01 tools]<span class="comment"># sha256sum CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel</span></span><br><span class="line">3ff9368f46363a6a31ada79c176945f6a6efa6ccf1a5b441f2854bafa7c12be4  CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel</span><br></pre></td></tr></table></figure>
-<h4 id="修改文件后缀名"><a href="#修改文件后缀名" class="headerlink" title="修改文件后缀名"></a>修改文件后缀名</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 去掉末尾数字</span></span><br><span class="line">[root@node01 tools]<span class="comment"># mv CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel.sha256 CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel.sha</span></span><br></pre></td></tr></table></figure>
-<h4 id="安装httpd"><a href="#安装httpd" class="headerlink" title="安装httpd"></a>安装httpd</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 tools]<span class="comment"># yum install -y httpd</span></span><br><span class="line"><span class="comment">## 将parcel包裹文件移动至指定目录</span></span><br><span class="line">[root@node01 tools]<span class="comment"># mkdir /var/www/html/cdh6_parcel</span></span><br><span class="line">[root@node01 tools]<span class="comment"># mv CDH-6.1.1-1.cdh6.1.1.p0.875250-el7.parcel* manifest.json /var/www/html/cdh6_parcel/</span></span><br><span class="line"><span class="comment">## 启动httpd服务，可以通过web访问：node01:80/cdh6_parcel</span></span><br><span class="line">[root@node01 tools]<span class="comment"># systemctl start httpd</span></span><br></pre></td></tr></table></figure>
-<h3 id="web界面操作"><a href="#web界面操作" class="headerlink" title="web界面操作"></a>web界面操作</h3><p>这一步主要是选择parcel离线源:<a href="http://node01/cdh6_parcel/" target="_blank" rel="noopener">http://node01/cdh6_parcel/</a><br>注意事项一：选用阿里云内网地址（正常情况下在集群初始化中已经配置到hosts文件中）<br>注意事项二：选用http协议，不要使用https<br>注意事项三：部署过程中的Cloudera Management Service中的其它节点如果选择非node01,需要保证相关节点存在/usr/share/java/mysql-connector-java.jar文件，否则会报错<br>注意事项四：一定要选择自定义服务</p>
-<h4 id="Step1：选择版本"><a href="#Step1：选择版本" class="headerlink" title="Step1：选择版本"></a>Step1：选择版本</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_select_edition.png" class="">
-<h4 id="Step2：选择主机"><a href="#Step2：选择主机" class="headerlink" title="Step2：选择主机"></a>Step2：选择主机</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_specify_hosts.png" class="">
-<h4 id="Step3：选择存储库"><a href="#Step3：选择存储库" class="headerlink" title="Step3：选择存储库"></a>Step3：选择存储库</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_select_repository_01.png" class="">
-<img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_select_repository_02.png" class="">
-<h4 id="Step4：检查主机正确性"><a href="#Step4：检查主机正确性" class="headerlink" title="Step4：检查主机正确性"></a>Step4：检查主机正确性</h4><p>这一步可能会出现部分问题，具体解决方案可以根据实际情况自行处理。CDH官方文档中都有详细的解决方案。</p>
-<h5 id="问题一：Cloudera-建议将-proc-sys-vm-swappiness-设置为最大值-10"><a href="#问题一：Cloudera-建议将-proc-sys-vm-swappiness-设置为最大值-10" class="headerlink" title="问题一：Cloudera 建议将 /proc/sys/vm/swappiness 设置为最大值 10"></a>问题一：Cloudera 建议将 /proc/sys/vm/swappiness 设置为最大值 10</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">## 临时处理</span><br><span class="line">[root@node01 tools]# sysctl vm.swappiness&#x3D;10</span><br><span class="line">## 永久处理</span><br><span class="line">[root@node01 tools]# echo &#39;vm.swappiness&#x3D;10&#39;&gt;&gt; &#x2F;etc&#x2F;sysctl.conf</span><br></pre></td></tr></table></figure>
-<h5 id="问题二：已启用透明大页面压缩，可能会导致重大性能问题。"><a href="#问题二：已启用透明大页面压缩，可能会导致重大性能问题。" class="headerlink" title="问题二：已启用透明大页面压缩，可能会导致重大性能问题。"></a>问题二：已启用透明大页面压缩，可能会导致重大性能问题。</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 临时处理</span></span><br><span class="line">[root@node01 tools]<span class="comment"># echo never &gt; /sys/kernel/mm/transparent_hugepage/defrag</span></span><br><span class="line">[root@node01 tools]<span class="comment"># echo never &gt; /sys/kernel/mm/transparent_hugepage/enabled</span></span><br><span class="line"><span class="comment">## 永久处理</span></span><br><span class="line">[root@node01 tools]<span class="comment"># vim /etc/rc.local</span></span><br><span class="line"><span class="comment">## 末尾追加</span></span><br><span class="line"><span class="built_in">echo</span> never &gt; /sys/kernel/mm/transparent_hugepage/defrag</span><br><span class="line"><span class="built_in">echo</span> never &gt; /sys/kernel/mm/transparent_hugepage/enabled</span><br><span class="line"><span class="comment">## 根据提示，给文件重新赋权</span></span><br><span class="line"><span class="comment"># Please note that you must run 'chmod +x /etc/rc.d/rc.local' to ensure</span></span><br><span class="line"><span class="comment"># that this script will be executed during boot.</span></span><br><span class="line">[root@node01 tools]<span class="comment"># chmod +x /etc/rc.d/rc.local</span></span><br></pre></td></tr></table></figure>
-<img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_inspect_hosts.png" class="">
-<h4 id="Step5：自定义服务"><a href="#Step5：自定义服务" class="headerlink" title="Step5：自定义服务"></a>Step5：自定义服务</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_custom_services.png" class="">
-<h4 id="Step6：自定义角色分配"><a href="#Step6：自定义角色分配" class="headerlink" title="Step6：自定义角色分配"></a>Step6：自定义角色分配</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_assign_roles.png" class="">
-<h4 id="Step7：数据库设置"><a href="#Step7：数据库设置" class="headerlink" title="Step7：数据库设置"></a>Step7：数据库设置</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_setup_database.png" class="">
-<h4 id="Step8：主页展示"><a href="#Step8：主页展示" class="headerlink" title="Step8：主页展示"></a>Step8：主页展示</h4><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_web_home_page.png" class="">
-<h5 id="主页告警及配置问题解决"><a href="#主页告警及配置问题解决" class="headerlink" title="主页告警及配置问题解决"></a>主页告警及配置问题解决</h5><p>这里出现红色配置告警：Cloudera Manager Server GC cpu usage is at 10% or more of total process time.<br>暂不影响，稍等一会儿刷新即可。<br>其它非红色警告，前期可以直接抑制处理。</p>
-<h2 id="HDFS-HA配置"><a href="#HDFS-HA配置" class="headerlink" title="HDFS HA配置"></a>HDFS HA配置</h2><p>官方文档：<a href="https://docs.cloudera.com/documentation/enterprise/6/6.1/topics/cdh_hag_hdfs_ha_intro.html" target="_blank" rel="noopener">https://docs.cloudera.com/documentation/enterprise/6/6.1/topics/cdh_hag_hdfs_ha_intro.html</a></p>
-<h3 id="Step1：启用HA"><a href="#Step1：启用HA" class="headerlink" title="Step1：启用HA"></a>Step1：启用HA</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_hdfs_ha_startup.png" class="">
-<h3 id="Step2：nameservice名称"><a href="#Step2：nameservice名称" class="headerlink" title="Step2：nameservice名称"></a>Step2：nameservice名称</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_hdfs_ha_nameservice.png" class="">
-<h3 id="Step3：分配角色"><a href="#Step3：分配角色" class="headerlink" title="Step3：分配角色"></a>Step3：分配角色</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_hdfs_ha_assign_roles.png" class="">
-<h3 id="Step4：编辑目录"><a href="#Step4：编辑目录" class="headerlink" title="Step4：编辑目录"></a>Step4：编辑目录</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_hdfs_ha_edit_directory.png" class="">
-<h3 id="Step5：启动服务"><a href="#Step5：启动服务" class="headerlink" title="Step5：启动服务"></a>Step5：启动服务</h3><p>注意：这里会出现 Failed to format NameNode<br>原因分析：正常现象，这是有以前集群的数据同步到HA集群中，可忽略，直接下一步操作，等待HA部署完成即可。</p>
-<img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_hdfs_ha_startup_service.png" class="">
-
-<h2 id="YARN-HA配置"><a href="#YARN-HA配置" class="headerlink" title="YARN HA配置"></a>YARN HA配置</h2><h3 id="Step1：启用HA-1"><a href="#Step1：启用HA-1" class="headerlink" title="Step1：启用HA"></a>Step1：启用HA</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_yarn_ha_startup.png" class="">
-<h3 id="Step2：配置主机"><a href="#Step2：配置主机" class="headerlink" title="Step2：配置主机"></a>Step2：配置主机</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_yarn_ha_assign_roles.png" class="">
-<h3 id="Step3：启动服务"><a href="#Step3：启动服务" class="headerlink" title="Step3：启动服务"></a>Step3：启动服务</h3><img src="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/cdh_yarn_ha_startup_service.png" class="">
-
-
+      
       
     </div>
+    
+
+    
+
+    
+    
+    
+      <!-- copyright -->
+      
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/" data-id="ckazhz16100023ssr6pbt3dd7" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CDH%E9%83%A8%E7%BD%B2/" rel="tag">CDH部署</a></li></ul>
 
+
     </footer>
+
   </div>
+
   
+
+  
+
+  
+  
+  
+
 </article>
+    
+    <article id="post-Other/Hexo搭建GitHub博客和Gitee博客" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
 
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2017/01/01/Other/Hexo%E6%90%AD%E5%BB%BAGitHub%E5%8D%9A%E5%AE%A2%E5%92%8CGitee%E5%8D%9A%E5%AE%A2/"
+    >Hexo搭建GitHub博客和Gitee博客</a> 
+</h2>
+ 
 
-  
-    <article id="post-Other/Hexo搭建GitHub博客和Gitee博客" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/01/01/Other/Hexo%E6%90%AD%E5%BB%BAGitHub%E5%8D%9A%E5%AE%A2%E5%92%8CGitee%E5%8D%9A%E5%AE%A2/" class="article-date">
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2017/01/01/Other/Hexo%E6%90%AD%E5%BB%BAGitHub%E5%8D%9A%E5%AE%A2%E5%92%8CGitee%E5%8D%9A%E5%AE%A2/" class="article-date">
   <time datetime="2017-01-01T02:00:00.000Z" itemprop="datePublished">2017-01-01</time>
 </a>
-    
+      
   <div class="article-category">
     <a class="article-category-link" href="/categories/Other/">Other</a>
   </div>
 
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/01/01/Other/Hexo%E6%90%AD%E5%BB%BAGitHub%E5%8D%9A%E5%AE%A2%E5%92%8CGitee%E5%8D%9A%E5%AE%A2/">Hexo搭建GitHub博客和Gitee博客</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="Hexo搭建GitHub博客和Gitee博客"><a href="#Hexo搭建GitHub博客和Gitee博客" class="headerlink" title="Hexo搭建GitHub博客和Gitee博客"></a>Hexo搭建GitHub博客和Gitee博客</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在这一章节中，我们将学习使用Hexo快速搭建GitHub博客和Gitee博客。</p>
-<h2 id="相关资源"><a href="#相关资源" class="headerlink" title="相关资源"></a>相关资源</h2><ul>
-<li>Node.js官网：<a href="https://nodejs.org/en/" target="_blank" rel="noopener">https://nodejs.org/en/</a></li>
-<li>Git官网：<a href="https://git-scm.com/" target="_blank" rel="noopener">https://git-scm.com/</a></li>
-<li>Gitee官网：<a href="https://gitee.com/" target="_blank" rel="noopener">https://gitee.com/</a></li>
-<li>Hexo官网：<a href="https://hexo.io/zh-cn/" target="_blank" rel="noopener">https://hexo.io/zh-cn/</a></li>
-</ul>
-<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>我们需要先在本地安装好Node.js、Git和Hexo。具体如下</p>
-<h3 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 傻瓜式安装，安装好之后查看当前版本</span></span><br><span class="line">node -v</span><br><span class="line"><span class="comment"># 查看当前自带npm版本</span></span><br><span class="line">npm -v</span><br><span class="line"><span class="comment"># 设置国内淘宝源</span></span><br><span class="line">npm config <span class="built_in">set</span> registry https://registry.npm.taobao.org</span><br><span class="line"><span class="comment"># 查看相关设置</span></span><br><span class="line">npm config list</span><br></pre></td></tr></table></figure>
-<h3 id="安装Git"><a href="#安装Git" class="headerlink" title="安装Git"></a>安装Git</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 傻瓜式安装，安装好之后查看当前Git版本</span></span><br><span class="line">$ git --version</span><br><span class="line">git version 2.22.0.windows.1</span><br><span class="line"><span class="comment">## 配置user信息</span></span><br><span class="line">git config --global user.name henrrywan</span><br><span class="line">git config --global user.email youremail</span><br></pre></td></tr></table></figure>
-<h3 id="安装-Hexo"><a href="#安装-Hexo" class="headerlink" title="安装 Hexo"></a>安装 Hexo</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 通过Git Bash安装hexo</span></span><br><span class="line">$ npm install -g hexo-cli</span><br><span class="line"><span class="comment">## 查看版本号</span></span><br><span class="line">$ hexo version</span><br></pre></td></tr></table></figure>
-
-<h2 id="博客部署"><a href="#博客部署" class="headerlink" title="博客部署"></a>博客部署</h2><p>关于Hexo的详细使用可以参考官网（强烈建议），这里只作简单使用说明。</p>
-<h3 id="初始化博客目录"><a href="#初始化博客目录" class="headerlink" title="初始化博客目录"></a>初始化博客目录</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 指定路径下新建博客 blog_test</span></span><br><span class="line">$ hexo init blog_test</span><br><span class="line">$ <span class="built_in">cd</span> blog_test/</span><br><span class="line">$ npm install</span><br></pre></td></tr></table></figure>
-<h3 id="修改配置文件-config-yml"><a href="#修改配置文件-config-yml" class="headerlink" title="修改配置文件_config.yml"></a>修改配置文件_config.yml</h3><p>注意：默认的文本格式为ANSI，需要重新保存为UTF8文本格式，防止出现乱码</p>
-<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Site</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">blog_test</span></span><br><span class="line"><span class="attr">subtitle:</span> <span class="string">'henrrywan'</span></span><br><span class="line"><span class="attr">description:</span> <span class="string">'try everything'</span></span><br><span class="line"><span class="attr">keywords:</span> <span class="string">hadoop,hive,spark</span></span><br><span class="line"><span class="attr">author:</span> <span class="string">henrrywan</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">zh-CN</span></span><br><span class="line"><span class="attr">timezone:</span> <span class="string">'Asia/Shanghai'</span></span><br></pre></td></tr></table></figure>
-<h3 id="启动服务器并访问"><a href="#启动服务器并访问" class="headerlink" title="启动服务器并访问"></a>启动服务器并访问</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 清除缓存文件 (db.json) 和已生成的静态文件 (public)</span></span><br><span class="line">$ hexo clean</span><br><span class="line"><span class="comment">## 生成静态文件</span></span><br><span class="line">$ hexo g</span><br><span class="line"><span class="comment">## 启动服务器，访问网址为： http://localhost:4000/</span></span><br><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
-<h2 id="推送博客到GitHub和Gitee"><a href="#推送博客到GitHub和Gitee" class="headerlink" title="推送博客到GitHub和Gitee"></a>推送博客到GitHub和Gitee</h2><h3 id="配置SSH密钥"><a href="#配置SSH密钥" class="headerlink" title="配置SSH密钥"></a>配置SSH密钥</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 本地生成SSH密钥</span></span><br><span class="line">$ ssh-keygen -t rsa -b 4096 -C <span class="string">"your email"</span></span><br><span class="line"><span class="comment">## 根据提示信息获取公钥，将该公钥配置在GitHub和Gitee上（Title随意）</span></span><br><span class="line">$ cat ~/.ssh/id_rsa.pub</span><br><span class="line"><span class="comment">## 配置完成之后进行简单测试（初次需要根据提示输入yes）</span></span><br><span class="line">$ ssh -T git@github.com</span><br><span class="line">Hi henrrywan! You<span class="string">'ve successfully authenticated, but GitHub does not provide shell access.</span></span><br></pre></td></tr></table></figure>
-<h3 id="GitHub和Gitee创建repository"><a href="#GitHub和Gitee创建repository" class="headerlink" title="GitHub和Gitee创建repository"></a>GitHub和Gitee创建repository</h3><p>如果你希望你的站点能通过 &lt;你的 GitHub 用户名&gt;.github.io 域名访问，你的 repository 应该直接命名为 &lt;你的 GitHub 用户名&gt;.github.io。这里我们创建henrrywan.github.io的repository，便于后期访问。<br>同理，我们在Gitee上也需要创建一个&lt;你的 Gitee 用户名&gt;的Git仓库，便于后期访问。<br>需要注意的是，<strong>在Gitee中我们必须要开启 Gitee Pages 服务（仓库-服务里面进行设置）</strong>，这样才能进行访问。</p>
-<h3 id="安装hexo-deployer-git插件"><a href="#安装hexo-deployer-git插件" class="headerlink" title="安装hexo-deployer-git插件"></a>安装hexo-deployer-git插件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ npm install hexo-deployer-git --save</span><br><span class="line"><span class="comment">## 安装完成之后需要在根目录_config.yml文件中配置相关信息</span></span><br><span class="line"><span class="comment"># Deployment</span></span><br><span class="line"><span class="comment">## Docs: https://hexo.io/docs/deployment.html</span></span><br><span class="line">deploy:</span><br><span class="line">  <span class="built_in">type</span>: <span class="string">'git'</span></span><br><span class="line">  repo: </span><br><span class="line">    github: git@github.com:henrrywan/henrrywan.github.io.git</span><br><span class="line">    gitee: git@gitee.com:henrrywan/henrrywan.git</span><br><span class="line">  branch: master</span><br></pre></td></tr></table></figure>
-<h3 id="推送博客到GitHub和Gitee-1"><a href="#推送博客到GitHub和Gitee-1" class="headerlink" title="推送博客到GitHub和Gitee"></a>推送博客到GitHub和Gitee</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 初次访问需要输入GitHub账号密码</span></span><br><span class="line">$ hexo clean &amp;&amp; hexo deploy</span><br></pre></td></tr></table></figure>
-<h2 id="访问博客"><a href="#访问博客" class="headerlink" title="访问博客"></a>访问博客</h2><ul>
-<li>GitHub博客地址：<a href="https://henrrywan.github.io/" target="_blank" rel="noopener">https://henrrywan.github.io/</a></li>
-<li>Gitee博客地址：<a href="http://henrrywan.gitee.io/" target="_blank" rel="noopener">http://henrrywan.gitee.io/</a></li>
-</ul>
-<h2 id="Hexo补充说明"><a href="#Hexo补充说明" class="headerlink" title="Hexo补充说明"></a>Hexo补充说明</h2><p>在上面的部署中，我们已经可以通过Hexo正常发布并访问个人博客。在实际的使用中，我们可能还需要新建分类和标签，同时也需要对图片进行管理等等。这里具体说明</p>
-<h3 id="新建分类"><a href="#新建分类" class="headerlink" title="新建分类"></a>新建分类</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new page categories</span><br><span class="line"><span class="comment">## 复制以下内容到/source/categories/index.md文件</span></span><br><span class="line">title: categories</span><br><span class="line"><span class="built_in">type</span>: <span class="string">"categories"</span></span><br><span class="line">layout: <span class="string">"categories"</span></span><br></pre></td></tr></table></figure>
-<h3 id="新建标签"><a href="#新建标签" class="headerlink" title="新建标签"></a>新建标签</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new page tags</span><br><span class="line"><span class="comment">## 复制以下内容到/source/categories/index.md文件</span></span><br><span class="line">title: tags</span><br><span class="line"><span class="built_in">type</span>: <span class="string">"tags"</span></span><br><span class="line">layout: <span class="string">"tags"</span></span><br></pre></td></tr></table></figure>
-<h3 id="打开资源文件管理功能"><a href="#打开资源文件管理功能" class="headerlink" title="打开资源文件管理功能"></a>打开资源文件管理功能</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 打开资源文件管理功能,创建新文章时自动创建一个同名文件夹，用来存放资源</span></span><br><span class="line">_config.yml</span><br><span class="line">post_asset_folder: <span class="literal">true</span></span><br><span class="line"><span class="comment">## 图片引用，正确的引用图片方式是使用下列的标签插件而不是 markdown，通过这种方式，图片将会同时出现在文章和主页以及归档页中。</span></span><br><span class="line">&#123;% asset_img example.jpg This is an example image %&#125;</span><br></pre></td></tr></table></figure>
-<h3 id="添加README-md"><a href="#添加README-md" class="headerlink" title="添加README.md"></a>添加README.md</h3><p>具体分为三步：</p>
-<ol>
-<li><p>在根目录<code>source</code> 文件夹下新建README.md文件</p>
-</li>
-<li><p>在根目录的<code>_config.yml</code>配置文件里，找到 skip_render 关键字，添加 README.md，这一步是为了让解释器跳过渲染（默认情况下会将所有md文件转换成HTML）</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">skip_render: README.md</span><br></pre></td></tr></table></figure></li>
-<li><p>使用<code>hexo clean &amp;&amp; hexo deploy</code>重新发布查看</p>
-</li>
-</ol>
-
+      
       
     </div>
+    
+
+    
+
+    
+    
+    
+      <!-- copyright -->
+      
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2017/01/01/Other/Hexo%E6%90%AD%E5%BB%BAGitHub%E5%8D%9A%E5%AE%A2%E5%92%8CGitee%E5%8D%9A%E5%AE%A2/" data-id="ckazhz16a00083ssr0b23d3mz" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Other/" rel="tag">Other</a></li></ul>
 
+
     </footer>
+
   </div>
+
   
+
+  
+
+  
+  
+  
+
 </article>
+    
+    <article id="post-Linux/VMware虚拟机安装Linux CentOS系统" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
 
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/"
+    >VMware虚拟机安装Linux CentOS系统</a> 
+</h2>
+ 
 
-  
-    <article id="post-Linux/VMware虚拟机安装Linux CentOS系统" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/" class="article-date">
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/" class="article-date">
   <time datetime="2015-02-01T02:00:00.000Z" itemprop="datePublished">2015-02-01</time>
 </a>
-    
+      
   <div class="article-category">
     <a class="article-category-link" href="/categories/Linux/">Linux</a>
   </div>
 
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/">VMware虚拟机安装Linux CentOS系统</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="VMware虚拟机安装Linux-CentOS系统"><a href="#VMware虚拟机安装Linux-CentOS系统" class="headerlink" title="VMware虚拟机安装Linux CentOS系统"></a>VMware虚拟机安装Linux CentOS系统</h1><h2 id="镜像文件选择"><a href="#镜像文件选择" class="headerlink" title="镜像文件选择"></a>镜像文件选择</h2><p>在VMware Workstation 14 PRO虚拟机中安装Linux CentOS系统需要先根据个人需求在<a href="http://mirror.centos.org/centos/" target="_blank" rel="noopener">官网</a> （或者采用国内镜像源，访问地址见最后）下载合适版本的镜像文件。这里我们选择CentOS 7.2 ISO镜像文件：<strong>CentOS-7-x86_64-DVD-1708.iso</strong>。下面是具体操作步骤</p>
-<h2 id="新建虚拟机向导"><a href="#新建虚拟机向导" class="headerlink" title="新建虚拟机向导"></a>新建虚拟机向导</h2><h3 id="类型配置：选择“自定义（高级）”"><a href="#类型配置：选择“自定义（高级）”" class="headerlink" title="类型配置：选择“自定义（高级）”"></a>类型配置：选择“自定义（高级）”</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_type_choice.png" class="">
-<h3 id="硬件兼容性：默认"><a href="#硬件兼容性：默认" class="headerlink" title="硬件兼容性：默认"></a>硬件兼容性：默认</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_hardware.png" class="">
-<h3 id="安装来源：选择“稍后安装”"><a href="#安装来源：选择“稍后安装”" class="headerlink" title="安装来源：选择“稍后安装”"></a>安装来源：选择“稍后安装”</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_install_source.png" class="">
-<h3 id="客户机操作系统：选择“Linux”"><a href="#客户机操作系统：选择“Linux”" class="headerlink" title="客户机操作系统：选择“Linux”"></a>客户机操作系统：选择“Linux”</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_system_choice.png" class="">
-<h3 id="命令虚拟机：自定义"><a href="#命令虚拟机：自定义" class="headerlink" title="命令虚拟机：自定义"></a>命令虚拟机：自定义</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_vm_name.png" class="">
-<h3 id="处理器配置：自定义"><a href="#处理器配置：自定义" class="headerlink" title="处理器配置：自定义"></a>处理器配置：自定义</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_processor.png" class="">
-<h3 id="虚拟机内存：自定义"><a href="#虚拟机内存：自定义" class="headerlink" title="虚拟机内存：自定义"></a>虚拟机内存：自定义</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_memory.png" class="">
-<h3 id="网络类型：选择“使用桥接网络”"><a href="#网络类型：选择“使用桥接网络”" class="headerlink" title="网络类型：选择“使用桥接网络”"></a>网络类型：选择“使用桥接网络”</h3><p>注意：如果是新手第一次安装，建议选择使用桥接网络，这样安装完成之后能够自动分配IP地址，直接访问网络。</p>
-<img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_net_choice.png" class="">
-<h3 id="I-O控制器类型：默认"><a href="#I-O控制器类型：默认" class="headerlink" title="I/O控制器类型：默认"></a>I/O控制器类型：默认</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_io_choice.png" class="">
-<h3 id="磁盘类型：默认"><a href="#磁盘类型：默认" class="headerlink" title="磁盘类型：默认"></a>磁盘类型：默认</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_disk_type.png" class="">
-<h3 id="选择磁盘：选择“创建新虚拟磁盘”"><a href="#选择磁盘：选择“创建新虚拟磁盘”" class="headerlink" title="选择磁盘：选择“创建新虚拟磁盘”"></a>选择磁盘：选择“创建新虚拟磁盘”</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_disk_create.png" class="">
-<h3 id="指定磁盘容量：建议20G，选择“将虚拟磁盘拆分成多个文件”"><a href="#指定磁盘容量：建议20G，选择“将虚拟磁盘拆分成多个文件”" class="headerlink" title="指定磁盘容量：建议20G，选择“将虚拟磁盘拆分成多个文件”"></a>指定磁盘容量：建议20G，选择“将虚拟磁盘拆分成多个文件”</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_disk_memory.png" class="">
-<h3 id="指定磁盘文件：默认"><a href="#指定磁盘文件：默认" class="headerlink" title="指定磁盘文件：默认"></a>指定磁盘文件：默认</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_disk_file.png" class="">
-<h3 id="自定义硬件：默认，点击完成"><a href="#自定义硬件：默认，点击完成" class="headerlink" title="自定义硬件：默认，点击完成"></a>自定义硬件：默认，点击完成</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/new_guide_hardware_diy.png" class="">
-
-<h2 id="安装Linux-CentOS系统"><a href="#安装Linux-CentOS系统" class="headerlink" title="安装Linux CentOS系统"></a>安装Linux CentOS系统</h2><h3 id="编辑虚拟机设置：选择镜像位置"><a href="#编辑虚拟机设置：选择镜像位置" class="headerlink" title="编辑虚拟机设置：选择镜像位置"></a>编辑虚拟机设置：选择镜像位置</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_mirror_selection.png" class="">
-<h3 id="开启此虚拟机：选择“Install-CentOS-7”（箭头上下移动选择）"><a href="#开启此虚拟机：选择“Install-CentOS-7”（箭头上下移动选择）" class="headerlink" title="开启此虚拟机：选择“Install CentOS 7”（箭头上下移动选择）"></a>开启此虚拟机：选择“Install CentOS 7”（箭头上下移动选择）</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_install_centos.png" class="">
-<h3 id="语言选择：建议英文"><a href="#语言选择：建议英文" class="headerlink" title="语言选择：建议英文"></a>语言选择：建议英文</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_language_selection.png" class="">
-<h3 id="安装详情"><a href="#安装详情" class="headerlink" title="安装详情"></a>安装详情</h3><h4 id="网络和主机名：打开“以太网连接”"><a href="#网络和主机名：打开“以太网连接”" class="headerlink" title="网络和主机名：打开“以太网连接”"></a>网络和主机名：打开“以太网连接”</h4><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_install_summary.png" class="">
-<img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_hostname.png" class="">
-<h4 id="软件选择：选择最小安装"><a href="#软件选择：选择最小安装" class="headerlink" title="软件选择：选择最小安装"></a>软件选择：选择最小安装</h4><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_software_selection.png" class="">
-<h4 id="时间和日期：选择“亚洲-上海”，同时打开网络时间"><a href="#时间和日期：选择“亚洲-上海”，同时打开网络时间" class="headerlink" title="时间和日期：选择“亚洲/上海”，同时打开网络时间"></a>时间和日期：选择“亚洲/上海”，同时打开网络时间</h4><p>注意：如果在网络和主机名设置中没有打开“以太网连接”，这里无法打开网络时间。</p>
-<img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_date_time.png" class="">
-<h4 id="自动分区：选择默认，点击开始安装"><a href="#自动分区：选择默认，点击开始安装" class="headerlink" title="自动分区：选择默认，点击开始安装"></a>自动分区：选择默认，点击开始安装</h4><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_begin_install.png" class="">
-<h4 id="用户设置：设置ROOT密码"><a href="#用户设置：设置ROOT密码" class="headerlink" title="用户设置：设置ROOT密码"></a>用户设置：设置ROOT密码</h4><p>安装的同时，我们可以设置ROOT密码。<br>注意：这里设置密码如果过短会出现提示，点击两次完成，等待系统安装完成，点击重启即可。</p>
-<img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_root_password.png" class="">
-<h3 id="网络测试"><a href="#网络测试" class="headerlink" title="网络测试"></a>网络测试</h3><p>重启以ROOT用户登录之后，直接ping任意外网，测试是否能够ping通。</p>
-<img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_net_test.png" class="">
-
-
-<h2 id="配置静态IP地址（补充说明）"><a href="#配置静态IP地址（补充说明）" class="headerlink" title="配置静态IP地址（补充说明）"></a>配置静态IP地址（补充说明）</h2><p>到上一步，我们事实上已经完成了虚拟机的安装，但是为了方便后续使用，我们通常会给虚拟机配置静态IP地址。具体如下：</p>
-<h3 id="查看子网IP、子网掩码和网关IP"><a href="#查看子网IP、子网掩码和网关IP" class="headerlink" title="查看子网IP、子网掩码和网关IP"></a>查看子网IP、子网掩码和网关IP</h3><p>这一步我们可以设置子网IP，默认网关IP，虚拟机安装的话，通常是2，也就是VMnet8的网关设置。</p>
-<img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_nat_view_01.png" class="">
-<img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_nat_view_02.png" class="">
-
-<h3 id="编辑虚拟机设置，将网络类型改为“NAT”模式"><a href="#编辑虚拟机设置，将网络类型改为“NAT”模式" class="headerlink" title="编辑虚拟机设置，将网络类型改为“NAT”模式"></a>编辑虚拟机设置，将网络类型改为“NAT”模式</h3><img src="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/setup_nat_selection.png" class="">
-<h3 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h3><p>进入Linux系统指定目录开始进行网络参数配置，文件路径为<code>/etc/sysconfig/network-scripts/</code>,修改文件名为ifcfg-ens33（这里的ens后缀可能出现不一样的数字）的文件。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">BOOTPROTO=static <span class="comment">#dhcp改为static（修改） </span></span><br><span class="line">ONBOOT=yes <span class="comment">#开机启用本配置（修改） </span></span><br><span class="line">IPADDR=192.168.10.10 <span class="comment">#静态IP，前三位与子网地址一致（增加）</span></span><br><span class="line">GATEWAY=192.168.10.2 <span class="comment">#默认网关IP，虚拟机安装的话，通常是2，也就是VMnet8的网关设置（增加）</span></span><br><span class="line">NETMASK=255.255.255.0 <span class="comment">#子网掩码，与虚拟机子网掩码一致（增加）</span></span><br><span class="line">DNS1=192.168.1.1 <span class="comment">#DNS 配置，与主机DNS服务器一致，主机信息可通过ipconfig -all查看（增加）</span></span><br><span class="line">DNS2=8.8.8.8        <span class="comment">#谷歌地址（增加）</span></span><br></pre></td></tr></table></figure>
-<p>配置好之后，重启服务<code>service network restart</code>即可。</p>
-<h2 id="国内镜像源下载地址"><a href="#国内镜像源下载地址" class="headerlink" title="国内镜像源下载地址"></a>国内镜像源下载地址</h2><table>
-<thead>
-<tr>
-<th>镜像源</th>
-<th>地址</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>阿里云</td>
-<td><a href="http://mirrors.aliyun.com/" target="_blank" rel="noopener">http://mirrors.aliyun.com/</a></td>
-</tr>
-<tr>
-<td>浙江大学</td>
-<td><a href="http://mirrors.zju.edu.cn/" target="_blank" rel="noopener">http://mirrors.zju.edu.cn/</a></td>
-</tr>
-<tr>
-<td>清华大学</td>
-<td><a href="http://mirrors.tuna.tsinghua.edu.cn/" target="_blank" rel="noopener">http://mirrors.tuna.tsinghua.edu.cn/</a></td>
-</tr>
-<tr>
-<td>华中科技大学</td>
-<td><a href="http://mirrors.hust.edu.cn/" target="_blank" rel="noopener">http://mirrors.hust.edu.cn/</a></td>
-</tr>
-<tr>
-<td>大连东软信息学院</td>
-<td><a href="http://mirrors.neusoft.edu.cn/" target="_blank" rel="noopener">http://mirrors.neusoft.edu.cn/</a></td>
-</tr>
-</tbody></table>
-
+      
       
     </div>
+    
+
+    
+
+    
+    
+    
+      <!-- copyright -->
+      
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/" data-id="ckazhz16400033ssr2kjd3c8y" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" rel="tag">Linux必知必会</a></li></ul>
 
+
     </footer>
+
   </div>
+
   
+
+  
+
+  
+  
+  
+
 </article>
+    
+    <article id="post-Other/互联网公司技术团队博客推荐" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
 
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2015/01/01/Other/%E4%BA%92%E8%81%94%E7%BD%91%E5%85%AC%E5%8F%B8%E6%8A%80%E6%9C%AF%E5%9B%A2%E9%98%9F%E5%8D%9A%E5%AE%A2%E6%8E%A8%E8%8D%90/"
+    >互联网公司技术团队博客推荐</a> 
+</h2>
+ 
 
-  
-    <article id="post-Other/互联网公司技术团队博客推荐" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/01/01/Other/%E4%BA%92%E8%81%94%E7%BD%91%E5%85%AC%E5%8F%B8%E6%8A%80%E6%9C%AF%E5%9B%A2%E9%98%9F%E5%8D%9A%E5%AE%A2%E6%8E%A8%E8%8D%90/" class="article-date">
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2015/01/01/Other/%E4%BA%92%E8%81%94%E7%BD%91%E5%85%AC%E5%8F%B8%E6%8A%80%E6%9C%AF%E5%9B%A2%E9%98%9F%E5%8D%9A%E5%AE%A2%E6%8E%A8%E8%8D%90/" class="article-date">
   <time datetime="2015-01-01T02:00:00.000Z" itemprop="datePublished">2015-01-01</time>
 </a>
-    
+      
   <div class="article-category">
     <a class="article-category-link" href="/categories/Other/">Other</a>
   </div>
 
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/01/01/Other/%E4%BA%92%E8%81%94%E7%BD%91%E5%85%AC%E5%8F%B8%E6%8A%80%E6%9C%AF%E5%9B%A2%E9%98%9F%E5%8D%9A%E5%AE%A2%E6%8E%A8%E8%8D%90/">互联网公司技术团队博客推荐</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
       
-        <ul>
-<li><a href="https://tech.meituan.com/" target="_blank" rel="noopener">美团技术团队</a></li>
-<li><a href="http://jm.taobao.org/" target="_blank" rel="noopener">阿里中间件团队博客</a></li>
-<li><a href="https://tech.youzan.com/" target="_blank" rel="noopener">有赞技术团队</a></li>
-<li><a href="https://blogs.360.cn/" target="_blank" rel="noopener">360 核心安全技术博客</a></li>
-</ul>
-
+      
       
     </div>
+    
+
+    
+
+    
+    
+    
+      <!-- copyright -->
+      
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2015/01/01/Other/%E4%BA%92%E8%81%94%E7%BD%91%E5%85%AC%E5%8F%B8%E6%8A%80%E6%9C%AF%E5%9B%A2%E9%98%9F%E5%8D%9A%E5%AE%A2%E6%8E%A8%E8%8D%90/" data-id="ckazhz16800073ssr0kfa4ef0" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Other/" rel="tag">Other</a></li></ul>
 
+
     </footer>
+
   </div>
+
   
+
+  
+
+  
+  
+  
+
 </article>
-
-
+    
+  </article>
   
 
-
+  
 </section>
-        
-          <aside id="sidebar">
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">分类</h3>
-    <div class="widget">
-      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/CDH/">CDH</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Flink/">Flink</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Other/">Other</a></li></ul>
-    </div>
-  </div>
+</div>
 
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">标签</h3>
-    <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/CDH%E9%83%A8%E7%BD%B2/" rel="tag">CDH部署</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Flink%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" rel="tag">Flink入门学习</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Linux%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" rel="tag">Linux必知必会</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Other/" rel="tag">Other</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">标签云</h3>
-    <div class="widget tagcloud">
-      <a href="/tags/CDH%E9%83%A8%E7%BD%B2/" style="font-size: 10px;">CDH部署</a> <a href="/tags/Flink%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" style="font-size: 10px;">Flink入门学习</a> <a href="/tags/Linux%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" style="font-size: 10px;">Linux必知必会</a> <a href="/tags/Other/" style="font-size: 20px;">Other</a>
-    </div>
-  </div>
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">归档</h3>
-    <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/03/">三月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/01/">一月 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/02/">二月 2015</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/01/">一月 2015</a></li></ul>
-    </div>
-  </div>
-
-
-  
-    
-  <div class="widget-wrap">
-    <h3 class="widget-title">最新文章</h3>
-    <div class="widget">
-      <ul>
-        
-          <li>
-            <a href="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/">初识Flink</a>
-          </li>
-        
-          <li>
-            <a href="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/">CDH6.1.1离线部署</a>
-          </li>
-        
-          <li>
-            <a href="/2017/01/01/Other/Hexo%E6%90%AD%E5%BB%BAGitHub%E5%8D%9A%E5%AE%A2%E5%92%8CGitee%E5%8D%9A%E5%AE%A2/">Hexo搭建GitHub博客和Gitee博客</a>
-          </li>
-        
-          <li>
-            <a href="/2015/02/01/Linux/VMware%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AE%89%E8%A3%85Linux%20CentOS%E7%B3%BB%E7%BB%9F/">VMware虚拟机安装Linux CentOS系统</a>
-          </li>
-        
-          <li>
-            <a href="/2015/01/01/Other/%E4%BA%92%E8%81%94%E7%BD%91%E5%85%AC%E5%8F%B8%E6%8A%80%E6%9C%AF%E5%9B%A2%E9%98%9F%E5%8D%9A%E5%AE%A2%E6%8E%A8%E8%8D%90/">互联网公司技术团队博客推荐</a>
-          </li>
-        
-      </ul>
-    </div>
-  </div>
-
-  
-</aside>
-        
-      </div>
-      <footer id="footer">
-  
+      <footer class="footer">
   <div class="outer">
-    <div id="footer-info" class="inner">
-      &copy; 2020 henrrywan<br>
-      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
-    </div>
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2020
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
   </div>
 </footer>
-    </div>
-    <nav id="mobile-nav">
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
   
-    <a href="/" class="mobile-nav-link">Home</a>
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
   
-    <a href="/archives" class="mobile-nav-link">Archives</a>
-  
-</nav>
+  <ul class="nav nav-main">
     
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
 
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
 
   
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+<script src="/js/clickLove.js"></script>
+
+
+
+<!-- 复制 -->
 
   
-<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
 
 
 
 
-<script src="/js/script.js"></script>
-
-
-
-
+    
   </div>
 </body>
+
 </html>
