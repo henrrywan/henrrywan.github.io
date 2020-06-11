@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    substr(substring)在Hive和Impala中的区别 |  大数据学习笔记
+    Hadoop集群存储空间回收 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Hive/substr(substring)在Hive和Impala中的区别" class="article article-type-post" itemscope
+  <article id="post-Hadoop/Hadoop集群存储空间回收" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  substr(substring)在Hive和Impala中的区别
+  Hadoop集群存储空间回收
 </h1>
  
 
@@ -62,12 +62,12 @@
 
     
     <div class="article-meta">
-      <a href="/2017/06/01/Hive/substr(substring)%E5%9C%A8Hive%E5%92%8CImpala%E4%B8%AD%E7%9A%84%E5%8C%BA%E5%88%AB/" class="article-date">
-  <time datetime="2017-06-01T02:00:00.000Z" itemprop="datePublished">2017-06-01</time>
+      <a href="/2017/05/06/Hadoop/Hadoop%E9%9B%86%E7%BE%A4%E5%AD%98%E5%82%A8%E7%A9%BA%E9%97%B4%E5%9B%9E%E6%94%B6/" class="article-date">
+  <time datetime="2017-05-06T02:00:00.000Z" itemprop="datePublished">2017-05-06</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
   </div>
 
       
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">276</span>
+            <span class="post-count">779</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">1 分钟</span>
+            <span class="post-count">3 分钟</span>
         </span>
     </span>
 </div>
@@ -111,11 +111,31 @@
       
 
       
-      <h1 id="substr-substring-在Hive和Impala中的区别"><a href="#substr-substring-在Hive和Impala中的区别" class="headerlink" title="substr(substring)在Hive和Impala中的区别"></a>substr(substring)在Hive和Impala中的区别</h1><p>在Hive中，substr和substring函数等效，都用于截取字符串。并且起始位置，可以从0或者从1开始，查询出来的结果一致。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">hive&gt; select substr('2020-01-01 10:30:00',1,10);</span><br><span class="line">2020-01-01</span><br><span class="line">hive&gt; select substring('2020-01-01 10:30:00',1,10);</span><br><span class="line">2020-01-01</span><br><span class="line">hive&gt; select substring('2020-01-01 10:30:00',0,10);</span><br><span class="line">2020-01-01</span><br></pre></td></tr></table></figure>
-<p>同样，在Impala中，substr和substring函数等效，都用于截取字符串。需要注意的是，impala中是从1开始。<br><font color=red><strong><em>最坑的地方在于，如果从0开始，它不会报错，但是查询出来的结果会与预期不一样。</em></strong></font></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">[bd14:21000] devp_src&gt; select substr('2020-01-01 10:30:00',1,10);</span><br><span class="line">+<span class="comment">--------------------------------------+</span></span><br><span class="line">| substr('2020-01-01 10:30:00', 1, 10) |</span><br><span class="line">+<span class="comment">--------------------------------------+</span></span><br><span class="line">| 2020-01-01                           |</span><br><span class="line">+<span class="comment">--------------------------------------+</span></span><br><span class="line">[bd14:21000] devp_src&gt; select substring('2020-01-01 10:30:00',1,10);</span><br><span class="line">+<span class="comment">-----------------------------------------+</span></span><br><span class="line">| substring('2020-01-01 10:30:00', 1, 10) |</span><br><span class="line">+<span class="comment">-----------------------------------------+</span></span><br><span class="line">| 2020-01-01                              |</span><br><span class="line">+<span class="comment">-----------------------------------------+</span></span><br><span class="line">[bd14:21000] devp_src&gt; select substring('2020-01-01 10:30:00',0,10);</span><br><span class="line">+<span class="comment">-----------------------------------------+</span></span><br><span class="line">| substring('2020-01-01 10:30:00', 0, 10) |</span><br><span class="line">+<span class="comment">-----------------------------------------+</span></span><br><span class="line">|                                         |</span><br><span class="line">+<span class="comment">-----------------------------------------+</span></span><br></pre></td></tr></table></figure>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>只有一句话：建议不管是在Hive还是在Impala中，使用substr(substring)函数截取字符串的时候，都从1开始，不要从0开始！</p>
+      <h1 id="Hadoop集群存储空间回收"><a href="#Hadoop集群存储空间回收" class="headerlink" title="Hadoop集群存储空间回收"></a>Hadoop集群存储空间回收</h1><p>主要通过彻底删除文件和减少副本系数来回收集群存储空间。这里具体说明</p>
+<h2 id="文件的删除和恢复"><a href="#文件的删除和恢复" class="headerlink" title="文件的删除和恢复"></a>文件的删除和恢复</h2><p>默认情况下，Hadoop的回收站是关闭的，需要我们单独进行配置打开回收站。如果打开回收站配置，那么使用FS Shell命令删除的文件不会立即从HDFS中删除。相反，HDFS会将其移动到回收站目录（每个用户在/user/<username>/.Trash下都有自己的回收站目录）。只要文件留在回收站中，就可以快速恢复。</p>
+<h3 id="开启回收站"><a href="#开启回收站" class="headerlink" title="开启回收站"></a>开启回收站</h3><p>只需要在Hadoop的配置文件core-site.xml新增配置项即可</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--这里的4320代表分钟，即60*24*3，回收站保留三天被删除的数据。时间可以根据实际情况具体设定，这里仅作参考。--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.trash.interval<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>4320<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><h4 id="数据删除"><a href="#数据删除" class="headerlink" title="数据删除"></a>数据删除</h4><ul>
+<li><p>新建测试文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@master opt]<span class="comment"># hadoop fs -cat /test/a.txt</span></span><br><span class="line">java</span><br><span class="line">python</span><br><span class="line">scala</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>删除测试文件</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master opt]<span class="comment"># hadoop fs -rm /test/a.txt</span></span><br><span class="line">17/05/16 19:35:44 INFO fs.TrashPolicyDefault: Moved: <span class="string">'hdfs://master:9000/test/a.txt'</span> to trash at: hdfs://master:9000/user/root/.Trash/Current/<span class="built_in">test</span>/a.txt</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>回收站查看</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@master opt]<span class="comment"># hadoop fs -ls #配置并执行删除HDFS操作后</span></span><br><span class="line">Found 1 items</span><br><span class="line">drwx------   - root supergroup          0 2017-05-16 19:35 .Trash</span><br><span class="line"><span class="comment">## 需要注意的是，在我们执行HDFS文件删除之前，".Trash"（回收站）目录是没有被创建的，只有当我们执行删除操作之后，".Trash"（回收站）目录才会被创建。</span></span><br><span class="line"><span class="comment">#配置前</span></span><br><span class="line">[root@master hadoop]<span class="comment"># hadoop fs -ls </span></span><br><span class="line">ls: `.<span class="string">': No such file or directory</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>回收站中查看被删除的测试文件内容</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@master opt]<span class="comment"># hadoop fs -cat .Trash/Current/test/a.txt</span></span><br><span class="line">java</span><br><span class="line">python</span><br><span class="line">scala</span><br></pre></td></tr></table></figure>
+<h4 id="数据恢复"><a href="#数据恢复" class="headerlink" title="数据恢复"></a>数据恢复</h4><p>既然我们知道了被删除文件在回收站中的具体位置，如果出现数据的误删除，我们恢复数据就比较简单了。这里直接mv或cp到原路径即可。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@master opt]<span class="comment"># hadoop fs -mv  .Trash/Current/test/a.txt /test/</span></span><br><span class="line"><span class="comment">## 查看数据是否恢复</span></span><br><span class="line">[root@master opt]<span class="comment"># hadoop fs -cat /test/a.txt</span></span><br><span class="line">java</span><br><span class="line">python</span><br><span class="line">scala</span><br></pre></td></tr></table></figure>
+<h4 id="数据删除（跳过回收站，慎用）"><a href="#数据删除（跳过回收站，慎用）" class="headerlink" title="数据删除（跳过回收站，慎用）"></a>数据删除（跳过回收站，慎用）</h4><p>在我们执行HDFS文件删除的时候，我们可以指定跳过回收站彻底删除文件，这个时候文件是无法被找回的。要从HDFS中跳过回收站删除文件或文件夹，可以使用以下命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -rm -r -skipTrash /path/fileName</span><br></pre></td></tr></table></figure>
+<p>这里我们进行简单测试。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 删除测试文件并跳过回收站</span></span><br><span class="line">[root@master opt]<span class="comment"># hadoop fs -rm -r -skipTrash /test/b.txt</span></span><br><span class="line">Deleted /<span class="built_in">test</span>/b.txt</span><br><span class="line"><span class="comment">## 回收站查看，没有该文件</span></span><br><span class="line">[root@master opt]<span class="comment"># hadoop fs -ls  .Trash/Current/test</span></span><br><span class="line">[root@master opt]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+<h2 id="减少副本系数"><a href="#减少副本系数" class="headerlink" title="减少副本系数"></a>减少副本系数</h2><p>当一个文件的副本系数被减小后，Namenode会选择过剩的副本删除。下次心跳检测时会将该信息传递给Datanode。Datanode遂即移除相应的数据块，集群中的空闲空间加大。同样，在调用setReplication API结束和集群中空闲空间增加间会有一定的延迟。</p>
+</li>
+</ul>
 
       
       <!-- reward -->
@@ -184,14 +204,14 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2017/06/01/Hive/substr(substring)%E5%9C%A8Hive%E5%92%8CImpala%E4%B8%AD%E7%9A%84%E5%8C%BA%E5%88%AB/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2017/05/06/Hadoop/Hadoop%E9%9B%86%E7%BE%A4%E5%AD%98%E5%82%A8%E7%A9%BA%E9%97%B4%E5%9B%9E%E6%94%B6/" alt="微信分享二维码">
     </div>
 </div>
 
 <div id="share-mask"></div>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%B8%A9%E5%9D%91%E7%B3%BB%E5%88%97/" rel="tag">大数据踩坑系列</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" rel="tag">Hadoop入门学习</a></li></ul>
 
 
     </footer>
@@ -202,19 +222,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2018/06/01/Hive/Hive%E5%8A%A8%E6%80%81%E5%88%86%E5%8C%BA%E5%BC%80%E5%90%AF%E4%B8%8E%E5%85%B3%E9%97%AD/" class="article-nav-link">
+      <a href="/2017/06/01/Hive/substr(substring)%E5%9C%A8Hive%E5%92%8CImpala%E4%B8%AD%E7%9A%84%E5%8C%BA%E5%88%AB/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Hive动态分区开启与关闭
+            substr(substring)在Hive和Impala中的区别
           
         </div>
       </a>
     
     
-      <a href="/2017/05/06/Hadoop/Hadoop%E9%9B%86%E7%BE%A4%E5%AD%98%E5%82%A8%E7%A9%BA%E9%97%B4%E5%9B%9E%E6%94%B6/" class="article-nav-link">
+      <a href="/2017/05/04/Hadoop/Hadoop%E5%B8%B8%E7%94%A8Shell%E5%91%BD%E4%BB%A4/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Hadoop集群存储空间回收</div>
+        <div class="article-nav-title">Hadoop常用Shell命令</div>
       </a>
     
   </nav>
