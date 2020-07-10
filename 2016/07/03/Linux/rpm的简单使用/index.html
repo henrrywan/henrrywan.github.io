@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Linux系统查看端口占用情况 |  大数据学习笔记
+    rpm的简单使用 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Linux/Linux系统查看端口占用情况" class="article article-type-post" itemscope
+  <article id="post-Linux/rpm的简单使用" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Linux系统查看端口占用情况
+  rpm的简单使用
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2016/06/18/Linux/Linux%E7%B3%BB%E7%BB%9F%E6%9F%A5%E7%9C%8B%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/" class="article-date">
-  <time datetime="2016-06-18T02:00:00.000Z" itemprop="datePublished">2016-06-18</time>
+      <a href="/2016/07/03/Linux/rpm%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" class="article-date">
+  <time datetime="2016-07-03T02:00:00.000Z" itemprop="datePublished">2016-07-03</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">188</span>
+            <span class="post-count">195</span>
         </span>
     </span>
 
@@ -111,20 +111,48 @@
       
 
       
-      <h1 id="Linux系统查看端口占用情况"><a href="#Linux系统查看端口占用情况" class="headerlink" title="Linux系统查看端口占用情况"></a>Linux系统查看端口占用情况</h1><p>在Linux中，我们可以使用<code>netstat</code>命令或者<code>lsof</code>命令来查看端口占用情况。具体如下</p>
-<h2 id="netstat命令"><a href="#netstat命令" class="headerlink" title="netstat命令"></a>netstat命令</h2><p>格式：<code>netstat -tunlp|grep &lt;port&gt;</code></p>
-<p>可选参数</p>
-<ul>
-<li>-t (tcp) 仅显示tcp相关选项</li>
-<li>-u (udp)仅显示udp相关选项</li>
-<li>-n 拒绝显示别名，能显示数字的全部转化为数字</li>
-<li>-l 仅列出在Listen(监听)的服务状态</li>
-<li>-p 显示进程标识符和程序名称</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 查看9870端口</span></span><br><span class="line">[root@bd12 opt]<span class="comment"># netstat -tunlp|grep 9870</span></span><br><span class="line">tcp    0   0 10.8.40.112:9870    0.0.0.0:*       LISTEN   27012/java</span><br></pre></td></tr></table></figure>
-<h2 id="lsof命令"><a href="#lsof命令" class="headerlink" title="lsof命令"></a>lsof命令</h2><p>格式：<code>lsof -i:&lt;port&gt;</code></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">## 查看9870端口</span></span><br><span class="line"> [root@bd12 opt]<span class="comment"># lsof -i:9870</span></span><br><span class="line">COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME</span><br><span class="line">java  27012 hdfs 234u IPv4 907288   0t0 TCP bd12:9870 (LISTEN)</span><br></pre></td></tr></table></figure>
-
+      <h1 id="rpm的简单使用"><a href="#rpm的简单使用" class="headerlink" title="rpm的简单使用"></a>rpm的简单使用</h1><p>在Linux中，我们可以通过使用rpm命令来管理套件。<br>这里根据实际的使用情况，进行简单整理。</p>
+<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-q</td>
+<td>使用询问模式，当遇到任何问题的时候，rpm会先询问用户</td>
+</tr>
+<tr>
+<td>-a</td>
+<td>查询所有套件</td>
+</tr>
+<tr>
+<td>-e</td>
+<td>删除指定套件</td>
+</tr>
+<tr>
+<td>-i</td>
+<td>显示套件的相关信息</td>
+</tr>
+<tr>
+<td>-v</td>
+<td>显示指令执行过程</td>
+</tr>
+<tr>
+<td>-h</td>
+<td>套件安装时列出标记：####</td>
+</tr>
+<tr>
+<td>–nodeps</td>
+<td>不验证套件的相互关联性</td>
+</tr>
+<tr>
+<td>–help</td>
+<td>帮助神器</td>
+</tr>
+</tbody></table>
+<h2 id="简单使用"><a href="#简单使用" class="headerlink" title="简单使用"></a>简单使用</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">rpm -qa|grep mariadb <span class="comment">#检查是否安装mariadb</span></span><br><span class="line">rpm -e mariadb-libs-5.5.56-2.el7.x86_64 <span class="comment">#卸载已安装mariadb</span></span><br><span class="line">rpm -e --nodeps mariadb-libs-5.5.56-2.el7.x86_64 <span class="comment">#强力卸载mariadb</span></span><br><span class="line">rpm -ivh mysql-community-client-5.7.27-1.el7.x86_64.rpm <span class="comment"># 安装MySQL客户端</span></span><br></pre></td></tr></table></figure>
       
       <!-- reward -->
       
@@ -192,7 +220,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2016/06/18/Linux/Linux%E7%B3%BB%E7%BB%9F%E6%9F%A5%E7%9C%8B%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2016/07/03/Linux/rpm%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -210,19 +238,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2016/07/01/Linux/crontab%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+      <a href="/2017/01/01/Other/Hexo%E6%90%AD%E5%BB%BAGitHub%E5%8D%9A%E5%AE%A2%E5%92%8CGitee%E5%8D%9A%E5%AE%A2/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            crontab的简单使用
+            Hexo搭建GitHub博客和Gitee博客
           
         </div>
       </a>
     
     
-      <a href="/2016/06/06/MySQL/group_concat%E5%87%BD%E6%95%B0%E5%9C%A8MySQL%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+      <a href="/2016/07/01/Linux/crontab%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">group_concat函数在MySQL中的使用</div>
+        <div class="article-nav-title">crontab的简单使用</div>
       </a>
     
   </nav>

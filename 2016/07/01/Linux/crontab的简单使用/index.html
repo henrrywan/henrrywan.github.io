@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Linux系统查看端口占用情况 |  大数据学习笔记
+    crontab的简单使用 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Linux/Linux系统查看端口占用情况" class="article article-type-post" itemscope
+  <article id="post-Linux/crontab的简单使用" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Linux系统查看端口占用情况
+  crontab的简单使用
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2016/06/18/Linux/Linux%E7%B3%BB%E7%BB%9F%E6%9F%A5%E7%9C%8B%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/" class="article-date">
-  <time datetime="2016-06-18T02:00:00.000Z" itemprop="datePublished">2016-06-18</time>
+      <a href="/2016/07/01/Linux/crontab%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" class="article-date">
+  <time datetime="2016-07-01T02:00:00.000Z" itemprop="datePublished">2016-07-01</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">188</span>
+            <span class="post-count">438</span>
         </span>
     </span>
 
@@ -111,20 +111,67 @@
       
 
       
-      <h1 id="Linux系统查看端口占用情况"><a href="#Linux系统查看端口占用情况" class="headerlink" title="Linux系统查看端口占用情况"></a>Linux系统查看端口占用情况</h1><p>在Linux中，我们可以使用<code>netstat</code>命令或者<code>lsof</code>命令来查看端口占用情况。具体如下</p>
-<h2 id="netstat命令"><a href="#netstat命令" class="headerlink" title="netstat命令"></a>netstat命令</h2><p>格式：<code>netstat -tunlp|grep &lt;port&gt;</code></p>
-<p>可选参数</p>
-<ul>
-<li>-t (tcp) 仅显示tcp相关选项</li>
-<li>-u (udp)仅显示udp相关选项</li>
-<li>-n 拒绝显示别名，能显示数字的全部转化为数字</li>
-<li>-l 仅列出在Listen(监听)的服务状态</li>
-<li>-p 显示进程标识符和程序名称</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 查看9870端口</span></span><br><span class="line">[root@bd12 opt]<span class="comment"># netstat -tunlp|grep 9870</span></span><br><span class="line">tcp    0   0 10.8.40.112:9870    0.0.0.0:*       LISTEN   27012/java</span><br></pre></td></tr></table></figure>
-<h2 id="lsof命令"><a href="#lsof命令" class="headerlink" title="lsof命令"></a>lsof命令</h2><p>格式：<code>lsof -i:&lt;port&gt;</code></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">## 查看9870端口</span></span><br><span class="line"> [root@bd12 opt]<span class="comment"># lsof -i:9870</span></span><br><span class="line">COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME</span><br><span class="line">java  27012 hdfs 234u IPv4 907288   0t0 TCP bd12:9870 (LISTEN)</span><br></pre></td></tr></table></figure>
+      <h1 id="crontab的简单使用"><a href="#crontab的简单使用" class="headerlink" title="crontab的简单使用"></a>crontab的简单使用</h1><p>在Linux中，crontab命令通常用来设置定时任务。</p>
+<h2 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h2><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-e</td>
+<td>编辑crontab定时任务</td>
+</tr>
+<tr>
+<td>-l</td>
+<td>查看crontab定时任务</td>
+</tr>
+<tr>
+<td>-r</td>
+<td>删除当前用户所有的crontab定时任务</td>
+</tr>
+</tbody></table>
+<h2 id="时间表格式"><a href="#时间表格式" class="headerlink" title="时间表格式"></a>时间表格式</h2><p>基本格式：* * * * *  command<br>规则说明</p>
+<table>
+<thead>
+<tr>
+<th>位置</th>
+<th>代表含义</th>
+<th>数字范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一个*</td>
+<td>minute 分钟</td>
+<td>0 - 59，多个不连续时间可以用逗号分隔，连续时间可以用-表示，比如0-5，下同</td>
+</tr>
+<tr>
+<td>第二个*</td>
+<td>hour 小时</td>
+<td>0 - 23，多个不连续时间可以用逗号分隔</td>
+</tr>
+<tr>
+<td>第三个*</td>
+<td>day of month 日期</td>
+<td>1 - 31，多个不连续时间可以用逗号分隔</td>
+</tr>
+<tr>
+<td>第四个*</td>
+<td>month 月份</td>
+<td>1 - 12，多个不连续时间可以用逗号分隔</td>
+</tr>
+<tr>
+<td>第五个*</td>
+<td>day of week  星期</td>
+<td>0 - 6 （注意：这里如果数字为0或7都表示周日）</td>
+</tr>
+</tbody></table>
+<p>注意：星期和日期最好不要同时出现，它们定义的都是天数，非常容易混乱。</p>
+<h2 id="简单使用"><a href="#简单使用" class="headerlink" title="简单使用"></a>简单使用</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##编辑定时任务，每隔1分钟向指定文件追加hello</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># crontab -e</span></span><br><span class="line"><span class="comment">##编辑内容如下</span></span><br><span class="line">*/1 * * * * /bin/<span class="built_in">echo</span> <span class="string">'hello'</span> &gt;&gt; /opt/<span class="built_in">test</span>/hello.txt</span><br><span class="line"><span class="comment">##编辑完成之后，需要重新启动crond服务</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment">#  systemctl restart crond.service</span></span><br><span class="line"><span class="comment">##查看定时任务</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># crontab -l</span></span><br><span class="line">*/1 * * * * /bin/<span class="built_in">echo</span> <span class="string">'hello'</span> &gt;&gt; /opt/<span class="built_in">test</span>/hello.txt</span><br><span class="line"><span class="comment">##查看目标文件内容（如果不存在，自动新建hello.txt文件）</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># cat /opt/test/hello.txt </span></span><br><span class="line">hello</span><br><span class="line"><span class="comment">##等待一分钟再次查看</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># cat /opt/test/hello.txt </span></span><br><span class="line">hello</span><br><span class="line">hello</span><br><span class="line"><span class="comment">##s删除定时任务并再次查看</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># crontab -r</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># crontab -l</span></span><br><span class="line">no crontab <span class="keyword">for</span> root</span><br></pre></td></tr></table></figure>
 
+<p>注意：下面两种写法的区别</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#每1分钟执行一次</span></span></span><br><span class="line">*/1 * * * *</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#每小时的第1分钟执行一次</span></span></span><br><span class="line">1 * * * *</span><br></pre></td></tr></table></figure>
       
       <!-- reward -->
       
@@ -192,7 +239,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2016/06/18/Linux/Linux%E7%B3%BB%E7%BB%9F%E6%9F%A5%E7%9C%8B%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2016/07/01/Linux/crontab%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -210,19 +257,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2016/07/01/Linux/crontab%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+      <a href="/2016/07/03/Linux/rpm%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            crontab的简单使用
+            rpm的简单使用
           
         </div>
       </a>
     
     
-      <a href="/2016/06/06/MySQL/group_concat%E5%87%BD%E6%95%B0%E5%9C%A8MySQL%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+      <a href="/2016/06/18/Linux/Linux%E7%B3%BB%E7%BB%9F%E6%9F%A5%E7%9C%8B%E7%AB%AF%E5%8F%A3%E5%8D%A0%E7%94%A8%E6%83%85%E5%86%B5/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">group_concat函数在MySQL中的使用</div>
+        <div class="article-nav-title">Linux系统查看端口占用情况</div>
       </a>
     
   </nav>
