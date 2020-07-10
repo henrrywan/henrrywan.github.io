@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Linux集群时间同步 |  大数据学习笔记
+    MySQL5.7简易密码设置 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Linux/Linux集群时间同步" class="article article-type-post" itemscope
+  <article id="post-MySQL/MySQL5.7简易密码设置" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Linux集群时间同步
+  MySQL5.7简易密码设置
 </h1>
  
 
@@ -62,12 +62,12 @@
 
     
     <div class="article-meta">
-      <a href="/2018/08/18/Linux/Linux%E9%9B%86%E7%BE%A4%E6%97%B6%E9%97%B4%E5%90%8C%E6%AD%A5/" class="article-date">
-  <time datetime="2018-08-18T02:00:00.000Z" itemprop="datePublished">2018-08-18</time>
+      <a href="/2019/06/06/MySQL/MySQL5.7%E7%AE%80%E6%98%93%E5%AF%86%E7%A0%81%E8%AE%BE%E7%BD%AE/" class="article-date">
+  <time datetime="2019-06-06T02:00:00.000Z" itemprop="datePublished">2019-06-06</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    <a class="article-category-link" href="/categories/MySQL/">MySQL</a>
   </div>
 
       
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">900</span>
+            <span class="post-count">699</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">3 分钟</span>
+            <span class="post-count">2 分钟</span>
         </span>
     </span>
 </div>
@@ -111,34 +111,66 @@
       
 
       
-      <h1 id="Linux集群时间同步"><a href="#Linux集群时间同步" class="headerlink" title="Linux集群时间同步"></a>Linux集群时间同步</h1><p>所谓集群时间同步，简单点来说，就是选定一台服务器作为时间服务器，集群上的其它所有机器都与这台时间服务器进行定时同步。</p>
-<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><h3 id="关闭各节点防火墙"><a href="#关闭各节点防火墙" class="headerlink" title="关闭各节点防火墙"></a>关闭各节点防火墙</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 查看防火墙状态</span></span><br><span class="line">[root@node01 ~]<span class="comment"># systemctl status firewalld</span></span><br><span class="line"><span class="comment">## 关闭防火墙</span></span><br><span class="line">[root@node01 ~]<span class="comment"># systemctl stop firewalld</span></span><br><span class="line"><span class="comment">##禁止防火墙开机启动</span></span><br><span class="line">[root@node01 ~]<span class="comment"># systemctl disable firewalld</span></span><br></pre></td></tr></table></figure>
+      <h1 id="MySQL5-7简易密码设置"><a href="#MySQL5-7简易密码设置" class="headerlink" title="MySQL5.7简易密码设置"></a>MySQL5.7简易密码设置</h1><h2 id="默认规范密码"><a href="#默认规范密码" class="headerlink" title="默认规范密码"></a>默认规范密码</h2><p>在MySQL5.7中，新增了密码强度验证插件validate_password，这就导致相关的参数设置更为严格。<br>当我们设置密码的时候，该插件会检查设置的密码是否符合当前设置的强度规则，如果不满足则拒绝设置并报错。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 不满足插件规则时错误信息</span></span><br><span class="line">ERROR 1819 (HY000): Your password does not satisfy the current policy requirements</span><br><span class="line"><span class="comment">## 正常情况下，当我们设置了符合规范的密码之后，如果需要再次修改密码，可以使用</span></span><br><span class="line">mysql&gt; update user <span class="built_in">set</span> authentication_string=password(<span class="string">'Root_123456'</span>) <span class="built_in">where</span> user=<span class="string">'root'</span>;</span><br><span class="line"><span class="comment">## 刷新权限</span></span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
 
-<h3 id="检查各节点是否安装ntp"><a href="#检查各节点是否安装ntp" class="headerlink" title="检查各节点是否安装ntp"></a>检查各节点是否安装ntp</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 给所有需要做时间同步的服务器安装ntp，这里以node01为例</span></span><br><span class="line">[root@node01 ~]<span class="comment"># rpm -qa|grep ntp</span></span><br><span class="line">[root@node01 ~]<span class="comment"># yum -y install ntp</span></span><br><span class="line"><span class="comment">## 安装之后再次查看</span></span><br><span class="line">[root@node01 ~]<span class="comment"># rpm -qa|grep ntp</span></span><br><span class="line">ntpdate-4.2.6p5-28.el7.centos.x86_64</span><br><span class="line">ntp-4.2.6p5-28.el7.centos.x86_64</span><br></pre></td></tr></table></figure>
+<h2 id="默认配置规则"><a href="#默认配置规则" class="headerlink" title="默认配置规则"></a>默认配置规则</h2><p>在MySQL中，我们可以直接通过下面的语句查看当前规则配置信息。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 查看MySQL5.7默认的密码校验配置。</span></span><br><span class="line">mysql&gt; SHOW VARIABLES LIKE <span class="string">'validate_password%'</span>;</span><br></pre></td></tr></table></figure>
 
-<h2 id="集群时间同步"><a href="#集群时间同步" class="headerlink" title="集群时间同步"></a>集群时间同步</h2><h3 id="选定时间服务器"><a href="#选定时间服务器" class="headerlink" title="选定时间服务器"></a>选定时间服务器</h3><p>选定一个服务器作为时间服务器，这里选择node01作为时间服务器。</p>
-<h3 id="修改-etc-ntp-conf配置文件"><a href="#修改-etc-ntp-conf配置文件" class="headerlink" title="修改/etc/ntp.conf配置文件"></a>修改/etc/ntp.conf配置文件</h3><p>文件位置为<code>/etc/ntp.conf</code>。</p>
-<ol>
-<li><p>改动一：授权该网段上的所有机器都可以从时间服务器查询和同步时间<br>以本集群为例，node01的IP地址为192.168.10.10，node02的IP地址为192.168.10.11。<br>这里我们授权192.168.10.0-192.168.10.255网段上的所有机器都可以从时间服务器查询和同步时间。这里的网段以实际情况为准。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#改动前</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Hosts on <span class="built_in">local</span> network are less restricted.</span></span><br><span class="line"><span class="meta">#</span><span class="bash">restrict 192.168.1.0 mask 255.255.255.0 nomodify notrap</span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#改动后</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Hosts on <span class="built_in">local</span> network are less restricted.</span></span><br><span class="line"><span class="meta">#</span><span class="bash">restrict 192.168.1.0 mask 255.255.255.0 nomodify notrap</span></span><br><span class="line">restrict 192.168.10.0 mask 255.255.255.0 nomodify notrap</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>改动二：集群在局域网中，不使用其它互联网上的时间</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 直接将互联网上的时间配置注释掉即可。改动后</span></span><br><span class="line"><span class="comment"># Use public servers from the pool.ntp.org project.</span></span><br><span class="line"><span class="comment"># Please consider joining the pool (http://www.pool.ntp.org/join.html).</span></span><br><span class="line"><span class="comment"># server 0.centos.pool.ntp.org iburst</span></span><br><span class="line"><span class="comment"># server 1.centos.pool.ntp.org iburst</span></span><br><span class="line"><span class="comment"># server 2.centos.pool.ntp.org iburst</span></span><br><span class="line"><span class="comment"># server 3.centos.pool.ntp.org iburst</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>改动三：当该节点丢失网络连接，依然可以采用本地时间作为时间服务器为集群中的其它节点提供时间同步<br>在实际使用中，可能会出现节点网络连接丢失的情况，这个时候我们可以以本地时间作为时间服务。<br>这里直接在配置文件末尾添加下面的配置即可。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 这里stratum后面的10表示等级</span></span></span><br><span class="line">server  127.127.1.0</span><br><span class="line">fudge   127.127.1.0 stratum 10</span><br></pre></td></tr></table></figure>
+<p>这里我们简单了解一下插件validate_password的规则配置。</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>validate_password_check_user_name</td>
+<td>插件用于验证用户名。默认OFF，表示不验证。</td>
+</tr>
+<tr>
+<td>validate_password_dictionary_file</td>
+<td>插件用于验证密码强度的字典文件路径。</td>
+</tr>
+<tr>
+<td>validate_password_length</td>
+<td>插件用于验证密码强度的最小长度，默认为8。</td>
+</tr>
+<tr>
+<td>validate_password_mixed_case_count</td>
+<td>密码至少要包含的小写字母个数和大写字母个数。默认为1。</td>
+</tr>
+<tr>
+<td>validate_password_number_count</td>
+<td>密码至少要包含的数字个数。默认为1。</td>
+</tr>
+<tr>
+<td>validate_password_policy</td>
+<td>密码强度检查等级，0/LOW、1/MEDIUM、2/STRONG。默认为MEDIUM。</td>
+</tr>
+<tr>
+<td>validate_password_special_char_count</td>
+<td>密码至少要包含的特殊字符数。默认为1。</td>
+</tr>
+</tbody></table>
+<p>关于上面规则配置中的validate_password_policy参数中的等级强度，这里作进一步说明</p>
+<ul>
+<li>0 or LOW：只检查密码长度</li>
+<li>1 or MEDIUM：检查长度、数字、大小写、特殊字符</li>
+<li>2 or STRONG：检查长度、数字、大小写、特殊字符以及字典文件</li>
+</ul>
+<h2 id="设置简易密码"><a href="#设置简易密码" class="headerlink" title="设置简易密码"></a>设置简易密码</h2><p>在实际使用中，我们可能需要设置简历密码，例如root等。这里我们可以通过修改规则配置或者禁用规则插件等方式来实现。</p>
+<h3 id="修改规则和密码"><a href="#修改规则和密码" class="headerlink" title="修改规则和密码"></a>修改规则和密码</h3><p>我们可以先修改配置规则，再修改成符合规则的密码。这里以最简四位密码root为例。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; <span class="built_in">set</span> global validate_password_policy=0;</span><br><span class="line">mysql&gt; <span class="built_in">set</span> global validate_password_length=4;</span><br><span class="line">mysql&gt; <span class="built_in">set</span> global validate_password_mixed_case_count=0;</span><br><span class="line">mysql&gt; <span class="built_in">set</span> global validate_password_number_count = 0;</span><br><span class="line">mysql&gt; <span class="built_in">set</span> global validate_password_special_char_count = 0;</span><br><span class="line"></span><br><span class="line"><span class="comment">## 这里我们再次修改密码。以新建一个测试用户为例。</span></span><br><span class="line">mysql&gt; CREATE USER <span class="string">'test001'</span>@<span class="string">'%'</span> IDENTIFIED BY <span class="string">'root'</span>;</span><br><span class="line">Query OK, 0 rows affected (0.02 sec)</span><br></pre></td></tr></table></figure>
 
-</li>
-</ol>
-<h3 id="修改-etc-sysconfig-ntpd配置文件"><a href="#修改-etc-sysconfig-ntpd配置文件" class="headerlink" title="修改/etc/sysconfig/ntpd配置文件"></a>修改/etc/sysconfig/ntpd配置文件</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 在文件末尾新增下面的配置，这里是为了让硬件时间与系统时间一起同步。</span></span><br><span class="line">SYNC_HWCLOCK=yes</span><br></pre></td></tr></table></figure>
+<h3 id="禁用规则插件（不建议）"><a href="#禁用规则插件（不建议）" class="headerlink" title="禁用规则插件（不建议）"></a>禁用规则插件（不建议）</h3><p>事实上，这个密码强度验证插件validate_password是可以直接在MySQL5.7中的配置中禁用的。<br>这里只需要在/etc/my.conf 中 的 [mysqld] 中增加如下的配置即可。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">validate_password=OFF</span><br></pre></td></tr></table></figure>
 
-<h3 id="重新启动ntpd服务，并设置ntpd服务开机启动"><a href="#重新启动ntpd服务，并设置ntpd服务开机启动" class="headerlink" title="重新启动ntpd服务，并设置ntpd服务开机启动"></a>重新启动ntpd服务，并设置ntpd服务开机启动</h3><p>注意：<font color=red><strong><em>只在时间服务器上启动ntpd服务，在其它节点不要启动ntpd服务。</em></strong></font></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 查看服务ntpd状态</span></span><br><span class="line">[root@node01 ~]<span class="comment"># systemctl status ntpd.service</span></span><br><span class="line"><span class="comment">## 打开服务</span></span><br><span class="line">[root@node01 ~]<span class="comment"># systemctl start ntpd.service</span></span><br><span class="line"><span class="comment">## 设置服务开机启动</span></span><br><span class="line">[root@node01 ~]<span class="comment"># systemctl enable ntpd.service</span></span><br></pre></td></tr></table></figure>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li>MySQL5.7官网文档：<a href="https://dev.mysql.com/doc/refman/5.7/en/" target="_blank" rel="noopener">https://dev.mysql.com/doc/refman/5.7/en/</a></li>
+</ul>
 
-<h3 id="其它节点设置定时任务"><a href="#其它节点设置定时任务" class="headerlink" title="其它节点设置定时任务"></a>其它节点设置定时任务</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 编辑定时任务,以每1分钟进行一次时间同步操作为例</span></span></span><br><span class="line">[root@node02 ~]# crontab -e</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 定时任务内容，已配置主机名与IP地址对应关系，或者直接使用IP地址</span></span></span><br><span class="line">[root@node02 ~]# crontab -l</span><br><span class="line">*/1 * * * * /usr/sbin/ntpdate node01</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 重启服务</span></span></span><br><span class="line">[root@node02 ~]# systemctl restart crond.service</span><br></pre></td></tr></table></figure>
-
-<h2 id="简单测试"><a href="#简单测试" class="headerlink" title="简单测试"></a>简单测试</h2><p>修改node02，等待一分钟之后，查看时间是否同步。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node02 ~]# date -s '2011-01-01 11:11:11'</span><br><span class="line">2011年 01月 01日 星期六 11:11:11 CST</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 等待一分钟之后再次查看时间</span></span></span><br><span class="line">[root@node02 ~]# date</span><br><span class="line">2018年 08月 18日 星期六 12:32:39 CST</span><br></pre></td></tr></table></figure>
       
       <!-- reward -->
       
@@ -206,14 +238,14 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2018/08/18/Linux/Linux%E9%9B%86%E7%BE%A4%E6%97%B6%E9%97%B4%E5%90%8C%E6%AD%A5/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/06/06/MySQL/MySQL5.7%E7%AE%80%E6%98%93%E5%AF%86%E7%A0%81%E8%AE%BE%E7%BD%AE/" alt="微信分享二维码">
     </div>
 </div>
 
 <div id="share-mask"></div>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" rel="tag">Linux必知必会</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" rel="tag">MySQL必知必会</a></li></ul>
 
 
     </footer>
@@ -224,19 +256,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2019/06/06/MySQL/MySQL5.7%E7%AE%80%E6%98%93%E5%AF%86%E7%A0%81%E8%AE%BE%E7%BD%AE/" class="article-nav-link">
+      <a href="/2019/07/17/Azkaban/Azkaban3.x%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            MySQL5.7简易密码设置
+            Azkaban3.x源码编译
           
         </div>
       </a>
     
     
-      <a href="/2018/08/08/Linux/CentOS6%E5%92%8CCentOS7%E5%8C%BA%E5%88%AB/" class="article-nav-link">
+      <a href="/2018/08/18/Linux/Linux%E9%9B%86%E7%BE%A4%E6%97%B6%E9%97%B4%E5%90%8C%E6%AD%A5/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">CentOS6和CentOS7区别</div>
+        <div class="article-nav-title">Linux集群时间同步</div>
       </a>
     
   </nav>
