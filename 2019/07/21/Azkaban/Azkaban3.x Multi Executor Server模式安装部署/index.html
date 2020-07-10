@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Azkaban3.x Solo Server模式安装部署 |  大数据学习笔记
+    Azkaban3.x Multi Executor Server模式安装部署 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Azkaban/Azkaban3.x Solo Server模式安装部署" class="article article-type-post" itemscope
+  <article id="post-Azkaban/Azkaban3.x Multi Executor Server模式安装部署" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Azkaban3.x Solo Server模式安装部署
+  Azkaban3.x Multi Executor Server模式安装部署
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2019/07/20/Azkaban/Azkaban3.x%20Solo%20Server%E6%A8%A1%E5%BC%8F%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="article-date">
-  <time datetime="2019-07-20T02:00:00.000Z" itemprop="datePublished">2019-07-20</time>
+      <a href="/2019/07/21/Azkaban/Azkaban3.x%20Multi%20Executor%20Server%E6%A8%A1%E5%BC%8F%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="article-date">
+  <time datetime="2019-07-21T02:00:00.000Z" itemprop="datePublished">2019-07-21</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">629</span>
+            <span class="post-count">1.1k</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">2 分钟</span>
+            <span class="post-count">5 分钟</span>
         </span>
     </span>
 </div>
@@ -111,24 +111,40 @@
       
 
       
-      <h1 id="Azkaban3-x-Solo-Server模式安装部署"><a href="#Azkaban3-x-Solo-Server模式安装部署" class="headerlink" title="Azkaban3.x Solo Server模式安装部署"></a>Azkaban3.x Solo Server模式安装部署</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这一章节，我们主要学习Azkaban3.x Solo Server模式安装部署。</p>
-<h2 id="环境依赖"><a href="#环境依赖" class="headerlink" title="环境依赖"></a>环境依赖</h2><p>从Azkaban3.x源码编译根目录路径下<code>/azkaban-solo-server/build/distributions</code>获取相关tar包。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 distributions]<span class="comment"># ls</span></span><br><span class="line">azkaban-solo-server-0.1.0-SNAPSHOT.tar.gz  azkaban-solo-server-0.1.0-SNAPSHOT.zip</span><br></pre></td></tr></table></figure>
-<h2 id="安装部署"><a href="#安装部署" class="headerlink" title="安装部署"></a>安装部署</h2><ol>
-<li><p>解压文件</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 解压文件到指定目录</span></span><br><span class="line">[root@node01 distributions]<span class="comment"># tar -xzvf azkaban-solo-server-0.1.0-SNAPSHOT.tar.gz -C /opt/</span></span><br><span class="line"><span class="comment">## 查看解压之后的文件并重命名</span></span><br><span class="line">[root@node01 distributions]<span class="comment"># cd /opt/</span></span><br><span class="line">[root@node01 opt]<span class="comment"># ls</span></span><br><span class="line">azkaban-3.88.0  azkaban-3.88.0.tar.gz  azkaban-solo-server-0.1.0-SNAPSHOT</span><br><span class="line">[root@node01 opt]<span class="comment"># mv azkaban-solo-server-0.1.0-SNAPSHOT/ azkaban-solo-server</span></span><br><span class="line">[root@node01 opt]<span class="comment"># ls</span></span><br><span class="line">azkaban-3.88.0  azkaban-3.88.0.tar.gz  azkaban-solo-server</span><br></pre></td></tr></table></figure>
+      <h1 id="Azkaban3-x-Multi-Executor-Server模式安装部署"><a href="#Azkaban3-x-Multi-Executor-Server模式安装部署" class="headerlink" title="Azkaban3.x Multi Executor Server模式安装部署"></a>Azkaban3.x Multi Executor Server模式安装部署</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这一章节，我们主要学习Azkaban3.x Multi Executor Server模式安装部署。</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><ul>
+<li><p>从Azkaban3.x源码编译根目录路径下<code>/azkaban-*/build/distributions</code>获取相关tar包，从<code>azkaban-db/build/sql/</code>路径下获取相关SQL脚本</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 azkaban-3.88.0]<span class="comment"># ls azkaban-web-server/build/distributions/</span></span><br><span class="line">azkaban-web-server-0.1.0-SNAPSHOT.tar.gz  azkaban-web-server-0.1.0-SNAPSHOT.zip</span><br><span class="line">[root@node01 azkaban-3.88.0]<span class="comment"># ls azkaban-exec-server/build/distributions/</span></span><br><span class="line">azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz  azkaban-exec-server-0.1.0-SNAPSHOT.zip</span><br><span class="line">[root@node01 azkaban-3.88.0]<span class="comment"># ls azkaban-db/build/sql/</span></span><br><span class="line">create-all-sql-0.1.0-SNAPSHOT.sql</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>修改配置文件</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 这里主要是修改时区，默认的是America/Los_Angeles，改为Asia/Shanghai</span></span><br><span class="line">[root@node01 azkaban-solo-server]<span class="comment"># vim conf/azkaban.properties</span></span><br><span class="line"><span class="comment">## default.timezone.id=America/Los_Angeles</span></span><br><span class="line">default.timezone.id=Asia/Shanghai</span><br></pre></td></tr></table></figure>
+<li><p>安装MySQL<br>Multi Executor Server模式依赖MySQL，这里我们提前在node02节点上安装好MySQL。</p>
 </li>
-<li><p>启动Azkaban并查看进程</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## bin目录下是azkaban的一些启动和停止的命令</span></span><br><span class="line">[root@node01 azkaban-solo-server]<span class="comment"># bin/start-solo.sh </span></span><br><span class="line">[root@node01 azkaban-solo-server]<span class="comment"># jps</span></span><br><span class="line">1216 Jps</span><br><span class="line">1199 AzkabanSingleServer</span><br></pre></td></tr></table></figure>
+<li><p>节点规划</p>
 </li>
-<li><p>Web界面访问<br>启动成功之后我们可以通过http进行Web界面访问（默认使用http协议，后续可以改为https协议）。<br>默认地址：<a href="http://localhost:8081" target="_blank" rel="noopener">http://localhost:8081</a><br>默认登录用户名/密码：azkaban/azkaban，可以在conf目录下的配置文件中修改。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 azkaban-solo-server]<span class="comment"># cat conf/azkaban-users.xml </span></span><br><span class="line">&lt;azkaban-users&gt;</span><br><span class="line">  &lt;user groups=<span class="string">"azkaban"</span> password=<span class="string">"azkaban"</span> roles=<span class="string">"admin"</span> username=<span class="string">"azkaban"</span>/&gt;</span><br><span class="line">  &lt;user password=<span class="string">"metrics"</span> roles=<span class="string">"metrics"</span> username=<span class="string">"metrics"</span>/&gt;</span><br><span class="line"></span><br><span class="line">  &lt;role name=<span class="string">"admin"</span> permissions=<span class="string">"ADMIN"</span>/&gt;</span><br><span class="line">  &lt;role name=<span class="string">"metrics"</span> permissions=<span class="string">"METRICS"</span>/&gt;</span><br><span class="line">&lt;/azkaban-users&gt;</span><br></pre></td></tr></table></figure>
+</ul>
+<table>
+<thead>
+<tr>
+<th>节点</th>
+<th>角色</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>node01</td>
+<td>web-server、exec-server</td>
+</tr>
+<tr>
+<td>node02</td>
+<td>exec-server</td>
+</tr>
+</tbody></table>
+<h2 id="安装部署"><a href="#安装部署" class="headerlink" title="安装部署"></a>安装部署</h2><h3 id="MySQL数据库配置"><a href="#MySQL数据库配置" class="headerlink" title="MySQL数据库配置"></a>MySQL数据库配置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 新建azkaban数据库</span></span><br><span class="line">mysql&gt; CREATE DATABASE azkaban;</span><br><span class="line"><span class="comment">## 新建azkaban用户供azkban数据库使用</span></span><br><span class="line">mysql&gt; CREATE USER <span class="string">'azkaban'</span>@<span class="string">'%'</span> IDENTIFIED BY <span class="string">'azkaban'</span>;</span><br><span class="line"><span class="comment">## 给azkaban用户赋权</span></span><br><span class="line">mysql&gt; GRANT SELECT,INSERT,UPDATE,DELETE ON azkaban.* to <span class="string">'azkaban'</span>@<span class="string">'%'</span> WITH GRANT OPTION;</span><br><span class="line"><span class="comment">## 导入相关sql脚本到azkaban数据库</span></span><br><span class="line">mysql&gt; use azkaban;</span><br><span class="line">mysql&gt; <span class="built_in">source</span> create-all-sql-0.1.0-SNAPSHOT.sql</span><br></pre></td></tr></table></figure>
 
-</li>
-</ol>
+<h3 id="Azkaban-Executor-Server配置"><a href="#Azkaban-Executor-Server配置" class="headerlink" title="Azkaban Executor Server配置"></a>Azkaban Executor Server配置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 各节点解压文件到指定路径，这里以node01为例</span></span><br><span class="line">[root@node01 opt]<span class="comment"># tar azkaban-exec-server-0.1.0-SNAPSHOT.tar.gz</span></span><br><span class="line"><span class="comment">## 重命名</span></span><br><span class="line">[root@node01 opt]<span class="comment"># mv azkaban-exec-server-0.1.0-SNAPSHOT azkaban-exec-server</span></span><br><span class="line"><span class="comment">## 修改配置文件，主要是时区、url以及MySQL数据库连接配置</span></span><br><span class="line">default.timezone.id=Asia/Shanghai</span><br><span class="line"><span class="comment"># Where the Azkaban web server is located</span></span><br><span class="line"><span class="comment"># azkaban.webserver.url=http://localhost:8081</span></span><br><span class="line">azkaban.webserver.url=http://node01:8081</span><br><span class="line"><span class="comment"># Azkaban mysql settings by default. Users should configure their own username and password.</span></span><br><span class="line">database.type=mysql</span><br><span class="line">mysql.port=3306</span><br><span class="line">mysql.host=node02</span><br><span class="line">mysql.database=azkaban</span><br><span class="line">mysql.user=azkaban</span><br><span class="line">mysql.password=azkaban</span><br><span class="line">mysql.numconnections=100</span><br><span class="line"><span class="comment">## 根据节点规划，其它Azkaban Executor Server做相同配置</span></span><br></pre></td></tr></table></figure>
+<p>注意：<font color=red><strong><em>配置完成之后，启动Azkaban Executor Server，一定要做激活操作</em></strong></font>。<br>不然后续调度任务无法正常执行。具体如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 各节点启动Azkaban Executor Server，这里以node01为例</span></span><br><span class="line">[root@node01 azkaban-exec-server]<span class="comment"># cd /opt/azkaban-exec-server</span></span><br><span class="line">[root@node01 azkaban-exec-server]<span class="comment"># ./bin/start-exec.sh </span></span><br><span class="line"><span class="comment">## 查看启动之后进程</span></span><br><span class="line">[root@node01 azkaban-exec-server]<span class="comment"># jps</span></span><br><span class="line">1334 Jps</span><br><span class="line">1323 AzkabanExecutorServer</span><br><span class="line"><span class="comment">## 激活操作</span></span><br><span class="line"><span class="comment">## 1.我们可以根据进程号查看端口号或者从mysql数据库的表executors中查看相关信息</span></span><br><span class="line">mysql&gt; select * from executors;</span><br><span class="line">+----+--------+-------+--------+</span><br><span class="line">| id | host   | port  | active |</span><br><span class="line">+----+--------+-------+--------+</span><br><span class="line">|  1 | node01 | 35214 |      0 |</span><br><span class="line">|  2 | node02 | 38177 |      0 |</span><br><span class="line">+----+--------+-------+--------+</span><br><span class="line"><span class="comment">## 或者</span></span><br><span class="line">[root@node01 azkaban-exec-server]<span class="comment"># netstat -ntnlp|grep 1323</span></span><br><span class="line">tcp6       0      0 :::35214                :::*                    LISTEN      1323/java</span><br><span class="line"><span class="comment">## 2.查询到端口号之后进行激活操作</span></span><br><span class="line">[root@node01 azkaban-exec-server]<span class="comment"># curl -G "node01:35214/executor?action=activate" &amp;&amp; echo</span></span><br><span class="line">&#123;<span class="string">"status"</span>:<span class="string">"success"</span>&#125;</span><br><span class="line"><span class="comment">## 激活成功之后各节点的active状态由0变为1</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Azkaban-Web-Server配置"><a href="#Azkaban-Web-Server配置" class="headerlink" title="Azkaban Web Server配置"></a>Azkaban Web Server配置</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 解压文件到指定路径</span></span><br><span class="line">[root@node01 opt]<span class="comment"># tar -zxvf azkaban-web-server-0.1.0-SNAPSHOT.tar.gz </span></span><br><span class="line"><span class="comment">## 重命名</span></span><br><span class="line">[root@node01 opt]<span class="comment"># mv azkaban-web-server-0.1.0-SNAPSHOT azkaban-web-server</span></span><br><span class="line"><span class="comment">## 修改配置文件信息。主要是时区以及MySQL数据库连接配置</span></span><br><span class="line">default.timezone.id=Asia/Shanghai</span><br><span class="line"></span><br><span class="line"><span class="comment"># Azkaban mysql settings by default. Users should configure their own username and password.</span></span><br><span class="line">database.type=mysql</span><br><span class="line">mysql.port=3306</span><br><span class="line">mysql.host=node02</span><br><span class="line">mysql.database=azkaban</span><br><span class="line">mysql.user=azkaban</span><br><span class="line">mysql.password=azkaban</span><br><span class="line">mysql.numconnections=100</span><br><span class="line"><span class="comment">## 启动Azkaban Web Server</span></span><br><span class="line">[root@node01 azkaban-web-server]<span class="comment"># ./bin/start-web.sh </span></span><br><span class="line"><span class="comment">## 查看相关进程</span></span><br><span class="line">[root@node01 azkaban-web-server]<span class="comment"># jps</span></span><br><span class="line">1441 Jps</span><br><span class="line">1427 AzkabanWebServer</span><br><span class="line">1323 AzkabanExecutorServer</span><br></pre></td></tr></table></figure>
+<h2 id="访问Web界面"><a href="#访问Web界面" class="headerlink" title="访问Web界面"></a>访问Web界面</h2><p>完成上面的配置之后，我们可以通过<a href="http://node01:8081" target="_blank" rel="noopener">http://node01:8081</a>来进行Web访问。<br>默认用户名/密码为：azkaban/azkaban。<br>相关参数可以在<code>azkaban-web-server</code>的<code>conf/azkaban-users.xml</code>文件中进行配置。</p>
 <h2 id="简单测试"><a href="#简单测试" class="headerlink" title="简单测试"></a>简单测试</h2><ol>
 <li><p>上传文件<br>这里新建一个test.job文件，简单的写一个调度任务，<strong>本地打包成zip包</strong>之后在Azkban Web UI界面选择上传文件（需要先新建项目，在新建的项目里面进行上传）。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#test.job</span></span><br><span class="line"><span class="built_in">type</span>=<span class="built_in">command</span></span><br><span class="line"><span class="built_in">command</span>=touch  /opt/A.txt</span><br></pre></td></tr></table></figure>
@@ -136,11 +152,11 @@
 <li><p>执行调度<br>文件上传成功之后，我们可以在Web界面进行相关操作。这里我们在项目Flows中执行相关调度，不管是执行成功还是执行失败，我们都可以在界面中看到详细的日志信息。</p>
 </li>
 <li><p>查看结果并关闭服务</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 这里我们发现新建了一个A.txt文本，符合预期。</span></span><br><span class="line">[root@node01 opt]<span class="comment"># ls</span></span><br><span class="line">A.txt  azkaban-3.88.0  azkaban-3.88.0.tar.gz  azkaban-solo-server </span><br><span class="line"><span class="comment">## 停止azkaban服务</span></span><br><span class="line">[root@node01 azkaban-solo-server]<span class="comment"># bin/shutdown-solo.sh </span></span><br><span class="line">Killing solo-server. [pid: 1199], attempt: 1</span><br><span class="line">shutdown succeeded</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 这里我们发现新建了一个A.txt文本，符合预期。</span></span><br><span class="line">[root@node01 opt]<span class="comment"># ls</span></span><br><span class="line">A.txt azkaban-web-server  azkaban-exec-server</span><br><span class="line"><span class="comment">## 停止Azkaban Web Server和各节点Azkaban Executor Server</span></span><br><span class="line">[root@node01 opt]<span class="comment"># cd azkaban-web-server</span></span><br><span class="line">[root@node01 azkaban-web-server]<span class="comment"># ./bin/shutdown-web.sh </span></span><br><span class="line">[root@node01 azkaban-web-server]<span class="comment"># cd /opt/azkaban-exec-server</span></span><br><span class="line">[root@node01 azkaban-exec-server]<span class="comment"># ./bin/shutdown-exec.sh</span></span><br></pre></td></tr></table></figure>
 
 </li>
 </ol>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>官网文档：<a href="https://azkaban.readthedocs.io/en/latest/getStarted.html#installing-the-solo-server" target="_blank" rel="noopener">https://azkaban.readthedocs.io/en/latest/getStarted.html#installing-the-solo-server</a></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>官网文档：<a href="https://azkaban.readthedocs.io/en/latest/getStarted.html#getting-started-with-the-multi-executor-server" target="_blank" rel="noopener">https://azkaban.readthedocs.io/en/latest/getStarted.html#getting-started-with-the-multi-executor-server</a></p>
 
       
       <!-- reward -->
@@ -209,7 +225,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/07/20/Azkaban/Azkaban3.x%20Solo%20Server%E6%A8%A1%E5%BC%8F%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/07/21/Azkaban/Azkaban3.x%20Multi%20Executor%20Server%E6%A8%A1%E5%BC%8F%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -227,19 +243,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2019/07/21/Azkaban/Azkaban3.x%20Multi%20Executor%20Server%E6%A8%A1%E5%BC%8F%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="article-nav-link">
+      <a href="/2019/07/22/Azkaban/Azkaban3.x%20Multi%20Executor%20Server%E6%A8%A1%E5%BC%8F%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Azkaban3.x Multi Executor Server模式安装部署
+            Azkaban3.x Multi Executor Server模式常见问题
           
         </div>
       </a>
     
     
-      <a href="/2019/07/18/Azkaban/Azkaban3.x%E4%B8%A4%E7%A7%8D%E9%83%A8%E7%BD%B2%E6%A8%A1%E5%BC%8F%E4%BB%8B%E7%BB%8D/" class="article-nav-link">
+      <a href="/2019/07/20/Azkaban/Azkaban3.x%20Solo%20Server%E6%A8%A1%E5%BC%8F%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Azkaban3.x两种部署模式介绍</div>
+        <div class="article-nav-title">Azkaban3.x Solo Server模式安装部署</div>
       </a>
     
   </nav>
