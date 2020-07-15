@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Azkaban3.x Multi Executor Server模式常见问题 |  大数据学习笔记
+    Azkaban3.x HTTPS服务器配置 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Azkaban/Azkaban3.x Multi Executor Server模式常见问题" class="article article-type-post" itemscope
+  <article id="post-Azkaban/Azkaban3.x HTTPS服务器配置" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Azkaban3.x Multi Executor Server模式常见问题
+  Azkaban3.x HTTPS服务器配置
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2019/07/22/Azkaban/Azkaban3.x%20Multi%20Executor%20Server%E6%A8%A1%E5%BC%8F%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2019-07-22T02:00:00.000Z" itemprop="datePublished">2019-07-22</time>
+      <a href="/2019/07/24/Azkaban/Azkaban3.x%20HTTPS%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2019-07-24T02:00:00.000Z" itemprop="datePublished">2019-07-24</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">187</span>
+            <span class="post-count">598</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">1 分钟</span>
+            <span class="post-count">2 分钟</span>
         </span>
     </span>
 </div>
@@ -111,14 +111,18 @@
       
 
       
-      <h1 id="Azkaban3-x-Multi-Executor-Server模式常见问题"><a href="#Azkaban3-x-Multi-Executor-Server模式常见问题" class="headerlink" title="Azkaban3.x Multi Executor Server模式常见问题"></a>Azkaban3.x Multi Executor Server模式常见问题</h1><h2 id="调度任务一直处理preparing"><a href="#调度任务一直处理preparing" class="headerlink" title="调度任务一直处理preparing"></a>调度任务一直处理preparing</h2><p>一般来说，考虑以下两个方面</p>
-<ol>
-<li><p>考虑executors是否处于激活状态<br>可以从MySQL表executors中查看相关信息，如果处于未激活状态（active为0），采用以下命令激活</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -G <span class="string">"localhost:<span class="variable">$(&lt;./executor.port)</span>/executor?action=activate"</span> &amp;&amp; <span class="built_in">echo</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>考虑executors主机内存是否满足需求<br>默认情况下过滤器会检查 executor 主机空余内存是否会大于 6G，如果不足 6G，则 web-server 不会将任务交由该主机执行。<br>通过修改<code>conf/azkaban.properties</code>配置文件信息，跳过过滤。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 azkaban-web-server]<span class="comment"># vim conf/azkaban.properties </span></span><br><span class="line"><span class="comment">## 修改前</span></span><br><span class="line">azkaban.executorselector.filters=StaticRemainingFlowSize,MinimumFreeMemory,CpuStatus</span><br><span class="line"><span class="comment">## 修改后，去掉MinimumFreeMemory</span></span><br><span class="line">azkaban.executorselector.filters=StaticRemainingFlowSize,CpuStatus</span><br></pre></td></tr></table></figure></li>
-</ol>
+      <h1 id="Azkaban3-x-HTTPS服务器配置"><a href="#Azkaban3-x-HTTPS服务器配置" class="headerlink" title="Azkaban3.x HTTPS服务器配置"></a>Azkaban3.x HTTPS服务器配置</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这一章节中，我们学习如何在Azkaban3.x进行HTTPS服务器配置。</p>
+<h2 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h2><p>在Azkaban3.x两种部署模式中，默认情况下都是采用HTTP协议。<br>即进行Web访问的时候默认地址为：<a href="http://localhost:8081" target="_blank" rel="noopener">http://localhost:8081</a>。<br>这里我们计划配置采用HTTPS协议。<br>即进行Web访问的时候默认地址为：<a href="https://localhost:8443" target="_blank" rel="noopener">https://localhost:8443</a>。</p>
+<p>我们先简单了解一下两者的区别。<br>HTTP的全称是Hypertext Transfer Protocol Vertion （超文本传输协议）。<br>HTTPS的全称是Secure Hypertext Transfer Protocol（安全超文本传输协议）。<br>HTTPS基于HTTP开发，使用安全套接字层(SSL)进行信息交换，简单来说它是HTTP的安全版。</p>
+<h2 id="HTTPS服务器配置"><a href="#HTTPS服务器配置" class="headerlink" title="HTTPS服务器配置"></a>HTTPS服务器配置</h2><h3 id="生成SSL"><a href="#生成SSL" class="headerlink" title="生成SSL"></a>生成SSL</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 指定路径生成ssl，我们这里在/opt路径下，方便下面配置</span></span><br><span class="line"><span class="comment">## 注意： 这里这里除了输入密钥库口令"azkaban"和密钥口令“azkaban”，其它全部配置为默认，直接回车，然后选择yes继续回车生成keystore文件。</span></span><br><span class="line">[root@node01 opt]<span class="comment"># keytool -keystore keystore -alias jetty -genkey -keyalg RSA</span></span><br><span class="line">Enter keystore password:  </span><br><span class="line">Re-enter new password: </span><br><span class="line">What is your first and last name?</span><br><span class="line">  [Unknown]:  </span><br><span class="line">What is the name of your organizational unit?</span><br><span class="line">  [Unknown]:  </span><br><span class="line">What is the name of your organization?</span><br><span class="line">  [Unknown]:  </span><br><span class="line">What is the name of your City or Locality?</span><br><span class="line">  [Unknown]:  </span><br><span class="line">What is the name of your State or Province?</span><br><span class="line">  [Unknown]:  </span><br><span class="line">What is the two-letter country code <span class="keyword">for</span> this unit?</span><br><span class="line">  [Unknown]:  </span><br><span class="line">Is CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown correct?</span><br><span class="line">  [no]:  yes</span><br><span class="line"></span><br><span class="line">Enter key password <span class="keyword">for</span> &lt;jetty&gt;</span><br><span class="line">	(RETURN <span class="keyword">if</span> same as keystore password):  </span><br><span class="line"></span><br><span class="line">Warning:</span><br><span class="line">The JKS keystore uses a proprietary format. It is recommended to migrate to PKCS12 <span class="built_in">which</span> is an industry standard format using <span class="string">"keytool -importkeystore -srckeystore keystore -destkeystore keystore -deststoretype pkcs12"</span>.</span><br></pre></td></tr></table></figure>
+
+<h3 id="修改配置文件azkaban-properties"><a href="#修改配置文件azkaban-properties" class="headerlink" title="修改配置文件azkaban.properties"></a>修改配置文件azkaban.properties</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## Solo Server模式配置文件在azkaban-solo-server/conf下面</span></span><br><span class="line"><span class="comment">## Multi Executor Server模式配置文件在azkaban-web-server/conf下面</span></span><br><span class="line"><span class="comment">## 修改配置文件</span></span><br><span class="line"><span class="comment"># Azkaban Jetty server properties.</span></span><br><span class="line">jetty.use.ssl=<span class="literal">true</span> <span class="comment">## 修改为true，默认false</span></span><br><span class="line">jetty.maxThreads=25</span><br><span class="line">jetty.port=8081</span><br><span class="line"><span class="comment">## 下面为新增文件内容</span></span><br><span class="line">jetty.keystore=/opt/keystore</span><br><span class="line">jetty.password=azkaban</span><br><span class="line">jetty.keypassword=azkaban</span><br><span class="line">jetty.truststore=/opt/keystore</span><br><span class="line">jetty.trustpassword=azkaban</span><br><span class="line">jetty.ssl.port=8443</span><br></pre></td></tr></table></figure>
+
+<h3 id="访问Web界面"><a href="#访问Web界面" class="headerlink" title="访问Web界面"></a>访问Web界面</h3><p>配置完成之后访问<a href="https://localhost:8443" target="_blank" rel="noopener">https://localhost:8443</a>即可。</p>
+<h2 id="可能出现的问题"><a href="#可能出现的问题" class="headerlink" title="可能出现的问题"></a>可能出现的问题</h2><p>使用Google浏览器访问Web UI界面的时候，日志文件可能会报错。但是采用其它浏览器没有出现这个问题。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 错误信息如下：</span></span><br><span class="line">WARN [<span class="built_in">log</span>] [Azkaban] EXCEPTION </span><br><span class="line">javax.net.ssl.SSLHandshakeException: Received fatal alert: certificate_unknown</span><br></pre></td></tr></table></figure>
+<p>这里需要我们将Google浏览器设置为兼容模式即可。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>官网文档：<a href="https://azkaban.readthedocs.io/en/latest/getStarted.html#configuring-https-server-optional" target="_blank" rel="noopener">https://azkaban.readthedocs.io/en/latest/getStarted.html#configuring-https-server-optional</a></p>
 
       
       <!-- reward -->
@@ -187,7 +191,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/07/22/Azkaban/Azkaban3.x%20Multi%20Executor%20Server%E6%A8%A1%E5%BC%8F%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/07/24/Azkaban/Azkaban3.x%20HTTPS%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%85%8D%E7%BD%AE/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -205,19 +209,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2019/07/24/Azkaban/Azkaban3.x%20HTTPS%E6%9C%8D%E5%8A%A1%E5%99%A8%E9%85%8D%E7%BD%AE/" class="article-nav-link">
+      <a href="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Azkaban3.x HTTPS服务器配置
+            CDH6.1.1离线部署
           
         </div>
       </a>
     
     
-      <a href="/2019/07/21/Azkaban/Azkaban3.x%20Multi%20Executor%20Server%E6%A8%A1%E5%BC%8F%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="article-nav-link">
+      <a href="/2019/07/22/Azkaban/Azkaban3.x%20Multi%20Executor%20Server%E6%A8%A1%E5%BC%8F%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Azkaban3.x Multi Executor Server模式安装部署</div>
+        <div class="article-nav-title">Azkaban3.x Multi Executor Server模式常见问题</div>
       </a>
     
   </nav>
