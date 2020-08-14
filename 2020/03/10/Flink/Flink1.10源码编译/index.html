@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Hive表增加字段并指定字段位置 |  大数据学习笔记
+    Flink1.10源码编译 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Hive/Hive表增加字段并指定字段位置" class="article article-type-post" itemscope
+  <article id="post-Flink/Flink1.10源码编译" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Hive表增加字段并指定字段位置
+  Flink1.10源码编译
 </h1>
  
 
@@ -62,12 +62,12 @@
 
     
     <div class="article-meta">
-      <a href="/2020/03/16/Hive/Hive%E8%A1%A8%E5%A2%9E%E5%8A%A0%E5%AD%97%E6%AE%B5%E5%B9%B6%E6%8C%87%E5%AE%9A%E5%AD%97%E6%AE%B5%E4%BD%8D%E7%BD%AE/" class="article-date">
-  <time datetime="2020-03-16T02:00:00.000Z" itemprop="datePublished">2020-03-16</time>
+      <a href="/2020/03/10/Flink/Flink1.10%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" class="article-date">
+  <time datetime="2020-03-10T02:00:00.000Z" itemprop="datePublished">2020-03-10</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+    <a class="article-category-link" href="/categories/Flink/">Flink</a>
   </div>
 
       
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">532</span>
+            <span class="post-count">583</span>
         </span>
     </span>
 
@@ -111,18 +111,14 @@
       
 
       
-      <h1 id="Hive表增加字段并指定字段位置"><a href="#Hive表增加字段并指定字段位置" class="headerlink" title="Hive表增加字段并指定字段位置"></a>Hive表增加字段并指定字段位置</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在Hive中，不能直接新增字段并指定位置，否则会报错。需要先增加字段，再指定位置。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test_01 <span class="keyword">add</span> <span class="keyword">columns</span>(company <span class="keyword">string</span> <span class="keyword">comment</span> <span class="string">''</span>);</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test_01 <span class="keyword">change</span> company company <span class="keyword">string</span> <span class="keyword">after</span> <span class="keyword">id</span>;</span><br></pre></td></tr></table></figure>
-<p>同时，我们也需要考虑<strong>字段位置的移动对数据造成的影响</strong>。<br>下面是简单测试。</p>
-<h2 id="数据校验"><a href="#数据校验" class="headerlink" title="数据校验"></a>数据校验</h2><h3 id="查看改动前目标表字段顺序以及相关数据"><a href="#查看改动前目标表字段顺序以及相关数据" class="headerlink" title="查看改动前目标表字段顺序以及相关数据"></a>查看改动前目标表字段顺序以及相关数据</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--查看表结构</span></span><br><span class="line">0: jdbc:hive2://bd12:10000&gt; desc test_01;</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line">| col_name  | data_type  | <span class="keyword">comment</span>  |</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line">| <span class="keyword">id</span>        | <span class="built_in">int</span>        |          |</span><br><span class="line">| <span class="keyword">name</span>      | <span class="keyword">string</span>     |          |</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line"><span class="comment">--查看表数据</span></span><br><span class="line"><span class="number">0</span>: jdbc:hive2://bd12:<span class="number">10000</span>&gt; <span class="keyword">select</span> * <span class="keyword">from</span> test_01;</span><br><span class="line">+<span class="comment">-------------+---------------+</span></span><br><span class="line">| test_01.id  | test_01.name  |</span><br><span class="line">+<span class="comment">-------------+---------------+</span></span><br><span class="line">| 1           | Jack Ma       | </span><br><span class="line">| 2           | Pony Ma       | </span><br><span class="line">| 3    	      | Robin Li      | </span><br><span class="line">+<span class="comment">-------------+---------------+</span></span><br></pre></td></tr></table></figure>
-<h3 id="直接新增并指定位置（报错）"><a href="#直接新增并指定位置（报错）" class="headerlink" title="直接新增并指定位置（报错）"></a>直接新增并指定位置（报错）</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0: jdbc:hive2://bd12:10000&gt; alter table test_01 add columns(company string comment '') after name;</span><br><span class="line">Error: Error while compiling statement: FAILED: ParseException line 1:55 missing EOF at 'after' near ')'</span><br></pre></td></tr></table></figure>
-<h3 id="先增加字段，再修改位置，注意数据影响（正确）"><a href="#先增加字段，再修改位置，注意数据影响（正确）" class="headerlink" title="先增加字段，再修改位置，注意数据影响（正确）"></a>先增加字段，再修改位置，注意数据影响（正确）</h3><p>先增加字段，再修改位置（默认新增字段在最后位置）</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test_01 <span class="keyword">add</span> <span class="keyword">columns</span>(company <span class="keyword">string</span> <span class="keyword">comment</span> <span class="string">''</span>);</span><br><span class="line"><span class="comment">--数据查看</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> test_01;</span><br><span class="line">+<span class="comment">-------------+---------------+------------------+</span></span><br><span class="line">| test_01.id  | test_01.name  | test_01.company  |</span><br><span class="line">+<span class="comment">-------------+---------------+------------------+</span></span><br><span class="line">| 1           | Jack Ma       | NULL     	 |</span><br><span class="line">| 2    	      | Pony Ma       | NULL      	 |</span><br><span class="line">| 3           | Robin Li      | NULL      	 |</span><br><span class="line">+<span class="comment">-------------+---------------+------------------+</span></span><br><span class="line"><span class="comment">--注意：如果表中有数据，字段位置的修改会导致字段对应的数据发生改变。这里本来name字段有值，结果位置修改之后name变为空值，company有值。</span></span><br><span class="line"><span class="comment">-- 修改字段位置并查看数据。</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test_01 <span class="keyword">change</span> company company <span class="keyword">string</span> <span class="keyword">after</span> <span class="keyword">id</span>;</span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> test_01;</span><br><span class="line">+<span class="comment">-------------+------------------+---------------+</span></span><br><span class="line">| test_01.id  | test_01.company  | test_01.name  |</span><br><span class="line">+<span class="comment">-------------+------------------+---------------+</span></span><br><span class="line">| 1           | Jack Ma          | NULL          |</span><br><span class="line">| 2           | Pony Ma          | NULL          |</span><br><span class="line">| 3           | Robin Li         | NULL          |</span><br><span class="line">+<span class="comment">-------------+------------------+---------------+</span></span><br></pre></td></tr></table></figure>
+      <h1 id="Flink1-10源码编译"><a href="#Flink1-10源码编译" class="headerlink" title="Flink1.10源码编译"></a>Flink1.10源码编译</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这里我们对Flink1.10源码进行编译。为了方便，我们直接在阿里云服务器上进行源码编译。</p>
+<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><h3 id="安装JDK"><a href="#安装JDK" class="headerlink" title="安装JDK"></a>安装JDK</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##解压文件到指定目录</span></span><br><span class="line">[root@node01 opt]<span class="comment"># tar -zxvf jdk-8u162-linux-x64.tar.gz -C /usr/java/</span></span><br><span class="line"><span class="comment">##修改用户组权限</span></span><br><span class="line">[root@node01 java]<span class="comment"># chown -R root:root jdk1.8.0_162/</span></span><br><span class="line"><span class="comment">##配置环境变量，末尾追加</span></span><br><span class="line">[root@node01 java]<span class="comment">#  vim /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/usr/java/jdk1.8.0_162</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;JAVA_HOME&#125;</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"><span class="comment">## 使配置生效</span></span><br><span class="line">[root@node01 java]<span class="comment">#  source /etc/profile</span></span><br><span class="line"><span class="comment">## 查看是否安装成功</span></span><br><span class="line">[root@node01 java]<span class="comment"># java -version</span></span><br><span class="line">java version <span class="string">"1.8.0_162"</span></span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_162-b12)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.162-b12, mixed mode)</span><br></pre></td></tr></table></figure>
 
-<p>原因分析：<br>这是由于HDFS底层文件映射成Hive表的特性决定。<br>同理，如果字段类型与底层文件对应不上，查询数据时会被空值覆盖，这里我们将id字段往后移动一位。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test_01 <span class="keyword">change</span> <span class="keyword">id</span> <span class="keyword">id</span> <span class="built_in">int</span> <span class="keyword">after</span> company;</span><br><span class="line">desc test_01;</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line">| col_name  | data_type  | <span class="keyword">comment</span>  |</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line">| company   | <span class="keyword">string</span>     |          |</span><br><span class="line">| <span class="keyword">id</span>        | <span class="built_in">int</span>        |          |</span><br><span class="line">| <span class="keyword">name</span>      | <span class="keyword">string</span>     |          |</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> test_01;</span><br><span class="line">+<span class="comment">------------------+-------------+---------------+</span></span><br><span class="line">| test_01.company  | test_01.id  | test_01.name  |</span><br><span class="line">+<span class="comment">------------------+-------------+---------------+</span></span><br><span class="line">| 1        	   | NULL    	 | NULL          |</span><br><span class="line">| 2                | NULL        | NULL          |</span><br><span class="line">| 3                | NULL        | NULL          |</span><br><span class="line">+<span class="comment">------------------+-------------+---------------+</span></span><br></pre></td></tr></table></figure>
+<h3 id="安装Maven"><a href="#安装Maven" class="headerlink" title="安装Maven"></a>安装Maven</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##解压文件到指定目录</span></span><br><span class="line">[root@node01 opt]<span class="comment">#  tar -zxvf apache-maven-3.6.0-bin.tar.gz</span></span><br><span class="line"><span class="comment">##配置环境变量，末尾追加</span></span><br><span class="line">[root@node01 opt]<span class="comment">#  vim /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/usr/java/jdk1.8.0_162</span><br><span class="line"><span class="built_in">export</span> MAVEN_HOME=/opt/apache-maven-3.6.0</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;MAVEN_HOME&#125;</span>/bin:<span class="variable">$&#123;JAVA_HOME&#125;</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"><span class="comment">## 使配置生效</span></span><br><span class="line">[root@node01 java]<span class="comment">#  source /etc/profile</span></span><br><span class="line"><span class="comment">## 查看是否安装成功</span></span><br><span class="line">[root@node01 opt]<span class="comment"># mvn -version</span></span><br><span class="line">Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-25T02:41:47+08:00)</span><br><span class="line">Maven home: /opt/apache-maven-3.6.0</span><br><span class="line">Java version: 1.8.0_162, vendor: Oracle Corporation, runtime: /usr/java/jdk1.8.0_162/jre</span><br><span class="line">Default locale: en_US, platform encoding: UTF-8</span><br><span class="line">OS name: <span class="string">"linux"</span>, version: <span class="string">"3.10.0-514.26.2.el7.x86_64"</span>, arch: <span class="string">"amd64"</span>, family: <span class="string">"unix"</span></span><br><span class="line"><span class="comment">## 添加阿里云的镜像到maven的setting.xml配置</span></span><br><span class="line">[root@node01 opt]<span class="comment"># vim apache-maven-3.6.0/conf/settings.xml</span></span><br><span class="line">&lt;mirror&gt;</span><br><span class="line">    &lt;id&gt;nexus-aliyun&lt;/id&gt;</span><br><span class="line">    &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;</span><br><span class="line">    &lt;name&gt;Nexus aliyun&lt;/name&gt;</span><br><span class="line">    &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public&lt;/url&gt;</span><br><span class="line">&lt;/mirror&gt;</span><br></pre></td></tr></table></figure>
 
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>考虑到Hive表的特性，不建议在已有数据的情况下还进行字段新增和位置调整。如果非要这么做，可以考虑新建表再进行数据导入。</p>
+<h3 id="资源下载"><a href="#资源下载" class="headerlink" title="资源下载"></a>资源下载</h3><p>Flink官网下载地址：<a href="https://archive.apache.org/dist/flink/" target="_blank" rel="noopener">https://archive.apache.org/dist/flink/</a></p>
+<h2 id="Flink源码编译"><a href="#Flink源码编译" class="headerlink" title="Flink源码编译"></a>Flink源码编译</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##解压文件到指定目录</span></span><br><span class="line">[root@node01 opt]<span class="comment"># tar -zxvf flink-1.10.0-src.tgz</span></span><br><span class="line">[root@node01 opt]<span class="comment"># cd flink-1.10.0</span></span><br><span class="line"><span class="comment">## 源码编译，初次耗时大概1h</span></span><br><span class="line">[root@node01 flink-1.10.0]<span class="comment"># mvn clean package -DskipTests -Dfast</span></span><br><span class="line"><span class="comment"># 参数说明</span></span><br><span class="line"><span class="comment"># install maven的安装命令</span></span><br><span class="line"><span class="comment"># -T2C #支持多处理器或者处理器核数参数,T2C表示一个CPU核心启动两个线程进行编译，可以加快源码编译的速度</span></span><br><span class="line"><span class="comment"># -Dfast 跳过QA插件，javadoc等</span></span><br><span class="line">[INFO] flink-walkthrough-datastream-java .................. SUCCESS [  0.071 s]</span><br><span class="line">[INFO] flink-walkthrough-datastream-scala ................. SUCCESS [  0.074 s]</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] BUILD SUCCESS</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] Total time:  01:08 h</span><br><span class="line">[INFO] Finished at: 2020-05-30T14:03:55+08:00</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line"><span class="comment">## 编译好之后的二进制包位于/opt/flink-1.10.0/flink-dist/target/flink-1.10.0-bin目录下</span></span><br></pre></td></tr></table></figure>
+
 
       
       <!-- reward -->
@@ -191,14 +187,14 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/03/16/Hive/Hive%E8%A1%A8%E5%A2%9E%E5%8A%A0%E5%AD%97%E6%AE%B5%E5%B9%B6%E6%8C%87%E5%AE%9A%E5%AD%97%E6%AE%B5%E4%BD%8D%E7%BD%AE/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/03/10/Flink/Flink1.10%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" alt="微信分享二维码">
     </div>
 </div>
 
 <div id="share-mask"></div>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" rel="tag">Hive入门学习</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" rel="tag">Flink入门学习</a></li></ul>
 
 
     </footer>
@@ -209,19 +205,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2020/03/20/Hive/group%C2%A0by%E5%9C%A8Hive%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+      <a href="/2020/03/16/Hive/Hive%E8%A1%A8%E5%A2%9E%E5%8A%A0%E5%AD%97%E6%AE%B5%E5%B9%B6%E6%8C%87%E5%AE%9A%E5%AD%97%E6%AE%B5%E4%BD%8D%E7%BD%AE/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            group by在Hive中的使用
+            Hive表增加字段并指定字段位置
           
         </div>
       </a>
     
     
-      <a href="/2020/03/10/Flink/Flink1.10%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" class="article-nav-link">
+      <a href="/2020/03/02/Flink/Flink1.10%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Flink1.10源码编译</div>
+        <div class="article-nav-title">Flink1.10安装部署</div>
       </a>
     
   </nav>
