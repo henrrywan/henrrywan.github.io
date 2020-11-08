@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Flink1.10源码编译 |  大数据学习笔记
+    初识Flink |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Flink/Flink1.10源码编译" class="article article-type-post" itemscope
+  <article id="post-Flink/初识Flink" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Flink1.10源码编译
+  初识Flink
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2020/03/10/Flink/Flink1.10%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" class="article-date">
-  <time datetime="2020-03-10T02:00:00.000Z" itemprop="datePublished">2020-03-10</time>
+      <a href="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/" class="article-date">
+  <time datetime="2020-03-01T02:00:00.000Z" itemprop="datePublished">2020-03-01</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">583</span>
+            <span class="post-count">2.7k</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">2 分钟</span>
+            <span class="post-count">9 分钟</span>
         </span>
     </span>
 </div>
@@ -111,14 +111,54 @@
       
 
       
-      <h1 id="Flink1-10源码编译"><a href="#Flink1-10源码编译" class="headerlink" title="Flink1.10源码编译"></a>Flink1.10源码编译</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这里我们对Flink1.10源码进行编译。为了方便，我们直接在阿里云服务器上进行源码编译。</p>
-<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><h3 id="安装JDK"><a href="#安装JDK" class="headerlink" title="安装JDK"></a>安装JDK</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##解压文件到指定目录</span></span><br><span class="line">[root@node01 opt]<span class="comment"># tar -zxvf jdk-8u162-linux-x64.tar.gz -C /usr/java/</span></span><br><span class="line"><span class="comment">##修改用户组权限</span></span><br><span class="line">[root@node01 java]<span class="comment"># chown -R root:root jdk1.8.0_162/</span></span><br><span class="line"><span class="comment">##配置环境变量，末尾追加</span></span><br><span class="line">[root@node01 java]<span class="comment">#  vim /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/usr/java/jdk1.8.0_162</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;JAVA_HOME&#125;</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"><span class="comment">## 使配置生效</span></span><br><span class="line">[root@node01 java]<span class="comment">#  source /etc/profile</span></span><br><span class="line"><span class="comment">## 查看是否安装成功</span></span><br><span class="line">[root@node01 java]<span class="comment"># java -version</span></span><br><span class="line">java version <span class="string">"1.8.0_162"</span></span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_162-b12)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.162-b12, mixed mode)</span><br></pre></td></tr></table></figure>
+      <h1 id="初识Flink"><a href="#初识Flink" class="headerlink" title="初识Flink"></a>初识Flink</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这个章节是Flink入门学习的开篇。在这一章中我们主要学习以下内容：</p>
+<ul>
+<li>Flink的定义</li>
+<li>Flink的常用场景</li>
+</ul>
+<h2 id="Apache-Flink是什么？"><a href="#Apache-Flink是什么？" class="headerlink" title="Apache Flink是什么？"></a>Apache Flink是什么？</h2><p>在<a href="https://flink.apache.org/" target="_blank" rel="noopener">Flink官网</a>首页，首先用了很简短的一句话来介绍Flink：<br><strong>Apache Flink——Stateful Computations over Data Streams</strong>（数据流上的有状态计算）<br>从这句话我们可以看出，Flink最重要的部分应该就是“Stateful Computations（有状态的计算）”。那么，什么是“有状态的计算”？这个需要我们在学习中慢慢去理解，这里先不展开说明。<br>接下来，官网又对Flink进行了进一步的说明：<br><strong>Apache Flink is a framework and distributed processing engine for stateful computations over unbounded and bounded data streams</strong>（Apache Flink 是一个框架和分布式处理引擎，用于在无边界和有边界数据流上进行有状态的计算。）<br>相较于上面的介绍，下里的介绍中引入了一个新的概念：<strong>unbounded and bounded</strong>（无边界和有边界）。我们首先来学习一下Flink中对“边界”的定义。</p>
+<h4 id="处理无界和有界数据"><a href="#处理无界和有界数据" class="headerlink" title="处理无界和有界数据"></a>处理无界和有界数据</h4><p>首先我们需要明确流的概念：任何类型的数据都可以形成一种事件流。例如信用卡交易数据、传感器测量数据、机器日志数据等，所有的这些数据都可以形成一种流。<br>数据可以被作为无界或者有界流来处理。</p>
+<img src="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/bounded-unbounded.png" class="">
+<p>从这张图片我们可以清楚的看出两者的区别：<br><strong>无界流（unbounded stream）：定义流的开始，但是没有定义流的结束。</strong> 它们会无休止地产生数据。无界流的数据必须持续处理，即数据被摄取后需要立刻处理。我们不能等到所有数据都到达再处理，因为输入是无限的，在任何时候输入都不会完成。处理无界流数据通常要求以特定顺序摄取事件，例如事件发生的顺序，以便能够推断结果的完整性。<br><strong>有界流（bounded stream）：定义流的开始，也有定义流的结束。</strong> 有界流可以在摄取所有数据后再进行计算。有界流所有数据都可以被排序，所以并不需要有序摄取。<strong>有界流处理通常被称为批处理。</strong></p>
+<h2 id="Use-Cases（应用场景）"><a href="#Use-Cases（应用场景）" class="headerlink" title="Use Cases（应用场景）"></a>Use Cases（应用场景）</h2><p>Flink的常见应用场景，主要分为以下三个方向。</p>
+<ul>
+<li>Event-driven Applications （事件驱动型应用）</li>
+<li>Data Analytics Applications（数据分析应用）</li>
+<li>Data Pipeline Applications （数据管道应用）</li>
+</ul>
+<h3 id="事件驱动型应用"><a href="#事件驱动型应用" class="headerlink" title="事件驱动型应用"></a>事件驱动型应用</h3><h4 id="什么是事件驱动型应用？"><a href="#什么是事件驱动型应用？" class="headerlink" title="什么是事件驱动型应用？"></a>什么是事件驱动型应用？</h4><p>事件驱动型应用是一类具有状态的应用，它从一个或多个事件流提取数据，并根据到来的事件触发计算、状态更新或其它外部操作。<br>事件驱动型应用是在计算存储分离的传统应用基础上进化而来。在传统架构中，应用需要读写远程事务型数据库。<br>相反，事件驱动型应用是<strong>基于状态化流处理</strong>来完成。在该设计中，数据和计算不会分离，应用只需要访问本地（内存或磁盘）即可获取数据。<strong>系统容错性的实现依赖于定期向远程持久化存储写入checkpoint。</strong> 下图描述了传统应用和事件驱动型应用架构的区别。</p>
+<img src="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/usecases-eventdrivenapps.png" class="">
 
-<h3 id="安装Maven"><a href="#安装Maven" class="headerlink" title="安装Maven"></a>安装Maven</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##解压文件到指定目录</span></span><br><span class="line">[root@node01 opt]<span class="comment">#  tar -zxvf apache-maven-3.6.0-bin.tar.gz</span></span><br><span class="line"><span class="comment">##配置环境变量，末尾追加</span></span><br><span class="line">[root@node01 opt]<span class="comment">#  vim /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/usr/java/jdk1.8.0_162</span><br><span class="line"><span class="built_in">export</span> MAVEN_HOME=/opt/apache-maven-3.6.0</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;MAVEN_HOME&#125;</span>/bin:<span class="variable">$&#123;JAVA_HOME&#125;</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"><span class="comment">## 使配置生效</span></span><br><span class="line">[root@node01 java]<span class="comment">#  source /etc/profile</span></span><br><span class="line"><span class="comment">## 查看是否安装成功</span></span><br><span class="line">[root@node01 opt]<span class="comment"># mvn -version</span></span><br><span class="line">Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-25T02:41:47+08:00)</span><br><span class="line">Maven home: /opt/apache-maven-3.6.0</span><br><span class="line">Java version: 1.8.0_162, vendor: Oracle Corporation, runtime: /usr/java/jdk1.8.0_162/jre</span><br><span class="line">Default locale: en_US, platform encoding: UTF-8</span><br><span class="line">OS name: <span class="string">"linux"</span>, version: <span class="string">"3.10.0-514.26.2.el7.x86_64"</span>, arch: <span class="string">"amd64"</span>, family: <span class="string">"unix"</span></span><br><span class="line"><span class="comment">## 添加阿里云的镜像到maven的setting.xml配置</span></span><br><span class="line">[root@node01 opt]<span class="comment"># vim apache-maven-3.6.0/conf/settings.xml</span></span><br><span class="line">&lt;mirror&gt;</span><br><span class="line">    &lt;id&gt;nexus-aliyun&lt;/id&gt;</span><br><span class="line">    &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;</span><br><span class="line">    &lt;name&gt;Nexus aliyun&lt;/name&gt;</span><br><span class="line">    &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public&lt;/url&gt;</span><br><span class="line">&lt;/mirror&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="事件驱动型应用的优势？"><a href="#事件驱动型应用的优势？" class="headerlink" title="事件驱动型应用的优势？"></a>事件驱动型应用的优势？</h4><p>事件驱动型应用<strong>无须查询远程数据库，本地数据访问使得它具有更高的吞吐和更低的延迟</strong>。而由于定期向远程持久化存储的checkpoint工作可以异步、增量式完成，因此对于正常事件处理的影响甚微。<br>事件驱动型应用的<strong>优势不仅限于本地数据访问</strong>。 传统分层架构下，通常多个应用会共享同一个数据库，因而任何对数据库自身的更改（例如：由应用更新或服务扩容导致数据布局发生改变）都需要谨慎协调。反观事件驱动型应用，由于只需要考虑自身数据，因此在更改数据表示或服务扩容时所需的协调工作将大大减少。</p>
+<h4 id="Flink如何支持事件驱动型应用？"><a href="#Flink如何支持事件驱动型应用？" class="headerlink" title="Flink如何支持事件驱动型应用？"></a>Flink如何支持事件驱动型应用？</h4><p>事件驱动型应用会受制于底层流处理系统对时间和状态的把控能力，Flink诸多优秀特质都是围绕这些方面来设计的。它提供了一系列丰富的状态操作原语，允许以<strong>exactly-once</strong> （精确一次）的一致性语义合并海量规模（TB级别）的状态数据。此外，Flink还支持<strong>event-time</strong>（事件时间）和自由度极高的定制化窗口逻辑，而且它内置的ProcessFunction支持细粒度时间控制，方便实现一些高级业务逻辑。同时Flink还拥有一个复杂事件处理（CEP）类库，可以用来检测数据流中的模式。<br>Flink中针对事件驱动型应用的明星特性当属<strong>savepoint</strong>。Savepoint是一个一致性的状态映像，它可以用来初始化任意状态兼容的应用。在完成一次savepoint后，即可放心对应用升级或扩容，还可以启动多个版本的应用来完成A/B测试。</p>
+<h4 id="典型的事件驱动型应用实例"><a href="#典型的事件驱动型应用实例" class="headerlink" title="典型的事件驱动型应用实例"></a>典型的事件驱动型应用实例</h4><ul>
+<li>反欺诈</li>
+<li>异常检测</li>
+<li>基于规则的报警</li>
+<li>业务流程监控</li>
+<li>（社交网络）Web应用</li>
+</ul>
+<h3 id="数据分析应用"><a href="#数据分析应用" class="headerlink" title="数据分析应用"></a>数据分析应用</h3><h4 id="什么是数据分析应用？"><a href="#什么是数据分析应用？" class="headerlink" title="什么是数据分析应用？"></a>什么是数据分析应用？</h4><p>数据分析应用需要从原始数据中提取有价值的信息和指标。传统的分析方式通常是利用批查询，或将事件记录下来并基于此有限数据集构建应用来完成。为了得到最新数据的分析结果，必须先将它们加入分析数据集并重新执行查询或运行应用，随后将结果写入存储系统或生成报告。<br>和传统模式下读取有限数据集不同，流式查询或应用会接入实时事件流，并随着事件消费持续产生和更新结果。这些结果数据可能会写入外部数据库系统或以内部状态的形式维护。仪表展示应用可以相应地从外部数据库读取数据或直接查询应用的内部状态。<br>如下图所示，Flink同时支持流式及批量分析应用。</p>
+<img src="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/usecases-analytics.png" class="">
 
-<h3 id="资源下载"><a href="#资源下载" class="headerlink" title="资源下载"></a>资源下载</h3><p>Flink官网下载地址：<a href="https://archive.apache.org/dist/flink/" target="_blank" rel="noopener">https://archive.apache.org/dist/flink/</a></p>
-<h2 id="Flink源码编译"><a href="#Flink源码编译" class="headerlink" title="Flink源码编译"></a>Flink源码编译</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##解压文件到指定目录</span></span><br><span class="line">[root@node01 opt]<span class="comment"># tar -zxvf flink-1.10.0-src.tgz</span></span><br><span class="line">[root@node01 opt]<span class="comment"># cd flink-1.10.0</span></span><br><span class="line"><span class="comment">## 源码编译，初次耗时大概1h</span></span><br><span class="line">[root@node01 flink-1.10.0]<span class="comment"># mvn clean package -DskipTests -Dfast</span></span><br><span class="line"><span class="comment"># 参数说明</span></span><br><span class="line"><span class="comment"># install maven的安装命令</span></span><br><span class="line"><span class="comment"># -T2C #支持多处理器或者处理器核数参数,T2C表示一个CPU核心启动两个线程进行编译，可以加快源码编译的速度</span></span><br><span class="line"><span class="comment"># -Dfast 跳过QA插件，javadoc等</span></span><br><span class="line">[INFO] flink-walkthrough-datastream-java .................. SUCCESS [  0.071 s]</span><br><span class="line">[INFO] flink-walkthrough-datastream-scala ................. SUCCESS [  0.074 s]</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] BUILD SUCCESS</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] Total time:  01:08 h</span><br><span class="line">[INFO] Finished at: 2020-05-30T14:03:55+08:00</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line"><span class="comment">## 编译好之后的二进制包位于/opt/flink-1.10.0/flink-dist/target/flink-1.10.0-bin目录下</span></span><br></pre></td></tr></table></figure>
+<h4 id="流式分析应用的优势？"><a href="#流式分析应用的优势？" class="headerlink" title="流式分析应用的优势？"></a>流式分析应用的优势？</h4><p>和批量分析相比，由于流式分析省掉了周期性的数据导入和查询过程。因此<strong>从事件中获取指标的延迟更低</strong>。不仅如此，批量查询必须处理那些定期导入和输入有界性导致的人工数据边界，而流式查询则无须考虑该问题。<br>另一方面，流式分析会简化应用抽象。批量查询的流水线通常由多个独立部件组成，需要周期性地调度提取数据和执行查询。如此复杂的流水线操作起来并不容易，一旦某个组件出错将会影响流水线的后续步骤。而流式分析应用整体运行在Flink之类的高端流处理系统之上，涵盖了从数据接入到连续结果计算的所有步骤，因此可以依赖底层引擎提供的故障恢复机制。</p>
+<h4 id="Flink如何支持数据分析类应用？"><a href="#Flink如何支持数据分析类应用？" class="headerlink" title="Flink如何支持数据分析类应用？"></a>Flink如何支持数据分析类应用？</h4><p>Flink为持续流式分析和批量都提供了良好的支持。具体而言，Flink内置了一个符合ANSI标准的SQL接口，将批、流查询的语义统一起来。无论是在记录事件的静态数据集上还是实时事件流上，相同SQL查询都会得到一致的结果。同时，Flink还支持丰富的用户自定义函数，允许在SQL中执行定制化代码。如果还需要进一步定制逻辑，可以利用Flink DataStream API和DataSet API进行更低层次的控制。此外，Flink的Gelly库为基于批量数据集的大规模高性能图分析提供了算法和构建模块支持。</p>
+<h4 id="典型的数据分析应用实例"><a href="#典型的数据分析应用实例" class="headerlink" title="典型的数据分析应用实例"></a>典型的数据分析应用实例</h4><ul>
+<li>电信网络质量监控</li>
+<li>移动应用中的产品更新及实验评估分析</li>
+<li>消费者技术中的实时数据即席分析</li>
+<li>大规模图分析</li>
+</ul>
+<h3 id="数据管道应用"><a href="#数据管道应用" class="headerlink" title="数据管道应用"></a>数据管道应用</h3><h4 id="什么是数据管道？"><a href="#什么是数据管道？" class="headerlink" title="什么是数据管道？"></a>什么是数据管道？</h4><p>ETL（抽取-转换-加载）是一种在存储系统之间进行数据转换和迁移的常用方法。ETL作业通常会周期性地触发，将数据从事务型数据库拷贝到分析型数据库或数据仓库。<br>数据管道和ETL作业的用途相似，都可以转换、丰富数据，并将其从某个存储系统中移动到另一个。但<strong>数据管道是以持续流模式运行</strong>，而非周期性触发。因此，它支持从一个不断生成数据的源头读取记录，并将它们以低延迟移动到终点。例如：数据管道可以用来监控文件系统目录中的新文件，并将数据写入事件日志；另一个应用可能会将事件流物化到数据库或增量构建和优化查询索引。<br>下图描述了周期性ETL作业和持续数据管道的差异。</p>
+<img src="/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/usecases-datapipelines.png" class="">
 
+<h4 id="数据管道的优势"><a href="#数据管道的优势" class="headerlink" title="数据管道的优势"></a>数据管道的优势</h4><p>和周期性ETL作业相比，<strong>持续数据管道可以明显降低将数据移动到目的端的延迟</strong>。此外，由于它能够持续消费和发送数据，因此用途更广，支持用例更多。</p>
+<h4 id="Flink如何支持数据管道应用？"><a href="#Flink如何支持数据管道应用？" class="headerlink" title="Flink如何支持数据管道应用？"></a>Flink如何支持数据管道应用？</h4><p>很多常见的数据转换和增强操作都可以利用Flink的SQL接口（或Table API）及用户自定义函数解决。如果数据管道有更高级的需求，可以选择更通用的DataStream API来实现。Flink为多种数据存储系统（如Kafka、ElasticSearch、JDBC数据库系统等）内置了连接器。同时它还提供了文件系统的连续型数据源及数据汇，可用来监控目录变化和以时间分区的方式写入文件。</p>
+<h4 id="典型的数据管道应用实例"><a href="#典型的数据管道应用实例" class="headerlink" title="典型的数据管道应用实例"></a>典型的数据管道应用实例</h4><ul>
+<li>电子商务中的实时查询索引构建</li>
+<li>电子商务中的持续ETL</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在这一章节中，我们初步了解了什么是Flink以及Flink的常用应用场景。在下一章节中，我们将学习如何在Linux和Mac OS X环境上搭建Flink。</p>
 
       
       <!-- reward -->
@@ -187,7 +227,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/03/10/Flink/Flink1.10%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/03/01/Flink/%E5%88%9D%E8%AF%86Flink/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -205,19 +245,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2020/03/16/Hive/Hive%E8%A1%A8%E5%A2%9E%E5%8A%A0%E5%AD%97%E6%AE%B5%E5%B9%B6%E6%8C%87%E5%AE%9A%E5%AD%97%E6%AE%B5%E4%BD%8D%E7%BD%AE/" class="article-nav-link">
+      <a href="/2020/03/02/Flink/Flink%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Hive表增加字段并指定字段位置
+            Flink安装部署
           
         </div>
       </a>
     
     
-      <a href="/2020/03/09/Flink/Flink%20Table%20API%20&%20SQL%E7%BC%96%E7%A8%8B/" class="article-nav-link">
+      <a href="/2020/02/01/Flume/%E5%88%9D%E8%AF%86Flume1.9.0/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Flink Table API &amp; SQL编程</div>
+        <div class="article-nav-title">初识Flume1.9.0</div>
       </a>
     
   </nav>
