@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">440</span>
+            <span class="post-count">439</span>
         </span>
     </span>
 
@@ -122,16 +122,16 @@
 <li><p>通过日志查看master的URL</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 spark-2.4.0-bin-hadoop2.7]<span class="comment"># cat  /usr/spark-2.4.0-bin-hadoop2.7/logs/spark-root-org.apache.spark.deploy.master.Master-1-node01.out|grep 'Spark master'</span></span><br><span class="line">2020-11-17 20:43:51 INFO  Master:54 - Starting Spark master at spark://node01:7077</span><br></pre></td></tr></table></figure>
 </li>
-<li><p>启动slave进程，需要指定master的url</p>
+<li><p>启动worker进程，需要指定master的url</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 spark-2.4.0-bin-hadoop2.7]<span class="comment"># ./sbin/start-slave.sh spark://node01:7077</span></span><br><span class="line">starting org.apache.spark.deploy.worker.Worker, logging to /usr/spark-2.4.0-bin-hadoop2.7/logs/spark-root-org.apache.spark.deploy.worker.Worker-1-node01.out</span><br><span class="line"><span class="comment">## 查看进程是否启动，这里多了一个Worker进程</span></span><br><span class="line">[root@node01 spark-2.4.0-bin-hadoop2.7]<span class="comment"># jps</span></span><br><span class="line">2331 Worker</span><br><span class="line">2382 Jps</span><br><span class="line">2255 Master</span><br></pre></td></tr></table></figure>
 
 </li>
 </ol>
-<h2 id="启动成功之后的web-UI界面"><a href="#启动成功之后的web-UI界面" class="headerlink" title="启动成功之后的web UI界面"></a>启动成功之后的web UI界面</h2><p>正常启动之后，我们可以通过访问web UI界面来查看Master和Worker的相关信息。</p>
-<h3 id="Master-Web-UI界面"><a href="#Master-Web-UI界面" class="headerlink" title="Master Web UI界面"></a>Master Web UI界面</h3><p>默认情况下，Master的web UI地址为：<a href="http://localhost:8080" target="_blank" rel="noopener">http://localhost:8080</a></p>
+<h2 id="启动成功之后的Web-UI界面"><a href="#启动成功之后的Web-UI界面" class="headerlink" title="启动成功之后的Web UI界面"></a>启动成功之后的Web UI界面</h2><p>正常启动之后，我们可以通过访问Web UI界面来查看Master和Worker的相关信息。</p>
+<h3 id="Master-Web-UI界面"><a href="#Master-Web-UI界面" class="headerlink" title="Master Web UI界面"></a>Master Web UI界面</h3><p>默认情况下，Master的Web UI地址为：<a href="http://localhost:8080" target="_blank" rel="noopener">http://localhost:8080</a></p>
 <img src="/2019/01/03/Spark/Spark%20Standalone%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2%EF%BC%88%E6%89%8B%E5%8A%A8%E5%90%AF%E5%8A%A8%EF%BC%89/master-webui.png" class="">
 
-<h3 id="Worker-Web-UI界面"><a href="#Worker-Web-UI界面" class="headerlink" title="Worker Web UI界面"></a>Worker Web UI界面</h3><p>默认情况下，Worker的web UI地址为：<a href="http://localhost:8081" target="_blank" rel="noopener">http://localhost:8081</a>。<br>我们也可以通过Master Web UI界面进行跳转访问。</p>
+<h3 id="Worker-Web-UI界面"><a href="#Worker-Web-UI界面" class="headerlink" title="Worker Web UI界面"></a>Worker Web UI界面</h3><p>默认情况下，Worker的Web UI地址为：<a href="http://localhost:8081" target="_blank" rel="noopener">http://localhost:8081</a><br>我们也可以通过Master Web UI界面进行跳转访问。</p>
 <img src="/2019/01/03/Spark/Spark%20Standalone%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2%EF%BC%88%E6%89%8B%E5%8A%A8%E5%90%AF%E5%8A%A8%EF%BC%89/worker-webui.png" class="">
 
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>两个进程：</p>
@@ -235,11 +235,11 @@
   
   <nav class="article-nav">
     
-      <a href="/2019/03/05/IDEA/IDEA%E5%88%A0%E9%99%A4%E8%87%AA%E5%AE%9A%E4%B9%89Maven%20Archetype/" class="article-nav-link">
+      <a href="/2019/01/04/Spark/Spark%20Standalone%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2%EF%BC%88%E8%84%9A%E6%9C%AC%E5%90%AF%E5%8A%A8%EF%BC%89/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            IDEA删除自定义Maven Archetype
+            Spark Standalone集群安装部署（脚本启动）
           
         </div>
       </a>
