@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">573</span>
+            <span class="post-count">574</span>
         </span>
     </span>
 
@@ -120,7 +120,7 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 tools]<span class="comment"># cd /usr/spark-2.4.0-bin-hadoop2.7/</span></span><br><span class="line">[root@node01 spark-2.4.0-bin-hadoop2.7]<span class="comment"># ./sbin/start-master.sh </span></span><br><span class="line">starting org.apache.spark.deploy.master.Master, logging to /usr/spark-2.4.0-bin-hadoop2.7/logs/spark-root-org.apache.spark.deploy.master.Master-1-node01.out</span><br><span class="line"><span class="comment">## 查看进程是否启动</span></span><br><span class="line">[root@node01 spark-2.4.0-bin-hadoop2.7]<span class="comment"># jps</span></span><br><span class="line">2301 Jps</span><br><span class="line">2255 Master</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>配置conf/spark-env.sh文件（主要是配置JAVA_HOME）</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 拷贝模板文件</span></span><br><span class="line">[root@node01 spark-2.4.0-bin-hadoop2.7]<span class="comment"># cd conf/</span></span><br><span class="line">[root@node01 conf]<span class="comment"># cp spark-env.sh.template spark-env.sh</span></span><br><span class="line"><span class="comment">## 查看java环境</span></span><br><span class="line">[root@node01 spark-2.4.0-bin-hadoop2.7]<span class="comment"># which java</span></span><br><span class="line">/usr/java/jdk1.8.0_162/bin/java</span><br><span class="line"><span class="comment">## 配置JAVA_HOME,新增即可。</span></span><br><span class="line">[root@node01 conf]<span class="comment"># vim spark-env.sh</span></span><br><span class="line"><span class="comment">## 查看配置成功之后的信息（这里总共就添加了一行配置）</span></span><br><span class="line">[root@node01 conf]<span class="comment"># cat spark-env.sh</span></span><br><span class="line"><span class="meta">#!/usr/bin/env bash</span></span><br><span class="line">JAVA_HOME=/usr/java/jdk1.8.0_162</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 拷贝模板文件</span></span><br><span class="line">[root@node01 spark-2.4.0-bin-hadoop2.7]<span class="comment"># cd conf/</span></span><br><span class="line">[root@node01 conf]<span class="comment"># cp spark-env.sh.template spark-env.sh</span></span><br><span class="line"><span class="comment">## 查看java环境</span></span><br><span class="line">[root@node01 spark-2.4.0-bin-hadoop2.7]<span class="comment"># which java</span></span><br><span class="line">/usr/java/jdk1.8.0_162/bin/java</span><br><span class="line"><span class="comment">## 配置JAVA_HOME,新增即可。</span></span><br><span class="line">[root@node01 conf]<span class="comment"># vim spark-env.sh</span></span><br><span class="line"><span class="comment">## 查看配置成功之后的信息（这里总共就添加了一行配置）</span></span><br><span class="line">[root@node01 conf]<span class="comment"># cat spark-env.sh</span></span><br><span class="line"><span class="meta">#!/usr/bin/env bash</span></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/usr/java/jdk1.8.0_162</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>配置conf/slaves文件（主要是添加Worker机器节点）</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 拷贝模板文件</span></span><br><span class="line">[root@node01 conf]<span class="comment"># cp slaves.template slaves</span></span><br><span class="line"><span class="comment">## 文件配置，默认localhost，改成对应worker机器即可。</span></span><br><span class="line">[root@node01 conf]<span class="comment"># vim slaves</span></span><br><span class="line">[root@node01 conf]<span class="comment"># cat slaves</span></span><br><span class="line">node01</span><br></pre></td></tr></table></figure>
@@ -222,11 +222,11 @@
   
   <nav class="article-nav">
     
-      <a href="/2019/03/05/IDEA/IDEA%E5%88%A0%E9%99%A4%E8%87%AA%E5%AE%9A%E4%B9%89Maven%20Archetype/" class="article-nav-link">
+      <a href="/2019/01/05/Spark/Spark%20Standalone%E9%9B%86%E7%BE%A4%E5%AE%89%E8%A3%85%E5%8C%85%E6%96%87%E4%BB%B6%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84%E8%AF%A6%E8%A7%A3/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            IDEA删除自定义Maven Archetype
+            Spark Standalone集群安装包文件目录结构详解
           
         </div>
       </a>
