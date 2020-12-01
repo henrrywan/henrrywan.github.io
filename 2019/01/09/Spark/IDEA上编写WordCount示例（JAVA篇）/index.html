@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    IDEA上创建第一个Spark项目 |  大数据学习笔记
+    IDEA上编写WordCount示例（JAVA篇） |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Spark/IDEA上创建第一个Spark项目" class="article article-type-post" itemscope
+  <article id="post-Spark/IDEA上编写WordCount示例（JAVA篇）" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  IDEA上创建第一个Spark项目
+  IDEA上编写WordCount示例（JAVA篇）
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2019/01/08/Spark/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AASpark%E9%A1%B9%E7%9B%AE/" class="article-date">
-  <time datetime="2019-01-08T02:00:00.000Z" itemprop="datePublished">2019-01-08</time>
+      <a href="/2019/01/09/Spark/IDEA%E4%B8%8A%E7%BC%96%E5%86%99WordCount%E7%A4%BA%E4%BE%8B%EF%BC%88JAVA%E7%AF%87%EF%BC%89/" class="article-date">
+  <time datetime="2019-01-09T02:00:00.000Z" itemprop="datePublished">2019-01-09</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">296</span>
+            <span class="post-count">519</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">1 分钟</span>
+            <span class="post-count">2 分钟</span>
         </span>
     </span>
 </div>
@@ -111,19 +111,16 @@
       
 
       
-      <h1 id="IDEA上创建第一个Spark项目"><a href="#IDEA上创建第一个Spark项目" class="headerlink" title="IDEA上创建第一个Spark项目"></a>IDEA上创建第一个Spark项目</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这一章节我们主要学习如何在IDEA上创建第一个Spark Maven项目。</p>
-<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>这里主要是Scala相关版本的准备(默认IDEA已配置JAVA1.8+环境)。<br>Scala官网下载地址：<a href="https://www.scala-lang.org/download/" target="_blank" rel="noopener">https://www.scala-lang.org/download/</a><br>由于我们采用的是Spark3.0+，这里选择<code>scala-2.12.12.zip</code>。<br>下载完成之后解压到指定目录，打开IDEA开始配置。<br>File-&gt;Project Structure-&gt;Global Libraries-&gt;Scala SDK，选择Browser,找到之前解压好的Scala文件夹即可。</p>
-<img src="/2019/01/08/Spark/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AASpark%E9%A1%B9%E7%9B%AE/scala-choice.png" class="">
+      <h1 id="IDEA上编写WordCount示例（JAVA篇）"><a href="#IDEA上编写WordCount示例（JAVA篇）" class="headerlink" title="IDEA上编写WordCount示例（JAVA篇）"></a>IDEA上编写WordCount示例（JAVA篇）</h1><h2 id="引入相关pom依赖"><a href="#引入相关pom依赖" class="headerlink" title="引入相关pom依赖"></a>引入相关pom依赖</h2><p>主要是引入spark-core依赖。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span>    </span><br><span class="line"><span class="comment">&lt;!--Spark核心依赖--&gt;</span>    </span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span>        </span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.spark<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span>        </span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spark-core_2.12<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span>        </span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.0.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span>    </span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="创建Maven项目"><a href="#创建Maven项目" class="headerlink" title="创建Maven项目"></a>创建Maven项目</h2><p>环境准备好之后，我们创建一个名叫spark-demo的普通Maven项目。在这里我们还需要添加框架支持。<br>选中项目右键-&gt;选择Add FrameWorks Support，勾选Scala即可。</p>
-<img src="/2019/01/08/Spark/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AASpark%E9%A1%B9%E7%9B%AE/scala-support.png" class="">
+<h2 id="源文件准备"><a href="#源文件准备" class="headerlink" title="源文件准备"></a>源文件准备</h2><p>事先准备好一份用于WordCount的文件hello.txt，存放到本地指定目录（这里我直接放在了D盘目录下）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Hello,Spark</span><br><span class="line">Hello,Java</span><br><span class="line">Hello,Scala</span><br></pre></td></tr></table></figure>
 
-<h2 id="运行Hello-World"><a href="#运行Hello-World" class="headerlink" title="运行Hello World"></a>运行Hello World</h2><p>新建一个Hello World的Scala Object，点击运行即可。</p>
-<img src="/2019/01/08/Spark/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AASpark%E9%A1%B9%E7%9B%AE/hello-world.png" class="">
+<h2 id="编写WordCount代码"><a href="#编写WordCount代码" class="headerlink" title="编写WordCount代码"></a>编写WordCount代码</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.spark.core;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.spark.SparkConf;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.api.java.JavaPairRDD;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.api.java.JavaRDD;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.api.java.JavaSparkContext;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.api.java.function.FlatMapFunction;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.api.java.function.Function2;</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.api.java.function.PairFunction;</span><br><span class="line"><span class="keyword">import</span> scala.Tuple2;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Iterator;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JavaWordCount</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 1.创建SparkConf对象</span></span><br><span class="line">        SparkConf sparkConf = <span class="keyword">new</span> SparkConf().setAppName(<span class="string">"JavaWordCount"</span>).setMaster(<span class="string">"local[*]"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2.创建JavaSparkContext对象</span></span><br><span class="line">        JavaSparkContext sc = <span class="keyword">new</span> JavaSparkContext(sparkConf);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3.读取源文件(一行一行的读取)</span></span><br><span class="line">        JavaRDD&lt;String&gt; lines = sc.textFile(<span class="string">"D:/hello.txt"</span>);</span><br><span class="line"><span class="comment">//        System.out.println("lines.count:" + lines.count()); // lines.count:3</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 4.对每一行数据进行拆分操作（逗号分隔符）</span></span><br><span class="line">        JavaRDD&lt;String&gt; words = lines.flatMap(<span class="keyword">new</span> FlatMapFunction&lt;String, String&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> Iterator&lt;String&gt; <span class="title">call</span><span class="params">(String line)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> Arrays.asList(line.split(<span class="string">","</span>)).iterator();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"><span class="comment">//        System.out.println("words.count:" + words.count()); // words.count:6</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//5.将每一个单词映射成（word,1）的样式</span></span><br><span class="line">        JavaPairRDD&lt;String, Integer&gt; pairs = words.mapToPair(<span class="keyword">new</span> PairFunction&lt;String, String, Integer&gt;() &#123;</span><br><span class="line"></span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> Tuple2&lt;String, Integer&gt; <span class="title">call</span><span class="params">(String word)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> Tuple2&lt;String,Integer&gt;(word,<span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"><span class="comment">//        System.out.println("pairs.count:" + pairs.count()); // pairs.count:6</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// 6.对单词进行count操作</span></span><br><span class="line">        JavaPairRDD&lt;String, Integer&gt; wordCounts = pairs.reduceByKey(<span class="keyword">new</span> Function2&lt;Integer, Integer, Integer&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="function"><span class="keyword">public</span> Integer <span class="title">call</span><span class="params">(Integer i1, Integer i2)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> i1 + i2;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 7.打印输出结果</span></span><br><span class="line">        List&lt;Tuple2&lt;String, Integer&gt;&gt; output = wordCounts.collect();</span><br><span class="line">        <span class="keyword">for</span> (Tuple2&lt;String, Integer&gt; tuple : output)&#123;</span><br><span class="line">            System.out.println(tuple._1 + <span class="string">":"</span> + tuple._2);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 8.关闭程序</span></span><br><span class="line">        sc.stop();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><p>在IDEA的使用过程中，有时候可能出现无法新建Scala文件的情况，此时需要我们删除Global Libraries中的scala配置项并重新添加。</p>
-<h2 id="补充说明"><a href="#补充说明" class="headerlink" title="补充说明"></a>补充说明</h2><p>注意：在IDEA中以本地模式运行Spark项目的时候是不需要在本地搭建Spark和Hadoop环境的。</p>
-
+<h2 id="运行示例并查看结果"><a href="#运行示例并查看结果" class="headerlink" title="运行示例并查看结果"></a>运行示例并查看结果</h2><p>右键直接运行查看控制台（忽略错误信息，主要是window本地无法获取hadoop的相关配置，后续解决）。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Hello:3</span><br><span class="line">Java:1</span><br><span class="line">Scala:1</span><br><span class="line">Spark:1</span><br></pre></td></tr></table></figure>
       
       <!-- reward -->
       
@@ -191,7 +188,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/01/08/Spark/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AASpark%E9%A1%B9%E7%9B%AE/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/01/09/Spark/IDEA%E4%B8%8A%E7%BC%96%E5%86%99WordCount%E7%A4%BA%E4%BE%8B%EF%BC%88JAVA%E7%AF%87%EF%BC%89/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -209,19 +206,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2019/01/09/Spark/IDEA%E4%B8%8A%E7%BC%96%E5%86%99WordCount%E7%A4%BA%E4%BE%8B%EF%BC%88JAVA%E7%AF%87%EF%BC%89/" class="article-nav-link">
+      <a href="/2019/01/10/Spark/%E8%A7%A3%E5%86%B3IDEA%E4%B8%8A%E8%BF%90%E8%A1%8CSpark%E4%BB%BB%E5%8A%A1%E6%8A%A5%E9%94%99%E9%97%AE%E9%A2%98/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            IDEA上编写WordCount示例（JAVA篇）
+            解决IDEA上运行Spark任务报错问题
           
         </div>
       </a>
     
     
-      <a href="/2019/01/07/Spark/Spark%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80%E9%80%89%E6%8B%A9%E4%BB%A5%E5%8F%8AScala%E7%89%88%E6%9C%AC%E9%80%89%E6%8B%A9/" class="article-nav-link">
+      <a href="/2019/01/08/Spark/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AASpark%E9%A1%B9%E7%9B%AE/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Spark编程语言选择以及Scala版本选择</div>
+        <div class="article-nav-title">IDEA上创建第一个Spark项目</div>
       </a>
     
   </nav>
