@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Flink本地开发环境搭建 |  大数据学习笔记
+    IDEA上创建Flink项目并实现WordCount |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Flink/Flink本地开发环境搭建" class="article article-type-post" itemscope
+  <article id="post-Flink/IDEA上创建Flink项目并实现WordCount" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Flink本地开发环境搭建
+  IDEA上创建Flink项目并实现WordCount
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2020/03/05/Flink/Flink%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" class="article-date">
-  <time datetime="2020-03-05T02:00:00.000Z" itemprop="datePublished">2020-03-05</time>
+      <a href="/2020/03/03/Flink/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BAFlink%E9%A1%B9%E7%9B%AE%E5%B9%B6%E5%AE%9E%E7%8E%B0WordCount/" class="article-date">
+  <time datetime="2020-03-03T02:00:00.000Z" itemprop="datePublished">2020-03-03</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">1.8k</span>
+            <span class="post-count">1.9k</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">8 分钟</span>
+            <span class="post-count">9 分钟</span>
         </span>
     </span>
 </div>
@@ -111,7 +111,12 @@
       
 
       
-      <h1 id="Flink本地开发环境搭建"><a href="#Flink本地开发环境搭建" class="headerlink" title="Flink本地开发环境搭建"></a>Flink本地开发环境搭建</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这一章节，我们主要学习如何在WIndows环境下使用IDEA搭建Flink的开发环境。同时编写简单的Java代码进行测试。</p>
+      <h1 id="IDEA上创建Flink项目并实现WordCount"><a href="#IDEA上创建Flink项目并实现WordCount" class="headerlink" title="IDEA上创建Flink项目并实现WordCount"></a>IDEA上创建Flink项目并实现WordCount</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这一章节，我们主要学习以下内容：</p>
+<ul>
+<li>使用IDEA搭建Flink的开发环境</li>
+<li>编写Java代码实现WordCount</li>
+<li>通用Flink编码实现流程</li>
+</ul>
 <h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>在搭建Flink本地开发环境之前，我们需要保证本地已经安装以下常用开发工具：</p>
 <ul>
 <li><strong>JDK（推荐Java8）</strong></li>
@@ -120,7 +125,7 @@
 </ul>
 <h2 id="Flink工程创建"><a href="#Flink工程创建" class="headerlink" title="Flink工程创建"></a>Flink工程创建</h2><p>这里提供三个方案来创建Flink工程，方法大同小异，任选其一即可。</p>
 <h3 id="方案一：通过IDEA创建Flink模板工程（推荐）"><a href="#方案一：通过IDEA创建Flink模板工程（推荐）" class="headerlink" title="方案一：通过IDEA创建Flink模板工程（推荐）"></a>方案一：通过IDEA创建Flink模板工程（推荐）</h3><p>使用IDEA创建Flink模板工程，只需要指定Maven工程的GroupId、ArtifactId、Version三要素即可。这里以Flink1.10.0模板工程为例。</p>
-<img src="/2020/03/05/Flink/Flink%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/maven_archetype.png" class="">
+<img src="/2020/03/03/Flink/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BAFlink%E9%A1%B9%E7%9B%AE%E5%B9%B6%E5%AE%9E%E7%8E%B0WordCount/maven_archetype.png" class="">
 
 <p>创建好Flink模板工程之后，后续只需要指定Flink相关模板工程新建项目即可。</p>
 <h3 id="方案二：通过Maven创建Flink工程"><a href="#方案二：通过Maven创建Flink工程" class="headerlink" title="方案二：通过Maven创建Flink工程"></a>方案二：通过Maven创建Flink工程</h3><p>通过Maven创建Flink模板工程，只需要指定Maven工程GroupId、ArtifactId、Version三要素即可。这里以Flink1.10.0版本为例。<br>在Git Bash终端执行下面的命令。</p>
@@ -160,7 +165,13 @@
 <p>编写完成之后直接右键运行main方法，查看执行结果，符合预期！</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl...</span><br><span class="line">WC Hello 2</span><br><span class="line">WC Ciao 1</span><br></pre></td></tr></table></figure>
 
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这一章节，我们主要学习了如何在本地创建Flink的开发环境，并编写Java代码实现Word Count计数统计。</p>
+<h2 id="通用Flink编码实现流程"><a href="#通用Flink编码实现流程" class="headerlink" title="通用Flink编码实现流程"></a>通用Flink编码实现流程</h2><p>在上面的WordCount编码中我们发现，一个Flink程序的基础构建模块由两部分组成：</p>
+<ul>
+<li>流（Streams）</li>
+<li>转换（Transformations）</li>
+</ul>
+<p>一个基本的Flink程序处理任务的流程如下：</p>
+<p><strong>1. 获取执行环境（Environment）<br>2. 加载数据源（Source）<br>3. 数据转换操作（Transformations，业务处理）<br>4. 数据输出（Sink）<br>5. 执行任务（execute）</strong></p>
 <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>Flink官网文档：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/projectsetup/java_api_quickstart.html" target="_blank" rel="noopener">https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/projectsetup/java_api_quickstart.html</a><br>Flink官网文档：<a href="https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/" target="_blank" rel="noopener">https://ci.apache.org/projects/flink/flink-docs-release-1.10/dev/table/</a></p>
 
       
@@ -230,7 +241,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/03/05/Flink/Flink%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/03/03/Flink/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BAFlink%E9%A1%B9%E7%9B%AE%E5%B9%B6%E5%AE%9E%E7%8E%B0WordCount/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -258,9 +269,9 @@
       </a>
     
     
-      <a href="/2020/03/04/Flink/Flink%E5%85%A5%E9%97%A8%E7%A8%8B%E5%BA%8FWord%20Count%E7%9A%84SQL%E5%AE%9E%E7%8E%B0/" class="article-nav-link">
+      <a href="/2020/03/02/Flink/Flink%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2%E4%BB%A5%E5%8F%8AWordCount%E7%A8%8B%E5%BA%8F%E8%BF%90%E8%A1%8C/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Flink入门程序Word Count的SQL实现</div>
+        <div class="article-nav-title">Flink安装部署以及WordCount程序运行</div>
       </a>
     
   </nav>
