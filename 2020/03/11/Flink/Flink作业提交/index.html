@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    提交WordCount作业以及资源分配 |  大数据学习笔记
+    Flink作业提交 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Flink/提交WordCount作业以及资源分配" class="article article-type-post" itemscope
+  <article id="post-Flink/Flink作业提交" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  提交WordCount作业以及资源分配
+  Flink作业提交
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2020/03/04/Flink/%E6%8F%90%E4%BA%A4WordCount%E4%BD%9C%E4%B8%9A%E4%BB%A5%E5%8F%8A%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D/" class="article-date">
-  <time datetime="2020-03-04T02:00:00.000Z" itemprop="datePublished">2020-03-04</time>
+      <a href="/2020/03/11/Flink/Flink%E4%BD%9C%E4%B8%9A%E6%8F%90%E4%BA%A4/" class="article-date">
+  <time datetime="2020-03-11T02:00:00.000Z" itemprop="datePublished">2020-03-11</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">777</span>
+            <span class="post-count">554</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">3 分钟</span>
+            <span class="post-count">2 分钟</span>
         </span>
     </span>
 </div>
@@ -111,31 +111,22 @@
       
 
       
-      <h1 id="提交WordCount作业以及资源分配"><a href="#提交WordCount作业以及资源分配" class="headerlink" title="提交WordCount作业以及资源分配"></a>提交WordCount作业以及资源分配</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这一章节，我们主要学习以下内容：</p>
-<ul>
-<li>WebUI界面提交WordCount作业</li>
-<li>资源分配</li>
-<li>命令行方式提交WordCount作业</li>
-</ul>
+      <h1 id="Flink作业提交"><a href="#Flink作业提交" class="headerlink" title="Flink作业提交"></a>Flink作业提交</h1><p>首先编写相关代码。这里以WordCount作业为例。代码块如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="comment">// 创建执行环境</span></span><br><span class="line">    <span class="keyword">final</span> StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();</span><br><span class="line">    <span class="comment">// 加载数据源</span></span><br><span class="line">    DataStream&lt;String&gt; inputStream = env.socketTextStream(<span class="string">"localhost"</span>, <span class="number">7777</span>);</span><br><span class="line">    <span class="comment">// 实现Word Count业务逻辑</span></span><br><span class="line">    DataStream&lt;Tuple2&lt;String, Integer&gt;&gt; outputStream = inputStream.flatMap(<span class="keyword">new</span> FlatMapFunction&lt;String, Tuple2&lt;String, Integer&gt;&gt;() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">flatMap</span><span class="params">(String line, Collector&lt;Tuple2&lt;String, Integer&gt;&gt; out)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">            String[] words = line.split(<span class="string">","</span>);</span><br><span class="line">            <span class="keyword">for</span> (String word : words) &#123;</span><br><span class="line">                out.collect(<span class="keyword">new</span> Tuple2&lt;&gt;(word, <span class="number">1</span>));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;).keyBy(<span class="number">0</span>).sum(<span class="number">1</span>);</span><br><span class="line">    <span class="comment">// 输出结果</span></span><br><span class="line">    outputStream.print();</span><br><span class="line">    <span class="comment">// 执行应用程序</span></span><br><span class="line">    env.execute(<span class="string">"WordCountStreamingJob"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以选择使用WebUI界面提交或者命令行方式提交作业。</p>
 <h2 id="WebUI界面提交WordCount作业"><a href="#WebUI界面提交WordCount作业" class="headerlink" title="WebUI界面提交WordCount作业"></a>WebUI界面提交WordCount作业</h2><p>使用IDEA打成指定Jar包，打开Flink WebUI界面进行相关操作。<br>选择Submit New Job-&gt;Add New，上传jar包。<br>指定需要运行的class文件，同时在这一步我们可以指定参数并配置并行度等。</p>
-<img src="/2020/03/04/Flink/%E6%8F%90%E4%BA%A4WordCount%E4%BD%9C%E4%B8%9A%E4%BB%A5%E5%8F%8A%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D/flink_add_job.png" class="">
+<img src="/2020/03/11/Flink/Flink%E4%BD%9C%E4%B8%9A%E6%8F%90%E4%BA%A4/flink_add_job.png" class="">
 <p>在点击Sumit之前，需要提前打开监听端口</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 ~]<span class="comment"># nc -lk 7777</span></span><br></pre></td></tr></table></figure>
 <p>点击Submit，正常如下：</p>
-<img src="/2020/03/04/Flink/%E6%8F%90%E4%BA%A4WordCount%E4%BD%9C%E4%B8%9A%E4%BB%A5%E5%8F%8A%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D/flink_running_job.png" class="">
+<img src="/2020/03/11/Flink/Flink%E4%BD%9C%E4%B8%9A%E6%8F%90%E4%BA%A4/flink_running_job.png" class="">
 <p>在提前打开的监听端口输入数据，并在WebUI页面查看输出结果</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 ~]<span class="comment"># nc -lk 7777</span></span><br><span class="line">hello,world</span><br><span class="line">hello,flink</span><br></pre></td></tr></table></figure>
-<img src="/2020/03/04/Flink/%E6%8F%90%E4%BA%A4WordCount%E4%BD%9C%E4%B8%9A%E4%BB%A5%E5%8F%8A%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D/flink_job_log_view.png" class="">
+<img src="/2020/03/11/Flink/Flink%E4%BD%9C%E4%B8%9A%E6%8F%90%E4%BA%A4/flink_job_log_view.png" class="">
 
-<h2 id="资源分配"><a href="#资源分配" class="headerlink" title="资源分配"></a>资源分配</h2><p>在上面的demo中，我们并没有单独配置并行度（默认为1），任务可以正常执行。<br>实际上，如果我们将并行度设大，再次Submit，发现Job任务虽然正常启动，但是部分日志信息一直处于无法查看状态，长时间等待之后会超时失败。<br>这是因为默认配置的Task Slots为1（WebUI首页Overview可以查看Available Task Slots），程序启动资源不够。</p>
-<img src="/2020/03/04/Flink/%E6%8F%90%E4%BA%A4WordCount%E4%BD%9C%E4%B8%9A%E4%BB%A5%E5%8F%8A%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D/flink_submit_job_set_para.png" class="">
-
-<h3 id="思考：Task-Slots和Parallelism的对应关系"><a href="#思考：Task-Slots和Parallelism的对应关系" class="headerlink" title="思考：Task Slots和Parallelism的对应关系"></a>思考：Task Slots和Parallelism的对应关系</h3><p>在第一个demo中，设置了1个Task Slots，Submit Job的总并行度为2，总tasks为2，程序执行成功。<br>在第二个demo中，设置了1个Task Slots，Submit Job的总并行度为5，总tasks为5，程序执行失败。<br>这里我们发现：<br>Task Slots和总Tasks并不是一对一的关系，而是一对多的关系。<br>Task Slots的消耗个数和Job里面Tasks的最大值完全一致。<br>假设当前Job分成了3部分，分别占用的Task数为1、2、3，那么当前Job能正常启动所需要的最小Task Slots为3。</p>
-<h3 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h3><p>很明显，要么扩大Task Slots，要么缩小并行度，二选一。一般建议Task Slots和服务器内核数保持一致。在Flink的配置文件中修改相关参数即可。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># The number of task slots that each TaskManager offers. Each slot runs one parallel pipeline.</span></span><br><span class="line"></span><br><span class="line">taskmanager.numberOfTaskSlots: 4</span><br></pre></td></tr></table></figure>
 
 <h2 id="命令行方式提交WordCount作业"><a href="#命令行方式提交WordCount作业" class="headerlink" title="命令行方式提交WordCount作业"></a>命令行方式提交WordCount作业</h2><p>上传jar包到指定位置（这里放在flink/test文件夹下），调用相关命令</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 flink-1.10.1]<span class="comment"># ./bin/flink run \</span></span><br><span class="line">-c com.platform.bigdata.wc.WordCountFromSocketStreamingJob \</span><br><span class="line">-p 1 \</span><br><span class="line">./<span class="built_in">test</span>/flink-learning-1.0.jar \</span><br><span class="line">--hostname localhost \</span><br><span class="line">--port 7777</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 flink-1.10.1]<span class="comment"># ./bin/flink run \</span></span><br><span class="line">-c com.platform.bigdata.wc.WordCountStreamingJob \</span><br><span class="line">-p 1 \</span><br><span class="line">./<span class="built_in">test</span>/flink-learning-1.0.jar \</span><br><span class="line">--hostname localhost \</span><br><span class="line">--port 7777</span><br></pre></td></tr></table></figure>
 <p>参数简单说明</p>
 <ul>
 <li>-c：指定class文件</li>
@@ -213,7 +204,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/03/04/Flink/%E6%8F%90%E4%BA%A4WordCount%E4%BD%9C%E4%B8%9A%E4%BB%A5%E5%8F%8A%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/03/11/Flink/Flink%E4%BD%9C%E4%B8%9A%E6%8F%90%E4%BA%A4/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -231,19 +222,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2020/03/10/Flink/Flink%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" class="article-nav-link">
+      <a href="/2020/03/16/Hive/Hive%E8%A1%A8%E5%A2%9E%E5%8A%A0%E5%AD%97%E6%AE%B5%E5%B9%B6%E6%8C%87%E5%AE%9A%E5%AD%97%E6%AE%B5%E4%BD%8D%E7%BD%AE/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Flink源码编译
+            Hive表增加字段并指定字段位置
           
         </div>
       </a>
     
     
-      <a href="/2020/03/02/Flink/Flink%20Local%20Cluster%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="article-nav-link">
+      <a href="/2020/03/10/Flink/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BAFlink%E9%A1%B9%E7%9B%AE%E4%BB%A5%E5%8F%8A%E9%80%9A%E7%94%A8%E5%8C%96%E5%BC%80%E5%8F%91/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Flink Local Cluster安装部署</div>
+        <div class="article-nav-title">IDEA上创建Flink项目以及通用化开发</div>
       </a>
     
   </nav>

@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Flink源码编译 |  大数据学习笔记
+    IDEA上创建Flink项目以及通用化开发 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Flink/Flink源码编译" class="article article-type-post" itemscope
+  <article id="post-Flink/IDEA上创建Flink项目以及通用化开发" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Flink源码编译
+  IDEA上创建Flink项目以及通用化开发
 </h1>
  
 
@@ -62,7 +62,7 @@
 
     
     <div class="article-meta">
-      <a href="/2020/03/10/Flink/Flink%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" class="article-date">
+      <a href="/2020/03/10/Flink/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BAFlink%E9%A1%B9%E7%9B%AE%E4%BB%A5%E5%8F%8A%E9%80%9A%E7%94%A8%E5%8C%96%E5%BC%80%E5%8F%91/" class="article-date">
   <time datetime="2020-03-10T02:00:00.000Z" itemprop="datePublished">2020-03-10</time>
 </a>
       
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">581</span>
+            <span class="post-count">832</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">2 分钟</span>
+            <span class="post-count">3 分钟</span>
         </span>
     </span>
 </div>
@@ -111,14 +111,30 @@
       
 
       
-      <h1 id="Flink1-10源码编译"><a href="#Flink1-10源码编译" class="headerlink" title="Flink1.10源码编译"></a>Flink1.10源码编译</h1><p>这里我们对Flink1.10源码进行编译。为了方便，我们直接在阿里云服务器上进行源码编译。</p>
-<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><h3 id="安装JDK"><a href="#安装JDK" class="headerlink" title="安装JDK"></a>安装JDK</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##解压文件到指定目录</span></span><br><span class="line">[root@node01 opt]<span class="comment"># tar -zxvf jdk-8u162-linux-x64.tar.gz -C /usr/java/</span></span><br><span class="line"><span class="comment">##修改用户组权限</span></span><br><span class="line">[root@node01 java]<span class="comment"># chown -R root:root jdk1.8.0_162/</span></span><br><span class="line"><span class="comment">##配置环境变量，末尾追加</span></span><br><span class="line">[root@node01 java]<span class="comment">#  vim /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/usr/java/jdk1.8.0_162</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;JAVA_HOME&#125;</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"><span class="comment">## 使配置生效</span></span><br><span class="line">[root@node01 java]<span class="comment">#  source /etc/profile</span></span><br><span class="line"><span class="comment">## 查看是否安装成功</span></span><br><span class="line">[root@node01 java]<span class="comment"># java -version</span></span><br><span class="line">java version <span class="string">"1.8.0_162"</span></span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_162-b12)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.162-b12, mixed mode)</span><br></pre></td></tr></table></figure>
+      <h1 id="IDEA上创建Flink项目以及通用化开发"><a href="#IDEA上创建Flink项目以及通用化开发" class="headerlink" title="IDEA上创建Flink项目以及通用化开发"></a>IDEA上创建Flink项目以及通用化开发</h1><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>在搭建Flink本地开发环境之前，我们需要保证本地已经安装以下常用开发工具：</p>
+<ul>
+<li><strong>JDK（推荐Java8）</strong></li>
+<li><strong>Maven（无特殊要求，这里采用Maven3.6.0）</strong></li>
+<li><strong>Git（无特殊要求，这里采用最新版本）</strong></li>
+</ul>
+<h2 id="Flink工程创建"><a href="#Flink工程创建" class="headerlink" title="Flink工程创建"></a>Flink工程创建</h2><p>这里提供四个方案来创建Flink工程，方法大同小异，任选其一即可。</p>
+<h3 id="方案一：通过IDEA创建FLink项目，引入相关依赖（推荐）"><a href="#方案一：通过IDEA创建FLink项目，引入相关依赖（推荐）" class="headerlink" title="方案一：通过IDEA创建FLink项目，引入相关依赖（推荐）"></a>方案一：通过IDEA创建FLink项目，引入相关依赖（推荐）</h3><p>IDEA新建Maven项目，pom文件引入相关依赖。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">project.build.sourceEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.build.sourceEncoding</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">flink.version</span>&gt;</span>1.10.1<span class="tag">&lt;/<span class="name">flink.version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scala.binary.version</span>&gt;</span>2.12<span class="tag">&lt;/<span class="name">scala.binary.version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- Apache Flink dependencies --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-streaming-java_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-table-planner-blink_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="方案二：通过IDEA创建Flink模板工程"><a href="#方案二：通过IDEA创建Flink模板工程" class="headerlink" title="方案二：通过IDEA创建Flink模板工程"></a>方案二：通过IDEA创建Flink模板工程</h3><p>使用IDEA创建Flink模板工程，只需要指定Maven工程的GroupId、ArtifactId、Version三要素即可。这里以Flink1.10.0模板工程为例。</p>
+<img src="/2020/03/10/Flink/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BAFlink%E9%A1%B9%E7%9B%AE%E4%BB%A5%E5%8F%8A%E9%80%9A%E7%94%A8%E5%8C%96%E5%BC%80%E5%8F%91/maven_archetype.png" class="">
 
-<h3 id="安装Maven"><a href="#安装Maven" class="headerlink" title="安装Maven"></a>安装Maven</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##解压文件到指定目录</span></span><br><span class="line">[root@node01 opt]<span class="comment">#  tar -zxvf apache-maven-3.6.0-bin.tar.gz</span></span><br><span class="line"><span class="comment">##配置环境变量，末尾追加</span></span><br><span class="line">[root@node01 opt]<span class="comment">#  vim /etc/profile</span></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/usr/java/jdk1.8.0_162</span><br><span class="line"><span class="built_in">export</span> MAVEN_HOME=/opt/apache-maven-3.6.0</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$&#123;MAVEN_HOME&#125;</span>/bin:<span class="variable">$&#123;JAVA_HOME&#125;</span>/bin:<span class="variable">$PATH</span></span><br><span class="line"><span class="comment">## 使配置生效</span></span><br><span class="line">[root@node01 java]<span class="comment">#  source /etc/profile</span></span><br><span class="line"><span class="comment">## 查看是否安装成功</span></span><br><span class="line">[root@node01 opt]<span class="comment"># mvn -version</span></span><br><span class="line">Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-25T02:41:47+08:00)</span><br><span class="line">Maven home: /opt/apache-maven-3.6.0</span><br><span class="line">Java version: 1.8.0_162, vendor: Oracle Corporation, runtime: /usr/java/jdk1.8.0_162/jre</span><br><span class="line">Default locale: en_US, platform encoding: UTF-8</span><br><span class="line">OS name: <span class="string">"linux"</span>, version: <span class="string">"3.10.0-514.26.2.el7.x86_64"</span>, arch: <span class="string">"amd64"</span>, family: <span class="string">"unix"</span></span><br><span class="line"><span class="comment">## 添加阿里云的镜像到maven的setting.xml配置</span></span><br><span class="line">[root@node01 opt]<span class="comment"># vim apache-maven-3.6.0/conf/settings.xml</span></span><br><span class="line">&lt;mirror&gt;</span><br><span class="line">    &lt;id&gt;nexus-aliyun&lt;/id&gt;</span><br><span class="line">    &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;</span><br><span class="line">    &lt;name&gt;Nexus aliyun&lt;/name&gt;</span><br><span class="line">    &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public&lt;/url&gt;</span><br><span class="line">&lt;/mirror&gt;</span><br></pre></td></tr></table></figure>
+<p>创建好Flink模板工程之后，后续只需要指定Flink相关模板工程新建项目即可。</p>
+<h3 id="方案三：通过Maven命令创建Flink工程"><a href="#方案三：通过Maven命令创建Flink工程" class="headerlink" title="方案三：通过Maven命令创建Flink工程"></a>方案三：通过Maven命令创建Flink工程</h3><p>通过Maven命令创建Flink模板工程，只需要指定Maven工程GroupId、ArtifactId、Version三要素即可。这里以Flink1.10.0版本为例。<br>在Git Bash终端执行下面的命令。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mvn archetype:generate                               \</span><br><span class="line">      -DarchetypeGroupId=org.apache.flink              \</span><br><span class="line">      -DarchetypeArtifactId=flink-quickstart-java      \</span><br><span class="line">      -DarchetypeVersion=1.10.0</span><br></pre></td></tr></table></figure>
+<p>注意：这里需要我们手动输入groupId, artifactId和package name。<br>这里执行成功之后会在当前路径生成项目名为<strong>flink-quickstart-java</strong>的工程，导入到IDEA即可。</p>
+<h3 id="方案四：使用Flink官方提供的快捷方式创建Flink工程"><a href="#方案四：使用Flink官方提供的快捷方式创建Flink工程" class="headerlink" title="方案四：使用Flink官方提供的快捷方式创建Flink工程"></a>方案四：使用Flink官方提供的快捷方式创建Flink工程</h3><p>在Git Bash终端执行Flink官方提供的相关命令即可，这里以Flink1.10.0版本为例。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">henrrywan@henrrywan MINGW64 /d/IdeaProjects</span><br><span class="line">$ curl https://flink.apache.org/q/quickstart.sh | bash -s 1.10.0</span><br><span class="line"></span><br><span class="line">[INFO] BUILD SUCCESS</span><br><span class="line">[INFO] Total time:  1.311 s</span><br></pre></td></tr></table></figure>
+<p>这里执行成功之后会在当前路径生成项目名为<strong>quickstart</strong>的工程，导入到IDEA即可。</p>
+<h2 id="Flink依赖注释掉Scope"><a href="#Flink依赖注释掉Scope" class="headerlink" title="Flink依赖注释掉Scope"></a>Flink依赖注释掉Scope</h2><p>不管是采用上面哪一种方案，在工程创建完成之后，需要我们修改pom.xml文件，将Flink的依赖注释掉scope。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">	<span class="comment">&lt;!--&lt;scope&gt;provided&lt;/scope&gt;--&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-streaming-java_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">	<span class="comment">&lt;!--&lt;scope&gt;provided&lt;/scope&gt;--&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="资源下载"><a href="#资源下载" class="headerlink" title="资源下载"></a>资源下载</h3><p>Flink官网下载地址：<a href="https://archive.apache.org/dist/flink/" target="_blank" rel="noopener">https://archive.apache.org/dist/flink/</a></p>
-<h2 id="Flink源码编译"><a href="#Flink源码编译" class="headerlink" title="Flink源码编译"></a>Flink源码编译</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##解压文件到指定目录</span></span><br><span class="line">[root@node01 opt]<span class="comment"># tar -zxvf flink-1.10.0-src.tgz</span></span><br><span class="line">[root@node01 opt]<span class="comment"># cd flink-1.10.0</span></span><br><span class="line"><span class="comment">## 源码编译，初次耗时大概1h</span></span><br><span class="line">[root@node01 flink-1.10.0]<span class="comment"># mvn clean package -DskipTests -Dfast</span></span><br><span class="line"><span class="comment"># 参数说明</span></span><br><span class="line"><span class="comment"># install maven的安装命令</span></span><br><span class="line"><span class="comment"># -T2C #支持多处理器或者处理器核数参数,T2C表示一个CPU核心启动两个线程进行编译，可以加快源码编译的速度</span></span><br><span class="line"><span class="comment"># -Dfast 跳过QA插件，javadoc等</span></span><br><span class="line">[INFO] flink-walkthrough-datastream-java .................. SUCCESS [  0.071 s]</span><br><span class="line">[INFO] flink-walkthrough-datastream-scala ................. SUCCESS [  0.074 s]</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] BUILD SUCCESS</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] Total time:  01:08 h</span><br><span class="line">[INFO] Finished at: 2020-05-30T14:03:55+08:00</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line"><span class="comment">## 编译好之后的二进制包位于/opt/flink-1.10.0/flink-dist/target/flink-1.10.0-bin目录下</span></span><br></pre></td></tr></table></figure>
-
+<h2 id="Flink通用编码流程"><a href="#Flink通用编码流程" class="headerlink" title="Flink通用编码流程"></a>Flink通用编码流程</h2><p>项目创建完成之后，我们可以进行Flink的通用化开发。<br>一个基本的Flink程序处理任务的流程如下：</p>
+<p><strong>1. 获取执行环境（Environment）<br>2. 加载数据源（Source）<br>3. 数据转换操作（Transformations，业务处理）<br>4. 数据输出（Sink）<br>5. 执行任务（execute）</strong></p>
 
       
       <!-- reward -->
@@ -187,7 +203,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/03/10/Flink/Flink%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/03/10/Flink/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BAFlink%E9%A1%B9%E7%9B%AE%E4%BB%A5%E5%8F%8A%E9%80%9A%E7%94%A8%E5%8C%96%E5%BC%80%E5%8F%91/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -205,19 +221,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2020/03/16/Hive/Hive%E8%A1%A8%E5%A2%9E%E5%8A%A0%E5%AD%97%E6%AE%B5%E5%B9%B6%E6%8C%87%E5%AE%9A%E5%AD%97%E6%AE%B5%E4%BD%8D%E7%BD%AE/" class="article-nav-link">
+      <a href="/2020/03/11/Flink/Flink%E4%BD%9C%E4%B8%9A%E6%8F%90%E4%BA%A4/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Hive表增加字段并指定字段位置
+            Flink作业提交
           
         </div>
       </a>
     
     
-      <a href="/2020/03/04/Flink/%E6%8F%90%E4%BA%A4WordCount%E4%BD%9C%E4%B8%9A%E4%BB%A5%E5%8F%8A%E8%B5%84%E6%BA%90%E5%88%86%E9%85%8D/" class="article-nav-link">
+      <a href="/2020/03/02/Flink/Flink%20Local%20Cluster%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">提交WordCount作业以及资源分配</div>
+        <div class="article-nav-title">Flink Local Cluster安装部署</div>
       </a>
     
   </nav>
