@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">415</span>
+            <span class="post-count">712</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">1 分钟</span>
+            <span class="post-count">2 分钟</span>
         </span>
     </span>
 </div>
@@ -111,8 +111,8 @@
       
 
       
-      <h1 id="Hive快速入门"><a href="#Hive快速入门" class="headerlink" title="Hive快速入门"></a>Hive快速入门</h1><h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>Hive是基于Hadoop的一个数据仓库，它将结构化的数据映射成一张表，并提供类SQL（HQL）的查询。<br>本质是是将HQL转换成MapReduce程序。</p>
-<p>基于Hadoop的具体含义：</p>
+      <h1 id="Hive快速入门"><a href="#Hive快速入门" class="headerlink" title="Hive快速入门"></a>Hive快速入门</h1><h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>Hive是基于Hadoop的一个数据仓库。<br>它将结构化的数据文件映射成一张表，并提供类SQL（HQL）的查询。<br>本质是是将HQL转换成MapReduce程序。</p>
+<p>为什么说Hive是基于Hadoop的一个数据仓库？</p>
 <ol>
 <li>数据存储在HDFS</li>
 <li>数据分析的底层是MapReduce</li>
@@ -120,7 +120,19 @@
 </ol>
 <h2 id="Hive的优缺点"><a href="#Hive的优缺点" class="headerlink" title="Hive的优缺点"></a>Hive的优缺点</h2><p>优点：<br>不用编写MapReduce程序，减少学习成本<br>支持用户自定义函数<br>适用于实时要求不高的大数据量数据分析（执行延迟高）</p>
 <p>缺点：<br>执行延迟高，不适用于实时场景和小数据量场景<br>HQL表达能力有限，不擅长迭代式算法（比如将一个MapReduce的输出作为另一个的输入，只能采用HQL嵌套的方式去尝试实现）<br>执行效率低，调优比较困难</p>
-<h2 id="Hive架构"><a href="#Hive架构" class="headerlink" title="Hive架构"></a>Hive架构</h2><p>一张图说明：</p>
+<h2 id="Hive（数据仓库）与数据库的比较"><a href="#Hive（数据仓库）与数据库的比较" class="headerlink" title="Hive（数据仓库）与数据库的比较"></a>Hive（数据仓库）与数据库的比较</h2><p>相同点：<br>SQL查询基本一致。</p>
+<p>不同点：</p>
+<ol>
+<li><p>应用场景<br>数据仓库是面向主题设计的，一般是存储历史数据，主要用于数据分析工作（OLAP，商品推荐等）。<br>数据库是面向事务设计的，一般是存储在线交易数据等，主要用于数据处理工作（OLTP，银行转账等）。</p>
+</li>
+<li><p>执行效率<br>数据仓库的设计主要是为了分析数据，对实时要求性不高，对于update操作不太友善，执行效率较低。<br>数据库的设计主要是为了处理数据，对实时要求性较高，一般都支持update操作，执行效率较高。</p>
+</li>
+<li><p>数据规模<br>数据仓库支持的数据量规模较大，数据库支持的数据量规模较小。</p>
+</li>
+</ol>
+<h2 id="Hive架构"><a href="#Hive架构" class="headerlink" title="Hive架构"></a>Hive架构</h2><p><a href="https://cwiki.apache.org/confluence/display/Hive/Design" target="_blank" rel="noopener">官网</a>：</p>
+<img src="/2018/01/01/Hive/Hive%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8/system_architecture.png" class="">
+
 <p>元数据 (Metastore)：默认使用Derby数据库。<br>驱动器（Driver）：</p>
 <ol>
 <li>解析器（SQL Parser）</li>
@@ -128,11 +140,26 @@
 <li>优化器（Query Optimizer）</li>
 <li>执行器（Execution）</li>
 </ol>
-<h2 id="Hive（数据仓库）与数据库的比较"><a href="#Hive（数据仓库）与数据库的比较" class="headerlink" title="Hive（数据仓库）与数据库的比较"></a>Hive（数据仓库）与数据库的比较</h2><p>查询基本一致<br>执行效率<br>数据规模<br>应用场景</p>
-<h2 id="访问Hive的几种方式"><a href="#访问Hive的几种方式" class="headerlink" title="访问Hive的几种方式"></a>访问Hive的几种方式</h2><p>客户端访问<br>使用元数据服务的方式访问Hive<br>添加额外配置<br>使用JDBC的方式访问Hive（beeline、hiveserver2）<br>添加额外配置<br>beeline方式启动<br>hiverserver2方式启动</p>
+<h2 id="HQL执行流程"><a href="#HQL执行流程" class="headerlink" title="HQL执行流程"></a>HQL执行流程</h2><p>这里简单概括：</p>
+<p>HQL（select * …）</p>
+<ol>
+<li>解析器（词法分析，判断sql语句是否正确）</li>
+<li>编译器（生成HQL的执行计划）</li>
+<li>优化器（生成最佳的执行计划）</li>
+<li>执行</li>
+</ol>
+<p>更加详细的步骤可以参考美团技术博客：<a href="https://tech.meituan.com/2014/02/12/hive-sql-to-mapreduce.html" target="_blank" rel="noopener">Hive SQL的编译过程</a></p>
+<h2 id="Hive启动方式"><a href="#Hive启动方式" class="headerlink" title="Hive启动方式"></a>Hive启动方式</h2><h3 id="Hive-CLI（命令行方式）"><a href="#Hive-CLI（命令行方式）" class="headerlink" title="Hive CLI（命令行方式）"></a>Hive CLI（命令行方式）</h3><h3 id="Beeline"><a href="#Beeline" class="headerlink" title="Beeline"></a>Beeline</h3><p>需要添加额外配置</p>
+<h3 id="HiveServer2"><a href="#HiveServer2" class="headerlink" title="HiveServer2"></a>HiveServer2</h3><p>需要添加额外配置</p>
+<h3 id="Web界面方式"><a href="#Web界面方式" class="headerlink" title="Web界面方式"></a>Web界面方式</h3><p>端口号9999<br>启动方式<br>#hive – service hwi<br>通过浏览器来访问<a href="http://ip地址:9999/hwi/" target="_blank" rel="noopener">http://ip地址:9999/hwi/</a></p>
 <h2 id="Hive常用交互命令"><a href="#Hive常用交互命令" class="headerlink" title="Hive常用交互命令"></a>Hive常用交互命令</h2><p>不进入hive的交互窗口执行SQL语句<br>执行SQL脚本文件</p>
-<h2 id="Hive常见属性配置"><a href="#Hive常见属性配置" class="headerlink" title="Hive常见属性配置"></a>Hive常见属性配置</h2><p>Hive运行日志信息配置</p>
-<h2 id="Hive数据结构"><a href="#Hive数据结构" class="headerlink" title="Hive数据结构"></a>Hive数据结构</h2><h2 id="Hive-DDL数据定义语言"><a href="#Hive-DDL数据定义语言" class="headerlink" title="Hive DDL数据定义语言"></a>Hive DDL数据定义语言</h2><h2 id="Hive-DML数据操作语言"><a href="#Hive-DML数据操作语言" class="headerlink" title="Hive DML数据操作语言"></a>Hive DML数据操作语言</h2><h2 id="Hive自定义函数"><a href="#Hive自定义函数" class="headerlink" title="Hive自定义函数"></a>Hive自定义函数</h2><h2 id="Hive文件存储格式"><a href="#Hive文件存储格式" class="headerlink" title="Hive文件存储格式"></a>Hive文件存储格式</h2>
+<h2 id="Hive常见属性配置"><a href="#Hive常见属性配置" class="headerlink" title="Hive常见属性配置"></a>Hive常见属性配置</h2><p>支持三种方式的属性配置</p>
+<ol>
+<li>配置文件（永久生效）</li>
+<li>hiveconf（作用于整个session）</li>
+<li>set（作用于整个session）</li>
+</ol>
+<h2 id="Hive数据类型"><a href="#Hive数据类型" class="headerlink" title="Hive数据类型"></a>Hive数据类型</h2><h2 id="Hive-DDL数据定义语言"><a href="#Hive-DDL数据定义语言" class="headerlink" title="Hive DDL数据定义语言"></a>Hive DDL数据定义语言</h2><h2 id="Hive-DML数据操作语言"><a href="#Hive-DML数据操作语言" class="headerlink" title="Hive DML数据操作语言"></a>Hive DML数据操作语言</h2><h2 id="Hive自定义函数"><a href="#Hive自定义函数" class="headerlink" title="Hive自定义函数"></a>Hive自定义函数</h2><h2 id="Hive文件存储格式"><a href="#Hive文件存储格式" class="headerlink" title="Hive文件存储格式"></a>Hive文件存储格式</h2>
       
       <!-- reward -->
       
