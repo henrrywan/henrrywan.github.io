@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">318</span>
+            <span class="post-count">324</span>
         </span>
     </span>
 
@@ -115,7 +115,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.io.IOException: Could not locate executable null\bin\winutils.exe in the Hadoop binaries.</span><br></pre></td></tr></table></figure>
 <p>根据错误信息我们需要在本地配置Hadoop相关的环境并提供winutils.exe文件。</p>
 <h2 id="下载Hadoop压缩包"><a href="#下载Hadoop压缩包" class="headerlink" title="下载Hadoop压缩包"></a>下载Hadoop压缩包</h2><p>Hadoop官网下载地址：<a href="https://archive.apache.org/dist/hadoop/common/" target="_blank" rel="noopener">https://archive.apache.org/dist/hadoop/common/</a><br>这里以<code>hadoop-2.9.2-src.tar.gz</code>为例。下载到本地之后使用解压工具解压，存放到指定目录。</p>
-<h2 id="下载winutils-exe"><a href="#下载winutils-exe" class="headerlink" title="下载winutils.exe"></a>下载winutils.exe</h2><p>根据Hadoop版本下载地址：<a href="https://github.com/cdarlint/winutils" target="_blank" rel="noopener">https://github.com/cdarlint/winutils</a><br>镜像仓库地址：<a href="https://codechina.csdn.net/mirrors/cdarlint" target="_blank" rel="noopener">https://codechina.csdn.net/mirrors/cdarlint</a><br>将下载好的文件复制到Hadoop的bin目录下。</p>
+<h2 id="下载winutils-exe"><a href="#下载winutils-exe" class="headerlink" title="下载winutils.exe"></a>下载winutils.exe</h2><p>根据Hadoop版本下载对应winutils.exe程序。<br>github地址：<a href="https://github.com/cdarlint/winutils" target="_blank" rel="noopener">https://github.com/cdarlint/winutils</a><br>镜像仓库地址：<a href="https://codechina.csdn.net/mirrors/cdarlint" target="_blank" rel="noopener">https://codechina.csdn.net/mirrors/cdarlint</a><br>将下载好的文件复制到Hadoop的bin目录下。</p>
 <h2 id="配置环境变量"><a href="#配置环境变量" class="headerlink" title="配置环境变量"></a>配置环境变量</h2><p>这里主要是配置HADOOP_HOME。</p>
 <img src="/2019/01/10/Spark/%E8%A7%A3%E5%86%B3IDEA%E4%B8%8A%E8%BF%90%E8%A1%8CSpark%E4%BB%BB%E5%8A%A1%E6%8A%A5%E9%94%99%E9%97%AE%E9%A2%98/hadoop_home.png" class="">
 <p>同时将hadoop下面的bin目录添加到Path中。<br>win10系统直接添加<code>%HADOOP_HOME%\bin</code>即可。</p>
