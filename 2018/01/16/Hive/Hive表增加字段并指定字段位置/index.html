@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    group by在Hive中的使用 |  大数据学习笔记
+    Hive表增加字段并指定字段位置 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Hive/group by在Hive中的使用" class="article article-type-post" itemscope
+  <article id="post-Hive/Hive表增加字段并指定字段位置" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  group by在Hive中的使用
+  Hive表增加字段并指定字段位置
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2018/03/20/Hive/group%C2%A0by%E5%9C%A8Hive%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
-  <time datetime="2018-03-20T02:00:00.000Z" itemprop="datePublished">2018-03-20</time>
+      <a href="/2018/01/16/Hive/Hive%E8%A1%A8%E5%A2%9E%E5%8A%A0%E5%AD%97%E6%AE%B5%E5%B9%B6%E6%8C%87%E5%AE%9A%E5%AD%97%E6%AE%B5%E4%BD%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2018-01-16T02:00:00.000Z" itemprop="datePublished">2018-01-16</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">360</span>
+            <span class="post-count">532</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">1 分钟</span>
+            <span class="post-count">2 分钟</span>
         </span>
     </span>
 </div>
@@ -111,20 +111,18 @@
       
 
       
-      <h1 id="group-by在Hive中的使用"><a href="#group-by在Hive中的使用" class="headerlink" title="group by在Hive中的使用"></a>group by在Hive中的使用</h1><p>正常情况下，我们使用group by应该不会出什么问题。<br>这里考虑一下group by前面有常量字段的情况。</p>
-<h2 id="查看源表数据"><a href="#查看源表数据" class="headerlink" title="查看源表数据"></a>查看源表数据</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">id</span>,<span class="keyword">name</span> <span class="keyword">from</span> <span class="keyword">test</span>;</span><br><span class="line">1 Jack Ma</span><br><span class="line">2 Pony Ma</span><br><span class="line">3 Robin Li</span><br><span class="line">1 Jack Ma</span><br><span class="line">2 Pony Ma</span><br><span class="line">3 Robin Li</span><br></pre></td></tr></table></figure>
+      <h1 id="Hive表增加字段并指定字段位置"><a href="#Hive表增加字段并指定字段位置" class="headerlink" title="Hive表增加字段并指定字段位置"></a>Hive表增加字段并指定字段位置</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在Hive中，不能直接新增字段并指定位置，否则会报错。需要先增加字段，再指定位置。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test_01 <span class="keyword">add</span> <span class="keyword">columns</span>(company <span class="keyword">string</span> <span class="keyword">comment</span> <span class="string">''</span>);</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test_01 <span class="keyword">change</span> company company <span class="keyword">string</span> <span class="keyword">after</span> <span class="keyword">id</span>;</span><br></pre></td></tr></table></figure>
+<p>同时，我们也需要考虑<strong>字段位置的移动对数据造成的影响</strong>。<br>下面是简单测试。</p>
+<h2 id="数据校验"><a href="#数据校验" class="headerlink" title="数据校验"></a>数据校验</h2><h3 id="查看改动前目标表字段顺序以及相关数据"><a href="#查看改动前目标表字段顺序以及相关数据" class="headerlink" title="查看改动前目标表字段顺序以及相关数据"></a>查看改动前目标表字段顺序以及相关数据</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--查看表结构</span></span><br><span class="line">0: jdbc:hive2://bd12:10000&gt; desc test_01;</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line">| col_name | data_type | <span class="keyword">comment</span> |</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line">| <span class="keyword">id</span>     | <span class="built_in">int</span>    |     |</span><br><span class="line">| <span class="keyword">name</span>   | <span class="keyword">string</span>  |     |</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line"><span class="comment">--查看表数据</span></span><br><span class="line"><span class="number">0</span>: jdbc:hive2://bd12:<span class="number">10000</span>&gt; <span class="keyword">select</span> * <span class="keyword">from</span> test_01;</span><br><span class="line">+<span class="comment">-------------+---------------+</span></span><br><span class="line">| test_01.id | test_01.name |</span><br><span class="line">+<span class="comment">-------------+---------------+</span></span><br><span class="line">| 1     | Jack Ma   | </span><br><span class="line">| 2     | Pony Ma   | </span><br><span class="line">| 3     | Robin Li   | </span><br><span class="line">+<span class="comment">-------------+---------------+</span></span><br></pre></td></tr></table></figure>
+<h3 id="直接新增并指定位置（报错）"><a href="#直接新增并指定位置（报错）" class="headerlink" title="直接新增并指定位置（报错）"></a>直接新增并指定位置（报错）</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">0: jdbc:hive2://bd12:10000&gt; alter table test_01 add columns(company string comment '') after name;</span><br><span class="line">Error: Error while compiling statement: FAILED: ParseException line 1:55 missing EOF at 'after' near ')'</span><br></pre></td></tr></table></figure>
+<h3 id="先增加字段，再修改位置，注意数据影响（正确）"><a href="#先增加字段，再修改位置，注意数据影响（正确）" class="headerlink" title="先增加字段，再修改位置，注意数据影响（正确）"></a>先增加字段，再修改位置，注意数据影响（正确）</h3><p>先增加字段，再修改位置（默认新增字段在最后位置）</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test_01 <span class="keyword">add</span> <span class="keyword">columns</span>(company <span class="keyword">string</span> <span class="keyword">comment</span> <span class="string">''</span>);</span><br><span class="line"><span class="comment">--数据查看</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> test_01;</span><br><span class="line">+<span class="comment">-------------+---------------+------------------+</span></span><br><span class="line">| test_01.id | test_01.name | test_01.company |</span><br><span class="line">+<span class="comment">-------------+---------------+------------------+</span></span><br><span class="line">| 1     | Jack Ma   | NULL      |</span><br><span class="line">| 2     | Pony Ma   | NULL      |</span><br><span class="line">| 3     | Robin Li   | NULL      |</span><br><span class="line">+<span class="comment">-------------+---------------+------------------+</span></span><br><span class="line"><span class="comment">--注意：如果表中有数据，字段位置的修改会导致字段对应的数据发生改变。这里本来name字段有值，结果位置修改之后name变为空值，company有值。</span></span><br><span class="line"><span class="comment">-- 修改字段位置并查看数据。</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test_01 <span class="keyword">change</span> company company <span class="keyword">string</span> <span class="keyword">after</span> <span class="keyword">id</span>;</span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> test_01;</span><br><span class="line">+<span class="comment">-------------+------------------+---------------+</span></span><br><span class="line">| test_01.id | test_01.company | test_01.name |</span><br><span class="line">+<span class="comment">-------------+------------------+---------------+</span></span><br><span class="line">| 1     | Jack Ma     | NULL     |</span><br><span class="line">| 2     | Pony Ma     | NULL     |</span><br><span class="line">| 3     | Robin Li    | NULL     |</span><br><span class="line">+<span class="comment">-------------+------------------+---------------+</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="正常使用group-by"><a href="#正常使用group-by" class="headerlink" title="正常使用group by"></a>正常使用group by</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">id</span>,<span class="keyword">name</span> <span class="keyword">from</span> <span class="keyword">test</span> <span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">id</span>,<span class="keyword">name</span>;</span><br><span class="line">1 Jack Ma</span><br><span class="line">2 Pony Ma</span><br><span class="line">3 Robin Li</span><br></pre></td></tr></table></figure>
+<p>原因分析：<br>这是由于HDFS底层文件映射成Hive表的特性决定。<br>同理，如果字段类型与底层文件对应不上，查询数据时会被空值覆盖，这里我们将id字段往后移动一位。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> test_01 <span class="keyword">change</span> <span class="keyword">id</span> <span class="keyword">id</span> <span class="built_in">int</span> <span class="keyword">after</span> company;</span><br><span class="line">desc test_01;</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line">| col_name | data_type | <span class="keyword">comment</span> |</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line">| company | <span class="keyword">string</span>  |     |</span><br><span class="line">| <span class="keyword">id</span>    | <span class="built_in">int</span>    |     |</span><br><span class="line">| <span class="keyword">name</span>   | <span class="keyword">string</span>  |     |</span><br><span class="line">+<span class="comment">-----------+------------+----------+</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> test_01;</span><br><span class="line">+<span class="comment">------------------+-------------+---------------+</span></span><br><span class="line">| test_01.company | test_01.id | test_01.name |</span><br><span class="line">+<span class="comment">------------------+-------------+---------------+</span></span><br><span class="line">| 1        | NULL    | NULL     |</span><br><span class="line">| 2        | NULL    | NULL     |</span><br><span class="line">| 3        | NULL    | NULL     |</span><br><span class="line">+<span class="comment">------------------+-------------+---------------+</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="增加常量字段-但是在group-by后面不跟该常量"><a href="#增加常量字段-但是在group-by后面不跟该常量" class="headerlink" title="增加常量字段, 但是在group by后面不跟该常量"></a>增加常量字段, 但是在group by后面不跟该常量</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">id</span>, <span class="keyword">name</span>,<span class="string">'bat'</span> <span class="keyword">as</span> company <span class="keyword">from</span> <span class="keyword">test</span> <span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">id</span>,<span class="keyword">name</span>;</span><br><span class="line">1 Jack Ma   bat</span><br><span class="line">2 Pony Ma   bat</span><br><span class="line">3 Robin Li  bat</span><br></pre></td></tr></table></figure>
-
-<h2 id="增加常量字段，同时在group-by后面接该常量"><a href="#增加常量字段，同时在group-by后面接该常量" class="headerlink" title="增加常量字段，同时在group by后面接该常量"></a>增加常量字段，同时在group by后面接该常量</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">id</span>, <span class="keyword">name</span>,<span class="string">'bat'</span> <span class="keyword">as</span> company <span class="keyword">from</span> <span class="keyword">test</span> <span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">id</span>,<span class="keyword">name</span>,<span class="string">'bat'</span>;</span><br><span class="line">1 Jack Ma   bat</span><br><span class="line">2 Pony Ma   bat</span><br><span class="line">3 Robin Li  bat</span><br></pre></td></tr></table></figure>
-
-<h2 id="增加常量字段，同时在group-by后面接该常量别名，这里会直接报错"><a href="#增加常量字段，同时在group-by后面接该常量别名，这里会直接报错" class="headerlink" title="增加常量字段，同时在group by后面接该常量别名，这里会直接报错"></a>增加常量字段，同时在group by后面接该常量别名，这里会直接报错</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">id</span>,<span class="keyword">name</span>,<span class="string">'bat'</span> <span class="keyword">as</span> company <span class="keyword">from</span> <span class="keyword">test</span> <span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">id</span>,<span class="keyword">name</span>,company;</span><br><span class="line">org.apache.hadoop.hive.ql.parse.SemanticException: Line 1:62 Invalid table alias or column reference 'company': (possible column names are: id, name)</span><br></pre></td></tr></table></figure>
-
-<h2 id="特殊场景：增加常量字段，同时在group-by后面接该常量别名，并且该常量别名存在于表字段中"><a href="#特殊场景：增加常量字段，同时在group-by后面接该常量别名，并且该常量别名存在于表字段中" class="headerlink" title="特殊场景：增加常量字段，同时在group by后面接该常量别名，并且该常量别名存在于表字段中"></a>特殊场景：增加常量字段，同时在group by后面接该常量别名，并且该常量别名存在于表字段中</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">id</span>,<span class="string">'bat'</span> <span class="keyword">as</span> <span class="keyword">name</span> <span class="keyword">from</span> <span class="keyword">test</span> <span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">id</span>,<span class="keyword">name</span>;</span><br><span class="line">1 bat</span><br><span class="line">2 bat</span><br><span class="line">3 bat</span><br><span class="line"><span class="comment">## 实际上与下面等同，只是相当于name查询的时候没展示。</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">id</span>,<span class="keyword">name</span>,<span class="string">'bat'</span> <span class="keyword">as</span> <span class="keyword">name</span> <span class="keyword">from</span> <span class="keyword">test</span> <span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">id</span>,<span class="keyword">name</span>;</span><br><span class="line">1 Jack Ma   bat</span><br><span class="line">2 Pony Ma   bat</span><br><span class="line">3 Robin Li  bat</span><br></pre></td></tr></table></figure>
-
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>使用group by后面最好不要接常量字段，如果非要接常量字段，一定不要使用别名。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>考虑到Hive表的特性，不建议在已有数据的情况下还进行字段新增和位置调整。如果非要这么做，可以考虑新建表再进行数据导入。</p>
 
       
       <!-- reward -->
@@ -193,7 +191,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2018/03/20/Hive/group%C2%A0by%E5%9C%A8Hive%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2018/01/16/Hive/Hive%E8%A1%A8%E5%A2%9E%E5%8A%A0%E5%AD%97%E6%AE%B5%E5%B9%B6%E6%8C%87%E5%AE%9A%E5%AD%97%E6%AE%B5%E4%BD%8D%E7%BD%AE/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -211,19 +209,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2018/06/01/Hive/Hive%E5%8A%A8%E6%80%81%E5%88%86%E5%8C%BA%E5%BC%80%E5%90%AF%E4%B8%8E%E5%85%B3%E9%97%AD/" class="article-nav-link">
+      <a href="/2018/02/01/Hive/substr(substring)%E5%9C%A8Hive%E5%92%8CImpala%E4%B8%AD%E7%9A%84%E5%8C%BA%E5%88%AB/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Hive动态分区开启与关闭
+            substr(substring)在Hive和Impala中的区别
           
         </div>
       </a>
     
     
-      <a href="/2018/02/01/Hive/substr(substring)%E5%9C%A8Hive%E5%92%8CImpala%E4%B8%AD%E7%9A%84%E5%8C%BA%E5%88%AB/" class="article-nav-link">
+      <a href="/2017/07/01/MySQL/SQL%E4%B8%ADcase%20when%E5%87%BD%E6%95%B0%E5%92%8Cif%E5%87%BD%E6%95%B0%E7%9A%84%E5%8C%BA%E5%88%AB/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">substr(substring)在Hive和Impala中的区别</div>
+        <div class="article-nav-title">SQL中case when函数和if函数的区别</div>
       </a>
     
   </nav>
