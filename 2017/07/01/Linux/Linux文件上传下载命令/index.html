@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    categories |  大数据学习笔记
+    Linux文件上传下载命令 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,93 +45,188 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
+  <article id="post-Linux/Linux文件上传下载命令" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Linux文件上传下载命令
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2017/07/01/Linux/Linux%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E4%B8%8B%E8%BD%BD%E5%91%BD%E4%BB%A4/" class="article-date">
+  <time datetime="2017-07-01T02:00:00.000Z" itemprop="datePublished">2017-07-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">264</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">1 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Linux文件上传下载命令"><a href="#Linux文件上传下载命令" class="headerlink" title="Linux文件上传下载命令"></a>Linux文件上传下载命令</h1><p>通常情况下，我们可以通过xftp等工具直接拖拽进行文件或文件夹的上传下载。也可以使用sz和rz命令同Windows进行文件传输。<br>注意：使用sz和rz命令只能进行<font color=red><strong><em>文件</em></strong></font>传输。</p>
+<h2 id="简单使用"><a href="#简单使用" class="headerlink" title="简单使用"></a>简单使用</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 安装插件</span></span><br><span class="line">[root@node01 ~]<span class="comment"># yum -y install lrzsz</span></span><br><span class="line"><span class="comment">## 安装完成之后可以通过sz和rz命令进行查看具体操作</span></span><br><span class="line">[root@node01 ~]<span class="comment"># sz --help</span></span><br><span class="line">sz version 0.12.20</span><br><span class="line">...</span><br><span class="line">[root@node01 ~]<span class="comment"># sz --help</span></span><br><span class="line">sz version 0.12.20</span><br><span class="line">...</span><br><span class="line"><span class="comment">## 具体示例</span></span><br><span class="line"><span class="comment">## 1.从Linux服务器下载文件到Windows本地</span></span><br><span class="line"><span class="comment">## 使用sz命令+文件名回车之后会弹出Windows窗口供用户选择下载路径</span></span><br><span class="line">[root@node01 tools]<span class="comment"># ll</span></span><br><span class="line">total 458220</span><br><span class="line">-rw-r--r--. 1 root root 279396579 Jul 13  2021 flink-1.10.1-bin-scala_2.12.tgz</span><br><span class="line">-rw-r--r--. 1 root root 189815615 Dec 26  2020 jdk-8u162-linux-x64.tar.gz</span><br><span class="line">[root@node01 tools]<span class="comment"># sz flink-1.10.1-bin-scala_2.12.tgz</span></span><br><span class="line"><span class="comment">## 2.从Windows本地上传文件到Linux服务器</span></span><br><span class="line"><span class="comment">## 使用rz命令回车之后会弹出Windows窗口供用户选择需要上传的文件</span></span><br><span class="line">[root@node01 tools]<span class="comment"># rz</span></span><br></pre></td></tr></table></figure>
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2017/07/01/Linux/Linux%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E4%B8%8B%E8%BD%BD%E5%91%BD%E4%BB%A4/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" rel="tag">Linux必知必会</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
   
-    <h1 class="page-type-title">分类</h1>
-    <!-- <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/Azkaban/">Azkaban</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/CDH/">CDH</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Flink/">Flink</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Hadoop/">Hadoop</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Hive/">Hive</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/IDEA/">IDEA</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Linux/">Linux</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/MySQL/">MySQL</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Other/">Other</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/Spark/">Spark</a></li></ul> -->
-    <ul class="category-list">
-      
-         
-          <a class="category-list-link" href="/categories/Azkaban/" title="Azkaban">
-            <li class="category-list-item">
-            Azkaban<i>6</i>
-            </li>
-          </a>
-        
-      
-         
-          <a class="category-list-link" href="/categories/CDH/" title="CDH">
-            <li class="category-list-item">
-            CDH<i>1</i>
-            </li>
-          </a>
-        
-      
-         
-          <a class="category-list-link" href="/categories/Flink/" title="Flink">
-            <li class="category-list-item">
-            Flink<i>5</i>
-            </li>
-          </a>
-        
-      
-         
-          <a class="category-list-link" href="/categories/Hadoop/" title="Hadoop">
-            <li class="category-list-item">
-            Hadoop<i>4</i>
-            </li>
-          </a>
-        
-      
-         
-          <a class="category-list-link" href="/categories/Hive/" title="Hive">
-            <li class="category-list-item">
-            Hive<i>7</i>
-            </li>
-          </a>
-        
-      
-         
-          <a class="category-list-link" href="/categories/IDEA/" title="IDEA">
-            <li class="category-list-item">
-            IDEA<i>3</i>
-            </li>
-          </a>
-        
-      
-         
-          <a class="category-list-link" href="/categories/Linux/" title="Linux">
-            <li class="category-list-item">
-            Linux<i>8</i>
-            </li>
-          </a>
-        
-      
-         
-          <a class="category-list-link" href="/categories/MySQL/" title="MySQL">
-            <li class="category-list-item">
-            MySQL<i>4</i>
-            </li>
-          </a>
-        
-      
-         
-          <a class="category-list-link" href="/categories/Other/" title="Other">
-            <li class="category-list-item">
-            Other<i>3</i>
-            </li>
-          </a>
-        
-      
-         
-          <a class="category-list-link" href="/categories/Spark/" title="Spark">
-            <li class="category-list-item">
-            Spark<i>7</i>
-            </li>
-          </a>
-        
-      
-      </ul>
   
+  <nav class="article-nav">
+    
+      <a href="/2018/01/16/Hive/Hive%E8%A1%A8%E5%A2%9E%E5%8A%A0%E5%AD%97%E6%AE%B5%E5%B9%B6%E6%8C%87%E5%AE%9A%E5%AD%97%E6%AE%B5%E4%BD%8D%E7%BD%AE/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Hive表增加字段并指定字段位置
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2017/07/01/MySQL/SQL%E4%B8%ADcase%20when%E5%87%BD%E6%95%B0%E5%92%8Cif%E5%87%BD%E6%95%B0%E7%9A%84%E5%8C%BA%E5%88%AB/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">SQL中case when函数和if函数的区别</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
 </section>
       <footer class="footer">
   <div class="outer">
@@ -266,6 +361,24 @@
 
 
 
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
 
 
 
