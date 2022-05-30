@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    互联网公司技术团队博客推荐 |  大数据学习笔记
+    IDEA上创建第一个Hadoop项目 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Other/互联网公司技术团队博客推荐" class="article article-type-post" itemscope
+  <article id="post-Hadoop/IDEA上创建第一个Hadoop项目" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  互联网公司技术团队博客推荐
+  IDEA上创建第一个Hadoop项目
 </h1>
  
 
@@ -62,12 +62,12 @@
 
     
     <div class="article-meta">
-      <a href="/2015/01/01/Other/%E4%BA%92%E8%81%94%E7%BD%91%E5%85%AC%E5%8F%B8%E6%8A%80%E6%9C%AF%E5%9B%A2%E9%98%9F%E5%8D%9A%E5%AE%A2%E6%8E%A8%E8%8D%90/" class="article-date">
-  <time datetime="2015-01-01T02:00:00.000Z" itemprop="datePublished">2015-01-01</time>
+      <a href="/2017/05/15/Hadoop/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AAHadoop%E9%A1%B9%E7%9B%AE/" class="article-date">
+  <time datetime="2017-05-15T02:00:00.000Z" itemprop="datePublished">2017-05-15</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Other/">Other</a>
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
   </div>
 
       
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">19</span>
+            <span class="post-count">401</span>
         </span>
     </span>
 
@@ -97,6 +97,8 @@
 
     
     
+    <div class="tocbot"></div>
+
 
 
 
@@ -109,11 +111,13 @@
       
 
       
-      <ul>
-<li><a href="https://tech.meituan.com/" target="_blank" rel="noopener">美团技术团队</a></li>
-<li><a href="https://tech.youzan.com/" target="_blank" rel="noopener">有赞技术团队</a></li>
-<li><a href="https://flink-learning.org.cn/" target="_blank" rel="noopener">Flink中文社区网站</a></li>
-</ul>
+      <h1 id="IDEA上创建第一个Hadoop项目"><a href="#IDEA上创建第一个Hadoop项目" class="headerlink" title="IDEA上创建第一个Hadoop项目"></a>IDEA上创建第一个Hadoop项目</h1><h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>为了在IDEA上运行我们的Hadoop项目，除了必要的JAVA环境变量配置外，还需要额外配置Hadoop环境变量。这里主要分为三步。</p>
+<h3 id="下载hadoop压缩包"><a href="#下载hadoop压缩包" class="headerlink" title="下载hadoop压缩包"></a>下载hadoop压缩包</h3><p>这里以hadoop3.2.1为例。<br><a href="https://archive.apache.org/dist/hadoop/common/" target="_blank" rel="noopener">官网下载</a><code>hadoop-3.2.1.tar.gz</code>压缩包，解压缩到指定目录。</p>
+<h3 id="下载winutils-exe"><a href="#下载winutils-exe" class="headerlink" title="下载winutils.exe"></a>下载winutils.exe</h3><p>根据Hadoop版本下载对应winutils.exe程序。<br>github地址：<a href="https://github.com/cdarlint/winutils" target="_blank" rel="noopener">https://github.com/cdarlint/winutils</a><br>镜像仓库地址：<a href="https://codechina.csdn.net/mirrors/cdarlint" target="_blank" rel="noopener">https://codechina.csdn.net/mirrors/cdarlint</a><br>将下载好的文件复制到解压之后的Hadoop的bin目录下。</p>
+<h3 id="配置系统环境变量"><a href="#配置系统环境变量" class="headerlink" title="配置系统环境变量"></a>配置系统环境变量</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 新建系统变量HADOOP_HOME</span></span></span><br><span class="line">变量名（HADOOP_HOME）</span><br><span class="line">变量值（D:\hadoop3.2.1）</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 编辑Path环境变量，新建</span></span></span><br><span class="line"><span class="meta">%</span><span class="bash">HADOOP_HOME%\bin</span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 配置成功之后打开cmd控制台查看是否成功。</span></span></span><br><span class="line">C:\Users\henrrywan&gt;hadoop version</span><br><span class="line">Hadoop 3.2.1</span><br><span class="line">Source code repository https://gitbox.apache.org/repos/asf/hadoop.git -r b3cbbb467e22ea829b3808f4b7b01d07e0bf3842</span><br><span class="line">Compiled by rohithsharmaks on 2019-09-10T15:56Z</span><br><span class="line">Compiled with protoc 2.5.0</span><br><span class="line">From source with checksum 776eaf9eee9c0ffc370bcbc1888737</span><br><span class="line">This command was run using /D:/hadoop-3.2.1/share/hadoop/common/hadoop-common-3.2.1.jar</span><br></pre></td></tr></table></figure>
+
+<h2 id="创建Maven项目"><a href="#创建Maven项目" class="headerlink" title="创建Maven项目"></a>创建Maven项目</h2><p>环境准备好之后，我们创建一个普通Maven项目。引入相关pom依赖即可。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span>    </span><br><span class="line">        <span class="comment">&lt;!--hadoop核心依赖--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.hadoop<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hadoop-common<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hadoop.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.hadoop<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hadoop-hdfs<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hadoop.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.hadoop<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hadoop-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hadoop.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
       
       <!-- reward -->
@@ -182,14 +186,14 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2015/01/01/Other/%E4%BA%92%E8%81%94%E7%BD%91%E5%85%AC%E5%8F%B8%E6%8A%80%E6%9C%AF%E5%9B%A2%E9%98%9F%E5%8D%9A%E5%AE%A2%E6%8E%A8%E8%8D%90/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2017/05/15/Hadoop/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AAHadoop%E9%A1%B9%E7%9B%AE/" alt="微信分享二维码">
     </div>
 </div>
 
 <div id="share-mask"></div>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Other/" rel="tag">Other</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" rel="tag">Hadoop入门学习</a></li></ul>
 
 
     </footer>
@@ -200,15 +204,20 @@
   
   <nav class="article-nav">
     
-      <a href="/2015/01/01/Linux/CentOS6%E5%92%8CCentOS7%E5%8C%BA%E5%88%AB/" class="article-nav-link">
+      <a href="/2017/07/01/MySQL/SQL%E4%B8%ADcase%20when%E5%87%BD%E6%95%B0%E5%92%8Cif%E5%87%BD%E6%95%B0%E7%9A%84%E5%8C%BA%E5%88%AB/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            CentOS6和CentOS7区别
+            SQL中case when函数和if函数的区别
           
         </div>
       </a>
     
+    
+      <a href="/2017/05/10/Hadoop/YARN%E5%B8%B8%E7%94%A8Shell%E5%91%BD%E4%BB%A4/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">YARN常用Shell命令</div>
+      </a>
     
   </nav>
 
