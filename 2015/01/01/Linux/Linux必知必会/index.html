@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Linux必知必会 |  大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-Linux/Linux必知必会" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Linux必知必会
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2015/01/01/Linux/Linux%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" class="article-date">
+  <time datetime="2015-01-01T02:00:00.000Z" itemprop="datePublished">2015-01-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.6k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">7 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Linux必知必会"><a href="#Linux必知必会" class="headerlink" title="Linux必知必会"></a>Linux必知必会</h1><h2 id="CentOS6和CentOS7区别"><a href="#CentOS6和CentOS7区别" class="headerlink" title="CentOS6和CentOS7区别"></a>CentOS6和CentOS7区别</h2><h3 id="版本查看"><a href="#版本查看" class="headerlink" title="版本查看"></a>版本查看</h3><p>查看Linux内核版本和CentOS版本信息</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 可以使用uname -a查看</span></span></span><br><span class="line">[root@node01 ~]# uname -a</span><br><span class="line">Linux node01 3.10.0-693.el7.x86_64 #1 SMP Tue Aug 22 21:09:27 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 也可以直接查看文件/etc/redhat-release 信息</span></span></span><br><span class="line">[root@node01 ~]# cat /etc/redhat-release </span><br><span class="line">CentOS Linux release 7.4.1708 (Core)</span><br></pre></td></tr></table></figure>
+
+<h3 id="区别比较"><a href="#区别比较" class="headerlink" title="区别比较"></a>区别比较</h3><table>
+<thead>
+<tr>
+<th>系统</th>
+<th>CentOS6</th>
+<th>CentOS7</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>init系统</td>
+<td>Sysvinit</td>
+<td>Systemd</td>
+</tr>
+<tr>
+<td>桌面系统</td>
+<td>GNOME 2.x</td>
+<td>GNOME 3.x（GNOME Shell）</td>
+</tr>
+<tr>
+<td>文件系统</td>
+<td>ext4</td>
+<td>xfs</td>
+</tr>
+<tr>
+<td>内核版本</td>
+<td>2.6.x-x</td>
+<td>3.10.x-x</td>
+</tr>
+<tr>
+<td>防火墙</td>
+<td>iptables</td>
+<td>firewalld</td>
+</tr>
+<tr>
+<td>默认数据库</td>
+<td>MySQL</td>
+<td>MariaDB</td>
+</tr>
+<tr>
+<td>主机名</td>
+<td>/etc/sysconfig/network</td>
+<td>/etc/hostname</td>
+</tr>
+<tr>
+<td>文件结构</td>
+<td>/bin, /sbin, /lib,/lib64(在/下)</td>
+<td>/bin, /sbin, /lib, /lib64移到/usr下</td>
+</tr>
+<tr>
+<td>启动停止服务</td>
+<td>service service_name start service service_name stop</td>
+<td>systemctl start service_name systemctl stop service_name</td>
+</tr>
+<tr>
+<td>服务列表</td>
+<td>chkconfig –list</td>
+<td>systemctl list-unit-files &amp;&amp; systemctl –type service</td>
+</tr>
+<tr>
+<td>IP信息</td>
+<td>ifconfig</td>
+<td>ip address</td>
+</tr>
+</tbody></table>
+<h2 id="Linux系统查看端口占用情况"><a href="#Linux系统查看端口占用情况" class="headerlink" title="Linux系统查看端口占用情况"></a>Linux系统查看端口占用情况</h2><p>在Linux中，我们可以使用<code>netstat</code>命令或者<code>lsof</code>命令来查看端口占用情况。具体如下</p>
+<h3 id="netstat命令"><a href="#netstat命令" class="headerlink" title="netstat命令"></a>netstat命令</h3><p>格式：<code>netstat -tunlp|grep &lt;port&gt;</code></p>
+<p>可选参数</p>
+<ul>
+<li>-t (tcp) 仅显示tcp相关选项</li>
+<li>-u (udp)仅显示udp相关选项</li>
+<li>-n 拒绝显示别名，能显示数字的全部转化为数字</li>
+<li>-l 仅列出在Listen(监听)的服务状态</li>
+<li>-p 显示进程标识符和程序名称</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 查看9870端口</span></span><br><span class="line">[root@bd12 opt]<span class="comment"># netstat -tunlp|grep 9870</span></span><br><span class="line">tcp    0   0 10.8.40.112:9870    0.0.0.0:*       LISTEN   27012/java</span><br></pre></td></tr></table></figure>
+<h3 id="lsof命令"><a href="#lsof命令" class="headerlink" title="lsof命令"></a>lsof命令</h3><p>格式：<code>lsof -i:&lt;port&gt;</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">## 查看9870端口</span></span><br><span class="line"> [root@bd12 opt]<span class="comment"># lsof -i:9870</span></span><br><span class="line">COMMAND PID USER FD TYPE DEVICE SIZE/OFF NODE NAME</span><br><span class="line">java  27012 hdfs 234u IPv4 907288   0t0 TCP bd12:9870 (LISTEN)</span><br></pre></td></tr></table></figure>
+
+<h2 id="Linux文件上传下载命令"><a href="#Linux文件上传下载命令" class="headerlink" title="Linux文件上传下载命令"></a>Linux文件上传下载命令</h2><p>通常情况下，我们可以通过xftp等工具直接拖拽进行文件或文件夹的上传下载。也可以使用sz和rz命令同Windows进行文件传输。<br>注意：使用sz和rz命令只能进行<strong><em>文件</em></strong>传输。</p>
+<h3 id="简单使用"><a href="#简单使用" class="headerlink" title="简单使用"></a>简单使用</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 安装插件</span></span><br><span class="line">[root@node01 ~]<span class="comment"># yum -y install lrzsz</span></span><br><span class="line"><span class="comment">## 安装完成之后可以通过sz和rz命令进行查看具体操作</span></span><br><span class="line">[root@node01 ~]<span class="comment"># sz --help</span></span><br><span class="line">sz version 0.12.20</span><br><span class="line">...</span><br><span class="line">[root@node01 ~]<span class="comment"># sz --help</span></span><br><span class="line">sz version 0.12.20</span><br><span class="line">...</span><br><span class="line"><span class="comment">## 具体示例</span></span><br><span class="line"><span class="comment">## 1.从Linux服务器下载文件到Windows本地</span></span><br><span class="line"><span class="comment">## 使用sz命令+文件名回车之后会弹出Windows窗口供用户选择下载路径</span></span><br><span class="line">[root@node01 tools]<span class="comment"># ll</span></span><br><span class="line">total 458220</span><br><span class="line">-rw-r--r--. 1 root root 279396579 Jul 13  2021 flink-1.10.1-bin-scala_2.12.tgz</span><br><span class="line">-rw-r--r--. 1 root root 189815615 Dec 26  2020 jdk-8u162-linux-x64.tar.gz</span><br><span class="line">[root@node01 tools]<span class="comment"># sz flink-1.10.1-bin-scala_2.12.tgz</span></span><br><span class="line"><span class="comment">## 2.从Windows本地上传文件到Linux服务器</span></span><br><span class="line"><span class="comment">## 使用rz命令回车之后会弹出Windows窗口供用户选择需要上传的文件</span></span><br><span class="line">[root@node01 tools]<span class="comment"># rz</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="scp和rsync的简单使用"><a href="#scp和rsync的简单使用" class="headerlink" title="scp和rsync的简单使用"></a>scp和rsync的简单使用</h2><p>在Linux中，scp命令通常用来实现服务器与服务器之间的安全拷贝，而rsync命令通常用来备份和镜像。<br>它们的区别在于：scp每一次都会对所有文件进行拷贝，而rsync则只对差异性文件进行更新，因此，用rsync命令做文件的复制要比scp更快。<br>一般而言，rsync命令需要我们单独安装，而scp命令一般Linux自带。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 查看是否安装scp</span></span><br><span class="line">[root@node02 ~]<span class="comment"># which scp</span></span><br><span class="line">/usr/bin/scp</span><br><span class="line"><span class="comment">## 查看是否安装rsync，如果没有，安装rsync。</span></span><br><span class="line"><span class="comment">## 注意：只有各个节点都安装了scp和rsync才能使用相关命令进行文件传输。</span></span><br><span class="line">[root@node02 ~]<span class="comment"># which rsync</span></span><br><span class="line">/usr/bin/<span class="built_in">which</span>: no rsync <span class="keyword">in</span> (/usr/<span class="built_in">local</span>/sbin:/usr/<span class="built_in">local</span>/bin:/usr/sbin:/usr/bin:/root/bin)</span><br><span class="line">[root@node02 ~]<span class="comment"># yum install -y rsync</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="简单使用-1"><a href="#简单使用-1" class="headerlink" title="简单使用"></a>简单使用</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 使用scp命令递归拷贝文件到另一台服务器上</span></span><br><span class="line"><span class="comment">## 参数含义： -r 递归拷贝</span></span><br><span class="line">[root@node02 opt]<span class="comment"># scp -r test/ root@node03:/opt/</span></span><br><span class="line"><span class="comment">## 使用rsync命令递归拷贝文件到另一台服务器上</span></span><br><span class="line"><span class="comment">## 参数含义： -a 归档拷贝，-v 显示拷贝过程</span></span><br><span class="line">[root@node02 opt]<span class="comment"># rsync -av test root@node03:/opt/</span></span><br><span class="line">sending incremental file list</span><br><span class="line"><span class="built_in">test</span>/</span><br><span class="line"><span class="built_in">test</span>/word.txt</span><br><span class="line"><span class="comment">## 注意：如果这里是test/，那么只会拷贝test目录下面的文件，而不会拷贝test文件夹本身。</span></span><br><span class="line"><span class="comment">## 而使用scp则都是拷贝整个test文件夹。</span></span><br><span class="line">[root@node02 opt]<span class="comment"># rsync -av test/ root@node03/opt/</span></span><br><span class="line">./</span><br><span class="line">word.txt</span><br></pre></td></tr></table></figure>
+
+<h2 id="rpm的简单使用"><a href="#rpm的简单使用" class="headerlink" title="rpm的简单使用"></a>rpm的简单使用</h2><p>在Linux中，我们可以通过使用rpm命令来管理套件。<br>这里根据实际的使用情况，进行简单整理。</p>
+<h3 id="参数说明"><a href="#参数说明" class="headerlink" title="参数说明"></a>参数说明</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-q</td>
+<td>使用询问模式，当遇到任何问题的时候，rpm会先询问用户</td>
+</tr>
+<tr>
+<td>-a</td>
+<td>查询所有套件</td>
+</tr>
+<tr>
+<td>-e</td>
+<td>删除指定套件</td>
+</tr>
+<tr>
+<td>-i</td>
+<td>显示套件的相关信息</td>
+</tr>
+<tr>
+<td>-v</td>
+<td>显示指令执行过程</td>
+</tr>
+<tr>
+<td>-h</td>
+<td>套件安装时列出标记：####</td>
+</tr>
+<tr>
+<td>–nodeps</td>
+<td>不验证套件的相互关联性</td>
+</tr>
+<tr>
+<td>–help</td>
+<td>帮助神器</td>
+</tr>
+</tbody></table>
+<h3 id="简单使用-2"><a href="#简单使用-2" class="headerlink" title="简单使用"></a>简单使用</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">rpm -qa|grep mariadb <span class="comment">#检查是否安装mariadb</span></span><br><span class="line">rpm -e mariadb-libs-5.5.56-2.el7.x86_64 <span class="comment">#卸载已安装mariadb</span></span><br><span class="line">rpm -e --nodeps mariadb-libs-5.5.56-2.el7.x86_64 <span class="comment">#强力卸载mariadb</span></span><br><span class="line">rpm -ivh mysql-community-client-5.7.27-1.el7.x86_64.rpm <span class="comment"># 安装MySQL客户端</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="crontab的简单使用"><a href="#crontab的简单使用" class="headerlink" title="crontab的简单使用"></a>crontab的简单使用</h2><p>在Linux中，crontab命令通常用来设置定时任务。</p>
+<h3 id="参数说明-1"><a href="#参数说明-1" class="headerlink" title="参数说明"></a>参数说明</h3><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-e</td>
+<td>编辑crontab定时任务</td>
+</tr>
+<tr>
+<td>-l</td>
+<td>查看crontab定时任务</td>
+</tr>
+<tr>
+<td>-r</td>
+<td>删除当前用户所有的crontab定时任务</td>
+</tr>
+</tbody></table>
+<h3 id="时间表格式"><a href="#时间表格式" class="headerlink" title="时间表格式"></a>时间表格式</h3><p>基本格式：* * * * *  command<br>规则说明</p>
+<table>
+<thead>
+<tr>
+<th>位置</th>
+<th>代表含义</th>
+<th>数字范围</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>第一个*</td>
+<td>minute 分钟</td>
+<td>0 - 59，多个不连续时间可以用逗号分隔，连续时间可以用-表示，比如0-5，下同</td>
+</tr>
+<tr>
+<td>第二个*</td>
+<td>hour 小时</td>
+<td>0 - 23，多个不连续时间可以用逗号分隔</td>
+</tr>
+<tr>
+<td>第三个*</td>
+<td>day of month 日期</td>
+<td>1 - 31，多个不连续时间可以用逗号分隔</td>
+</tr>
+<tr>
+<td>第四个*</td>
+<td>month 月份</td>
+<td>1 - 12，多个不连续时间可以用逗号分隔</td>
+</tr>
+<tr>
+<td>第五个*</td>
+<td>day of week  星期</td>
+<td>0 - 6 （注意：这里如果数字为0或7都表示周日）</td>
+</tr>
+</tbody></table>
+<p>注意：星期和日期最好不要同时出现，它们定义的都是天数，非常容易混乱。</p>
+<h3 id="简单使用-3"><a href="#简单使用-3" class="headerlink" title="简单使用"></a>简单使用</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##编辑定时任务，每隔1分钟向指定文件追加hello</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># crontab -e</span></span><br><span class="line"><span class="comment">##编辑内容如下</span></span><br><span class="line">*/1 * * * * /bin/<span class="built_in">echo</span> <span class="string">'hello'</span> &gt;&gt; /opt/<span class="built_in">test</span>/hello.txt</span><br><span class="line"><span class="comment">##编辑完成之后，需要重新启动crond服务</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment">#  systemctl restart crond.service</span></span><br><span class="line"><span class="comment">##查看定时任务</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># crontab -l</span></span><br><span class="line">*/1 * * * * /bin/<span class="built_in">echo</span> <span class="string">'hello'</span> &gt;&gt; /opt/<span class="built_in">test</span>/hello.txt</span><br><span class="line"><span class="comment">##查看目标文件内容（如果不存在，自动新建hello.txt文件）</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># cat /opt/test/hello.txt </span></span><br><span class="line">hello</span><br><span class="line"><span class="comment">##等待一分钟再次查看</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># cat /opt/test/hello.txt </span></span><br><span class="line">hello</span><br><span class="line">hello</span><br><span class="line"><span class="comment">##s删除定时任务并再次查看</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># crontab -r</span></span><br><span class="line">[root@hadoop01 <span class="built_in">test</span>]<span class="comment"># crontab -l</span></span><br><span class="line">no crontab <span class="keyword">for</span> root</span><br></pre></td></tr></table></figure>
+
+<p>注意：下面两种写法的区别</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#每1分钟执行一次</span></span></span><br><span class="line">*/1 * * * *</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#每小时的第1分钟执行一次</span></span></span><br><span class="line">1 * * * *</span><br></pre></td></tr></table></figure>
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2015/01/01/Linux/Linux%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" rel="tag">Linux必知必会</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2015/01/02/Other/Hexo%E6%90%AD%E5%BB%BAGitHub%E5%8D%9A%E5%AE%A2%E5%92%8CGitee%E5%8D%9A%E5%AE%A2/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Hexo搭建GitHub博客和Gitee博客
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2015/01/01/Other/%E4%BA%92%E8%81%94%E7%BD%91%E5%85%AC%E5%8F%B8%E6%8A%80%E6%9C%AF%E5%9B%A2%E9%98%9F%E5%8D%9A%E5%AE%A2%E6%8E%A8%E8%8D%90/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">互联网公司技术团队博客推荐</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2022
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+
+<!-- 复制 -->
+
+  
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+
+    
+  </div>
+</body>
+
+</html>
