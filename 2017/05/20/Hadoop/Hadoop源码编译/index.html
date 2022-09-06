@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Hadoop源码编译 |  大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-Hadoop/Hadoop源码编译" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Hadoop源码编译
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2017/05/20/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" class="article-date">
+  <time datetime="2017-05-20T02:00:00.000Z" itemprop="datePublished">2017-05-20</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.7k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">9 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Hadoop源码编译"><a href="#Hadoop源码编译" class="headerlink" title="Hadoop源码编译"></a>Hadoop源码编译</h1><h2 id="Hadoop源码编译的意义"><a href="#Hadoop源码编译的意义" class="headerlink" title="Hadoop源码编译的意义"></a>Hadoop源码编译的意义</h2><p>重新编译后的Hadoop源码更符合具体的操作系统，同时重新编译的Hadoop源码还能够根据不同的需求实现某些功能，例如支持snappy压缩等。<br>Hadoop官网从2.5版本开始就提供了编译好的64位的源码。</p>
+<h2 id="如何查看Hadoop官网提供的源码版本"><a href="#如何查看Hadoop官网提供的源码版本" class="headerlink" title="如何查看Hadoop官网提供的源码版本"></a>如何查看Hadoop官网提供的源码版本</h2><p>我们从官网下载好对应的安装包上传到Linux服务器解压，进入$hadoop_home/lib/native，使用file命令即可查看。<br>这里以hadoop-2.4.0.tar.gz和hadoop-2.9.2.tar.gz为例。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#分别解压到指定路径，并进入指定位置</span></span></span><br><span class="line">[root@hadoop01 tools]# tar -zxvf hadoop-2.4.0.tar.gz -C /opt/</span><br><span class="line">[root@hadoop01 native]# pwd</span><br><span class="line">/opt/hadoop-2.4.0/lib/native</span><br><span class="line">[root@hadoop01 native]# tar -zxvf hadoop-2.9.2.tar.gz -C /opt/</span><br><span class="line">[root@hadoop01 native]# pwd</span><br><span class="line">/opt/hadoop-2.9.2/lib/native</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#分别查看hadoop对应版本。注意32-bit和64-bit 等信息</span></span></span><br><span class="line">[root@hadoop01 native]# file  libhadoop.so.1.0.0</span><br><span class="line">libhadoop.so.1.0.0: ELF 32-bit LSB shared object, Intel 80386, version 1 (SYSV), dynamically linked, BuildID[sha1]=c85266df5aef5060a7072c125dc51fffe4fad456, not stripped</span><br><span class="line">[root@hadoop01 native]# file libhadoop.so.1.0.0</span><br><span class="line">libhadoop.so.1.0.0: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, BuildID[sha1]=29b9c1d91d6663329facd486ded93c77c5341442, not stripped</span><br></pre></td></tr></table></figure>
+
+<h2 id="源码编译"><a href="#源码编译" class="headerlink" title="源码编译"></a>源码编译</h2><p>下面基于Linux CentOS7环境下对Hadoop进行源码编译。</p>
+<h3 id="下载tar包"><a href="#下载tar包" class="headerlink" title="下载tar包"></a>下载tar包</h3><p>官网地址：<a href="https://archive.apache.org/dist/hadoop/common/" target="_blank" rel="noopener">https://archive.apache.org/dist/hadoop/common/</a><br>根据个人实际情况选择合适的tar包，这里我们选择hadoop-2.9.2-src.tar.gz</p>
+<h3 id="解压并查看BUILDING-txt"><a href="#解压并查看BUILDING-txt" class="headerlink" title="解压并查看BUILDING.txt"></a>解压并查看BUILDING.txt</h3><p>上传到Linux服务器，解压并查看BUILDING.txt文件。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -xvf hadoop-2.9.2-src.tar.gz</span><br></pre></td></tr></table></figure>
+<p>根据BUILDING.txt文件内容，我们首先准备相关编译环境</p>
+<p>Requirements:</p>
+<ul>
+<li>Unix System</li>
+<li>JDK 1.7 or 1.8</li>
+<li>Maven 3.0 or later</li>
+<li>Findbugs 1.3.9 (if running findbugs)</li>
+<li>ProtocolBuffer 2.5.0</li>
+<li>CMake 2.6 or newer (if compiling native code), must be 3.0 or newer on Mac</li>
+<li>Zlib devel (if compiling native code)</li>
+<li>openssl devel (if compiling native hadoop-pipes and to get the best HDFS encryption performance)</li>
+<li>Linux FUSE (Filesystem in Userspace) version 2.6 or above (if compiling fuse_dfs)</li>
+<li>Internet connection for first build (to fetch all Maven and Hadoop dependencies)</li>
+<li>python (for releasedocs)</li>
+<li>Node.js / bower / Ember-cli (for YARN UI v2 building)</li>
+</ul>
+<h3 id="安装JDK"><a href="#安装JDK" class="headerlink" title="安装JDK"></a>安装JDK</h3><p>上传相关tar包到指定路径，解压并配置环境变量</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#解压文件到指定位置</span></span></span><br><span class="line">tar -zxvf jdk-8u162-linux-x64.tar.gz -C /opt/</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#修改配置文件vim /etc/profile,末尾新增</span></span></span><br><span class="line">export JAVA_HOME=/opt/jdk1.8.0_162</span><br><span class="line">export PATH=$JAVA_HOOME/bin:$PATH</span><br><span class="line">export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#使配置生效</span></span></span><br><span class="line">[root@hadoop01 jdk1.8.0_162]# source /etc/profile</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#检查是否生效</span></span></span><br><span class="line">[root@hadoop01 jdk1.8.0_162]# java -version</span><br><span class="line">java version "1.8.0_162"</span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_162-b12)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.162-b12, mixed mode)</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装Maven"><a href="#安装Maven" class="headerlink" title="安装Maven"></a>安装Maven</h3><p>上传相关tar包到指定路径，解压并配置环境变量</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#解压文件到指定位置</span></span></span><br><span class="line">tar -zxvf apache-maven-3.6.0-bin.tar.gz -C /opt/</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#修改配置文件vim /etc/profile</span></span></span><br><span class="line">export JAVA_HOME=/opt/jdk1.8.0_162</span><br><span class="line">export MAVEN_HOME=/opt/apache-maven-3.6.0</span><br><span class="line">export PATH=$MAVEN_HOME/bin:$JAVA_HOME/bin:$PATH</span><br><span class="line">export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#使配置生效</span></span></span><br><span class="line">[root@hadoop01 apache-maven-3.6.0]# source /etc/profile</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#检查是否生效</span></span></span><br><span class="line">[root@hadoop01 apache-maven-3.6.0]# mvn -version</span><br><span class="line">Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-25T02:41:47+08:00)</span><br><span class="line">Maven home: /opt/apache-maven-3.6.0</span><br><span class="line">Java version: 1.8.0_162, vendor: Oracle Corporation, runtime: /opt/jdk1.8.0_162/jre</span><br><span class="line">Default locale: zh_CN, platform encoding: UTF-8</span><br><span class="line">OS name: "linux", version: "3.10.0-693.el7.x86_64", arch: "amd64", family: "unix"</span><br></pre></td></tr></table></figure>
+<p>修改settings.xml配置文件，将远程仓库换成国内阿里云镜像仓库，提高效率。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;mirror&gt;</span><br><span class="line">    &lt;id&gt;nexus-aliyun&lt;/id&gt;</span><br><span class="line">    &lt;mirrorOf&gt;central&lt;/mirrorOf&gt;</span><br><span class="line">    &lt;name&gt;Nexus aliyun&lt;/name&gt;</span><br><span class="line">    &lt;url&gt;http://maven.aliyun.com/nexus/content/groups/public&lt;/url&gt;</span><br><span class="line">&lt;/mirror&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装Findbugs-1-3-9"><a href="#安装Findbugs-1-3-9" class="headerlink" title="安装Findbugs 1.3.9"></a>安装Findbugs 1.3.9</h3><p>注意：这里明确指定了版本信息，我们下载对应版本。<br>官网地址：<a href="https://sourceforge.net/projects/findbugs/files/findbugs/1.3.9/" target="_blank" rel="noopener">https://sourceforge.net/projects/findbugs/files/findbugs/1.3.9/</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#解压文件到指定位置</span></span></span><br><span class="line">tar -zxvf findbugs-1.3.9.tar.gz -C /opt/</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#修改配置文件vim /etc/profile</span></span></span><br><span class="line">export JAVA_HOME=/opt/jdk1.8.0_162</span><br><span class="line">export MAVEN_HOME=/opt/apache-maven-3.6.0</span><br><span class="line">export FINDBUGS_HOME=/opt/findbugs-1.3.9</span><br><span class="line">export PATH=$FINDBUGS_HOME/bin:$MAVEN_HOME/bin:$JAVA_HOME/bin:$PATH</span><br><span class="line">export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#使配置生效</span></span></span><br><span class="line">[root@hadoop01 findbugs-1.3.9]# source /etc/profile</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#检查是否生效</span></span></span><br><span class="line">[root@hadoop01 findbugs-1.3.9]# findbugs -version</span><br><span class="line">1.3.9</span><br></pre></td></tr></table></figure>
+<h3 id="安装ProtocolBuffer-2-5-0"><a href="#安装ProtocolBuffer-2-5-0" class="headerlink" title="安装ProtocolBuffer 2.5.0"></a>安装ProtocolBuffer 2.5.0</h3><p>官网地址：<a href="https://github.com/protocolbuffers/protobuf/releases/tag/v2.5.0" target="_blank" rel="noopener">https://github.com/protocolbuffers/protobuf/releases/tag/v2.5.0</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#解压文件到指定位置</span></span></span><br><span class="line">[root@hadoop01 tools]# tar -zxvf protobuf-2.5.0.tar.gz</span><br></pre></td></tr></table></figure>
+<h4 id="提前安装相关依赖"><a href="#提前安装相关依赖" class="headerlink" title="提前安装相关依赖"></a>提前安装相关依赖</h4><p>注意：这里需要提前安装gcc等相关依赖，否则在编译的过程中会报错。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop01 protobuf-2.5.0]# yum -y install gcc gcc-c++</span><br><span class="line">[root@hadoop01 protobuf-2.5.0]# yum install -y autoconf automake libtool curl</span><br></pre></td></tr></table></figure>
+<p>错误信息如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">checking for gcc... no</span><br><span class="line">checking for cc... no</span><br><span class="line">checking for cl.exe... no</span><br><span class="line">configure: error: in `/opt/tools/protobuf-2.5.0':</span><br><span class="line">configure: error: no acceptable C compiler found in $PATH</span><br><span class="line">See `config.log' for more details</span><br></pre></td></tr></table></figure>
+<p>安装好依赖库之后继续执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#编译到指定路径</span></span></span><br><span class="line">[root@hadoop01 protobuf-2.5.0]# ./configure --prefix=/opt/protobuf-2.5.0</span><br><span class="line">[root@hadoop01 protobuf-2.5.0]# make</span><br><span class="line">[root@hadoop01 protobuf-2.5.0]# make install</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#查看是否编译成功</span></span></span><br><span class="line">[root@hadoop01 ~]# ls /opt/protobuf-2.5.0/</span><br><span class="line">bin  include  lib</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#修改配置文件vim /etc/profile</span></span></span><br><span class="line">export JAVA_HOME=/opt/jdk1.8.0_162</span><br><span class="line">export MAVEN_HOME=/opt/apache-maven-3.6.0</span><br><span class="line">export FINDBUGS_HOME=/opt/findbugs-1.3.9</span><br><span class="line">export PROTOC_HOME=/opt/protobuf-2.5.0</span><br><span class="line">export PATH=$PROTOC_HOME/bin:$FINDBUGS_HOME/bin:$MAVEN_HOME/bin:$JAVA_HOME/bin:$PATH</span><br><span class="line">export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#使配置生效</span></span></span><br><span class="line">[root@hadoop01 protobuf-2.5.0]# source /etc/profile</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#检查是否生效</span></span></span><br><span class="line">[root@hadoop01 protobuf-2.5.0]# protoc --version</span><br><span class="line">libprotoc 2.5.0</span><br></pre></td></tr></table></figure>
+<h3 id="安装cmake、zlib-devel、openssl、openssl-devel"><a href="#安装cmake、zlib-devel、openssl、openssl-devel" class="headerlink" title="安装cmake、zlib-devel、openssl、openssl-devel"></a>安装cmake、zlib-devel、openssl、openssl-devel</h3><p>根据Building.txt说明，还需要安装相关依赖。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop01 opt]# yum -y install cmake zlib-devel openssl openssl-devel</span><br></pre></td></tr></table></figure>
+<h3 id="编译Hadoop源码"><a href="#编译Hadoop源码" class="headerlink" title="编译Hadoop源码"></a>编译Hadoop源码</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop01 conf]# cd /opt/hadoop-2.9.2-src/</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#执行编译</span></span></span><br><span class="line">[root@hadoop01 hadoop-2.9.2-src]#  mvn clean package -Pdist,native -DskipTests -Dtar</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment">#耐心等待编译成功</span></span></span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] BUILD SUCCESS</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br><span class="line">[INFO] Total time:  16:09 min</span><br><span class="line">[INFO] Finished at: 2019-08-09T19:03:59+08:00</span><br><span class="line">[INFO] ------------------------------------------------------------------------</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看编译成功之后的文件"><a href="#查看编译成功之后的文件" class="headerlink" title="查看编译成功之后的文件"></a>查看编译成功之后的文件</h3><p>在Hadoop源码编译成功之后，进入hadoop-2.9.2-src的hadoop-dist/target目录，可以看到我们编译成功的Hadoop文件。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">[root@hadoop01 target]# cd /opt/hadoop-2.9.2-src/hadoop-dist/target/</span><br><span class="line">[root@hadoop01 target]# ll -h</span><br><span class="line">总用量 898M</span><br><span class="line">drwxr-xr-x. 2 root root   28 8月   9 19:02 antrun</span><br><span class="line">drwxr-xr-x. 3 root root   22 8月   9 19:02 classes</span><br><span class="line">-rw-r--r--. 1 root root 2.2K 8月   9 19:02 dist-layout-stitching.sh</span><br><span class="line">-rw-r--r--. 1 root root  634 8月   9 19:03 dist-tar-stitching.sh</span><br><span class="line">drwxr-xr-x. 9 root root  149 8月   9 19:03 hadoop-2.9.2</span><br><span class="line">-rw-r--r--. 1 root root 299M 8月   9 19:03 hadoop-2.9.2.tar.gz</span><br><span class="line">-rw-r--r--. 1 root root  31K 8月   9 19:03 hadoop-dist-2.9.2.jar</span><br><span class="line">-rw-r--r--. 1 root root 599M 8月   9 19:03 hadoop-dist-2.9.2-javadoc.jar</span><br><span class="line">-rw-r--r--. 1 root root  29K 8月   9 19:03 hadoop-dist-2.9.2-sources.jar</span><br><span class="line">-rw-r--r--. 1 root root  29K 8月   9 19:03 hadoop-dist-2.9.2-test-sources.jar</span><br><span class="line">drwxr-xr-x. 2 root root   51 8月   9 19:03 javadoc-bundle-options</span><br><span class="line">drwxr-xr-x. 2 root root   28 8月   9 19:03 maven-archiver</span><br><span class="line">drwxr-xr-x. 3 root root   22 8月   9 19:02 maven-shared-archive-resources</span><br><span class="line">drwxr-xr-x. 3 root root   22 8月   9 19:02 test-classes</span><br><span class="line">drwxr-xr-x. 2 root root    6 8月   9 19:02 test-dir</span><br></pre></td></tr></table></figure>
+
+<h3 id="编译过程中出现的问题"><a href="#编译过程中出现的问题" class="headerlink" title="编译过程中出现的问题"></a>编译过程中出现的问题</h3><p>最常见的情况就是编译过程中下载某个jar包或者pom文件的时候卡死，建议clean之后重新编译。</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2017/05/20/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" rel="tag">Hadoop入门学习</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2017/07/01/MySQL/SQL%E4%B8%ADcase%20when%E5%87%BD%E6%95%B0%E5%92%8Cif%E5%87%BD%E6%95%B0%E7%9A%84%E5%8C%BA%E5%88%AB/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            SQL中case when函数和if函数的区别
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2017/05/15/Hadoop/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AAHadoop%E9%A1%B9%E7%9B%AE/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">IDEA上创建第一个Hadoop项目</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2022
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+
+<!-- 复制 -->
+
+  
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+
+    
+  </div>
+</body>
+
+</html>
