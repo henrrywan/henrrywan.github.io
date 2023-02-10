@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Hive表复制 |  大数据学习笔记
+    Hive自定义函数 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Hive/Hive表复制" class="article article-type-post" itemscope
+  <article id="post-Hive/Hive自定义函数" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Hive表复制
+  Hive自定义函数
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2018/06/24/Hive/Hive%E8%A1%A8%E5%A4%8D%E5%88%B6/" class="article-date">
-  <time datetime="2018-06-24T02:00:00.000Z" itemprop="datePublished">2018-06-24</time>
+      <a href="/2018/06/20/Hive/Hive%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0/" class="article-date">
+  <time datetime="2018-06-20T02:00:00.000Z" itemprop="datePublished">2018-06-20</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">390</span>
+            <span class="post-count">442</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">1 分钟</span>
+            <span class="post-count">2 分钟</span>
         </span>
     </span>
 </div>
@@ -111,34 +111,19 @@
       
 
       
-      <h1 id="Hive表复制"><a href="#Hive表复制" class="headerlink" title="Hive表复制"></a>Hive表复制</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这里我们主要学习Hive表复制，具体可以分为两部分：</p>
+      <h1 id="Hive自定义函数"><a href="#Hive自定义函数" class="headerlink" title="Hive自定义函数"></a>Hive自定义函数</h1><p>关于HIVE实现自定义函数，步骤主要可分为：</p>
 <ul>
-<li>表结构复制</li>
-<li>表数据复制</li>
+<li>继承<code>org.apache.hadoop.hive.ql.exec.UDF</code></li>
+<li>重写evaluate()方法</li>
+<li>打包jar</li>
+<li>添加jar包</li>
+<li>使用自定义函数</li>
 </ul>
-<h2 id="表结构复制"><a href="#表结构复制" class="headerlink" title="表结构复制"></a>表结构复制</h2><p>如果只是需要复制表结构，不管是分区表还是非分区表，直接使用like关键字即可。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 复制test_01的表结构到test_02</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">if</span> <span class="keyword">not</span> <span class="keyword">exists</span> test_02 <span class="keyword">like</span> test_01;</span><br></pre></td></tr></table></figure>
-<h2 id="表数据复制"><a href="#表数据复制" class="headerlink" title="表数据复制"></a>表数据复制</h2><p>在Hive中，非分区表和分区表的表数据复制有所不同。具体如下</p>
-<h3 id="非分区表"><a href="#非分区表" class="headerlink" title="非分区表"></a>非分区表</h3><p>对于非分区表而言，我们可以直接使用下面的语句，一步到位。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 复制表结构的同时也复制了表数据</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">if</span> <span class="keyword">not</span> <span class="keyword">exists</span> test_02 <span class="keyword">as</span> <span class="keyword">select</span> * <span class="keyword">from</span> test_01;</span><br></pre></td></tr></table></figure>
-<h3 id="分区表"><a href="#分区表" class="headerlink" title="分区表"></a>分区表</h3><p>对于分区表而言，如果使用上面的语句进行处理，会将分区字段处理成普通字段，导致表结构发生改变。<br>我们需要先复制表结构，再将HDFS文件拷贝到指定目录，最后修复目标表的分区元数据。</p>
-<ol>
-<li><p>复制表结构</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hive&gt;create table <span class="keyword">if</span> not exists test_02 like test_01;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>拷贝源表文件数据</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hadoop fs -cp /user/hive/warehouse/test_01/* /user/hive/warehouse/test_02/</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>修复分区元数据</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hive&gt; MSCK REPAIR TABLE test_02;</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>查看结果</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 修复前分区结果</span></span><br><span class="line">hive&gt; show partitions test_02;</span><br><span class="line">OK</span><br><span class="line">Time taken: 0.107 seconds</span><br><span class="line"><span class="comment">## 修复后分区结果</span></span><br><span class="line">hive&gt; show partitions test_02;</span><br><span class="line">OK</span><br><span class="line">dataday=2018-02-01</span><br><span class="line">dataday=2018-02-02</span><br><span class="line">Time taken: 0.101 seconds, Fetched: 2 row(s)</span><br></pre></td></tr></table></figure>
+<p>下面是具体实现，包括自定义临时函数和自定义永久函数。</p>
+<h2 id="编写自定义函数"><a href="#编写自定义函数" class="headerlink" title="编写自定义函数"></a>编写自定义函数</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AddPrefix</span> <span class="keyword">extends</span> <span class="title">UDF</span> </span>&#123;</span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 这里我们实现将任一输入添加自定义前缀信息</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> String <span class="title">evaluate</span><span class="params">(String str)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">"HIVE UDF Prefix:"</span>+ str;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-</li>
-</ol>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>在Hive中进行表复制的时候，需要考虑清楚是否为分区表，是否进行表结构和表数据的复制。</p>
-
+<h2 id="自定义临时函数"><a href="#自定义临时函数" class="headerlink" title="自定义临时函数"></a>自定义临时函数</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--添加jar包</span></span><br><span class="line">hive&gt; add jar /usr/henrrywan/addPrefix.jar;</span><br><span class="line"></span><br><span class="line"><span class="comment">--创建自定义临时函数</span></span><br><span class="line">hive&gt; create temporary function add_prefix as 'com.test.AddPrefix';</span><br><span class="line"></span><br><span class="line"><span class="comment">--使用自定义临时函数</span></span><br><span class="line">hive&gt; select add_prefix('aa');</span><br><span class="line">HIVE UDF Prefix:aa</span><br><span class="line">hive&gt; select add_prefix(1);</span><br><span class="line">HIVE UDF Prefix:1</span><br><span class="line"></span><br><span class="line"><span class="comment">--这里我们切换数据库依然可以正常使用。为了便于观察，我们打开数据库显示。</span></span><br><span class="line">hive&gt; set hive.cli.print.current.db=true;</span><br><span class="line">hive (test)&gt; select add_prefix('aa');</span><br><span class="line">HIVE UDF Prefix:aa</span><br><span class="line">hive (test)&gt; use tmp;</span><br><span class="line">hive (tmp)&gt; select add_prefix('aa');</span><br><span class="line">HIVE UDF Prefix:aa</span><br><span class="line"></span><br><span class="line"><span class="comment">--销毁自定义临时函数</span></span><br><span class="line">hive (test)&gt; drop temporary function add_prefix;</span><br><span class="line"><span class="comment">--需要注意的是，一旦退出HIVE客户端，自定义临时函数即被销毁。</span></span><br></pre></td></tr></table></figure>
+<h2 id="自定义永久函数"><a href="#自定义永久函数" class="headerlink" title="自定义永久函数"></a>自定义永久函数</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 上传jar包到HDFS</span></span></span><br><span class="line">[root@nd2 henrrywan]# hadoop fs -put addPrefix.jar /henrrywan/test/</span><br><span class="line">[root@nd2 henrrywan]# hadoop fs -ls /henrrywan/test</span><br><span class="line">Found 1 items</span><br><span class="line">-rw-r--r--   3 root supergroup        699 2019-05-22 14:03 /henrrywan/test/addPrefix.jar</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 创建永久函数</span></span></span><br><span class="line">create function add_prefix</span><br><span class="line">as 'com.test.AddPrefix'</span><br><span class="line">using jar 'hdfs:///henrrywan/test/addPrefix.jar'</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 与自定义临时函数不同，使用永久函数只能在当前数据库。这里我们放在test库，如果在其它库执行，会报错</span></span></span><br><span class="line">hive (test)&gt; select add_prefix('aa');</span><br><span class="line">HIVE UDF Prefix:aa</span><br><span class="line"><span class="meta">hive&gt;</span><span class="bash"> use tmp;</span></span><br><span class="line">hive (tmp)&gt; select add_prefix('aa');</span><br><span class="line">FAILED: SemanticException [Error 10011]: Invalid function add_prefix</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 销毁自定义永久函数</span></span></span><br><span class="line">hive (test)&gt; drop function add_prefix;</span><br></pre></td></tr></table></figure>
       
       <!-- reward -->
       
@@ -206,7 +191,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2018/06/24/Hive/Hive%E8%A1%A8%E5%A4%8D%E5%88%B6/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2018/06/20/Hive/Hive%E8%87%AA%E5%AE%9A%E4%B9%89%E5%87%BD%E6%95%B0/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -224,19 +209,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2018/12/12/Hive/Hive%E5%BC%80%E5%8F%91%E8%BF%87%E7%A8%8B%E4%B8%AD%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/" class="article-nav-link">
+      <a href="/2018/12/12/Hive/Hive%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Hive开发过程中问题汇总
+            Hive问题汇总
           
         </div>
       </a>
     
     
-      <a href="/2018/06/03/Hive/Hive%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BD%BF%E7%94%A8Shell%E5%91%BD%E4%BB%A4%E5%92%8CHDFS%E5%91%BD%E4%BB%A4/" class="article-nav-link">
+      <a href="/2018/01/24/Hive/Hive%E8%A1%A8%E5%A4%8D%E5%88%B6/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Hive客户端使用Shell命令和HDFS命令</div>
+        <div class="article-nav-title">Hive表复制</div>
       </a>
     
   </nav>
