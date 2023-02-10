@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Linux文件分发脚本 |  大数据学习笔记
+    Java中实现List自定义排序 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Linux/Linux文件分发脚本" class="article article-type-post" itemscope
+  <article id="post-Java/Java中实现List自定义排序" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Linux文件分发脚本
+  Java中实现List自定义排序
 </h1>
  
 
@@ -62,12 +62,12 @@
 
     
     <div class="article-meta">
-      <a href="/2015/05/20/Linux/Linux%E6%96%87%E4%BB%B6%E5%88%86%E5%8F%91%E8%84%9A%E6%9C%AC/" class="article-date">
-  <time datetime="2015-05-20T02:00:00.000Z" itemprop="datePublished">2015-05-20</time>
+      <a href="/2016/02/01/Java/Java%E4%B8%AD%E5%AE%9E%E7%8E%B0List%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8E%92%E5%BA%8F/" class="article-date">
+  <time datetime="2016-02-01T02:00:00.000Z" itemprop="datePublished">2016-02-01</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>
   </div>
 
       
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">509</span>
+            <span class="post-count">335</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">2 分钟</span>
+            <span class="post-count">1 分钟</span>
         </span>
     </span>
 </div>
@@ -97,8 +97,6 @@
 
     
     
-    <div class="tocbot"></div>
-
 
 
 
@@ -111,14 +109,12 @@
       
 
       
-      <h1 id="Linux文件分发脚本"><a href="#Linux文件分发脚本" class="headerlink" title="Linux文件分发脚本"></a>Linux文件分发脚本</h1><h2 id="免密登录"><a href="#免密登录" class="headerlink" title="免密登录"></a>免密登录</h2><p>Linux文件分发脚本需要各节点提前设置免密登录。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 首先检查一下是否可以免密登录到node03</span></span><br><span class="line">[root@node03 opt]<span class="comment"># ssh node03</span></span><br><span class="line"><span class="comment">## 如果不能免密登录，进行免密ssh设置，三次回车生成公钥和密钥。生成的相关信息文件存储在根目录的.ssh/路径下</span></span><br><span class="line">[root@node03 opt]<span class="comment"># ssh-keygen -t rsa</span></span><br><span class="line"><span class="comment">## 拷贝密钥，第一次登录需要输入密码</span></span><br><span class="line">[root@node03 opt]<span class="comment"># ssh-copy-id node03</span></span><br><span class="line"><span class="comment">## 再次进行免密登录检查</span></span><br><span class="line">[root@node03 opt]<span class="comment"># ssh node03</span></span><br><span class="line">Last login: Sat Mar 27 11:56:16 2021 from ::1</span><br><span class="line"><span class="comment">## 其它节点同理</span></span><br><span class="line">[root@node03 opt]<span class="comment"># ssh-copy-id node04</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="安装rsync插件"><a href="#安装rsync插件" class="headerlink" title="安装rsync插件"></a>安装rsync插件</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@node03 opt]# which rsync</span><br><span class="line">/usr/bin/which: no rsync in (/usr/java/jdk1.8.0_162/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin)</span><br><span class="line">[root@node03 opt]# yum install -y rsync</span><br></pre></td></tr></table></figure>
-
-<h2 id="编写脚本"><a href="#编写脚本" class="headerlink" title="编写脚本"></a>编写脚本</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 判断参数个数。$#是获取所有参数个数。</span></span></span><br><span class="line">if [ $# -lt 1 ]</span><br><span class="line">then</span><br><span class="line">    echo '至少要传入1个参数！'</span><br><span class="line">    exit;</span><br><span class="line">fi</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 遍历集群所有机器</span></span></span><br><span class="line">for host in node03 node04 node05</span><br><span class="line">do</span><br><span class="line">    echo ====================  当前正在操作的集群机器：$host  ====================</span><br><span class="line">    ## 遍历所有目录，挨个发送。$@是获取所有文件</span><br><span class="line">    for file in $@</span><br><span class="line">    do</span><br><span class="line">        ## 判断文件是否存在</span><br><span class="line">        if [ -e $file ]</span><br><span class="line">            then</span><br><span class="line">                ## 获取父目录。dirname是去除文件名中的非目录部分。</span><br><span class="line">                pdir=$(cd -P $(dirname $file); pwd)</span><br><span class="line">                ## 获取当前文件的名称</span><br><span class="line">                fname=$(basename $file)</span><br><span class="line"><span class="meta">		#</span><span class="bash"><span class="comment"># ssh到目标位置，创建目录</span></span></span><br><span class="line">                ssh $host "mkdir -p $pdir"</span><br><span class="line"><span class="meta">		#</span><span class="bash"><span class="comment"># 分发文件到指定路径。a表示递归传输，v表示详细模式输出</span></span></span><br><span class="line">                rsync -av $pdir/$fname $host:$pdir</span><br><span class="line">            else</span><br><span class="line">                echo $file does not exists!</span><br><span class="line">        fi</span><br><span class="line">    done</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
-
-<h2 id="存放到用户bin目录并修改权限"><a href="#存放到用户bin目录并修改权限" class="headerlink" title="存放到用户bin目录并修改权限"></a>存放到用户bin目录并修改权限</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 上传到指定目录</span></span></span><br><span class="line">[root@node03 bin]# cd /home/henrrywan/</span><br><span class="line">[root@node03 henrrywan]# ls</span><br><span class="line">myRsync.sh</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 修改权限</span></span></span><br><span class="line">[root@node03 henrrywan]# chmod 777 myRsync.sh</span><br><span class="line"><span class="meta">#</span><span class="bash"><span class="comment"># 使用自定义脚本分发文件</span></span></span><br><span class="line">[root@node03 henrrywan]# ./myRsync.sh /opt/bigdata/</span><br><span class="line">==================== 当前正在操作的集群机器：node03 ====================</span><br><span class="line">sending incremental file list</span><br><span class="line">==================== 当前正在操作的集群机器：node04 ====================</span><br><span class="line">sending incremental file list</span><br><span class="line">bigdata/</span><br><span class="line">bigdata/flink</span><br><span class="line">bigdata/spark</span><br><span class="line">==================== 当前正在操作的集群机器：node05 ====================</span><br><span class="line">sending incremental file list</span><br><span class="line">bigdata/</span><br><span class="line">bigdata/flink</span><br><span class="line">bigdata/spark</span><br></pre></td></tr></table></figure>
+      <p>实体类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.whty.entity;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> id;</span><br><span class="line">	<span class="keyword">private</span> String name;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> age;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">User</span><span class="params">(<span class="keyword">int</span> id, String name, <span class="keyword">int</span> age)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">super</span>();</span><br><span class="line">		<span class="keyword">this</span>.id = id;</span><br><span class="line">		<span class="keyword">this</span>.name = name;</span><br><span class="line">		<span class="keyword">this</span>.age = age;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getId</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> id;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setId</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.id = id;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> name;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.name = name;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> age;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(<span class="keyword">int</span> age)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.age = age;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">"User [id="</span> + id + <span class="string">", name="</span> + name + <span class="string">", age="</span> + age + <span class="string">"]"</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.whty.test;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.ArrayList;</span><br><span class="line"><span class="keyword">import</span> java.util.Collections;</span><br><span class="line"><span class="keyword">import</span> java.util.Comparator;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.whty.entity.User;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		List&lt;User&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">		list.add(<span class="keyword">new</span> User(<span class="number">1</span>, <span class="string">"java"</span>, <span class="number">20</span>));</span><br><span class="line">		list.add(<span class="keyword">new</span> User(<span class="number">2</span>, <span class="string">"spark"</span>, <span class="number">19</span>));</span><br><span class="line">		list.add(<span class="keyword">new</span> User(<span class="number">3</span>, <span class="string">"hive"</span>, <span class="number">21</span>));</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">for</span>(User user :list) &#123;</span><br><span class="line">			System.out.println(<span class="string">"排序前："</span> + user.toString());</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="comment">//实现排序</span></span><br><span class="line">		Collections.sort(list, <span class="keyword">new</span> Comparator&lt;User&gt;() &#123;</span><br><span class="line">			<span class="meta">@Override</span></span><br><span class="line">			<span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">compare</span><span class="params">(User u1, User u2)</span> </span>&#123;</span><br><span class="line">				<span class="keyword">if</span>(u1.getAge() &gt; u2.getAge()) &#123;</span><br><span class="line">					<span class="comment">//return -1:即为正序排序</span></span><br><span class="line">					<span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">				&#125;<span class="keyword">else</span> <span class="keyword">if</span> (u1.getAge() == u2.getAge()) &#123;</span><br><span class="line">					<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">				&#125;<span class="keyword">else</span> &#123;</span><br><span class="line">					<span class="comment">//return 1: 即为倒序排序</span></span><br><span class="line">					<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;);</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">for</span>(User user :list) &#123;</span><br><span class="line">			System.out.println(<span class="string">"排序后："</span> + user.toString());</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>测试结果</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">排序前：User [id=<span class="number">1</span>, name=java, age=<span class="number">20</span>]</span><br><span class="line">排序前：User [id=<span class="number">2</span>, name=spark, age=<span class="number">19</span>]</span><br><span class="line">排序前：User [id=<span class="number">3</span>, name=hive, age=<span class="number">21</span>]</span><br><span class="line">排序后：User [id=<span class="number">3</span>, name=hive, age=<span class="number">21</span>]</span><br><span class="line">排序后：User [id=<span class="number">1</span>, name=java, age=<span class="number">20</span>]</span><br><span class="line">排序后：User [id=<span class="number">2</span>, name=spark, age=<span class="number">19</span>]</span><br></pre></td></tr></table></figure>
       
       <!-- reward -->
       
@@ -186,14 +182,14 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2015/05/20/Linux/Linux%E6%96%87%E4%BB%B6%E5%88%86%E5%8F%91%E8%84%9A%E6%9C%AC/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2016/02/01/Java/Java%E4%B8%AD%E5%AE%9E%E7%8E%B0List%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8E%92%E5%BA%8F/" alt="微信分享二维码">
     </div>
 </div>
 
 <div id="share-mask"></div>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" rel="tag">Linux必知必会</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
 
 
     </footer>
@@ -204,19 +200,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2015/08/18/Linux/Linux%E9%9B%86%E7%BE%A4%E6%97%B6%E9%97%B4%E5%90%8C%E6%AD%A5/" class="article-nav-link">
+      <a href="/2016/05/01/Java/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Linux集群时间同步
+            深入理解Java虚拟机
           
         </div>
       </a>
     
     
-      <a href="/2015/05/02/Linux/Linux%E5%88%A4%E6%96%AD%E8%BF%9C%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%96%87%E4%BB%B6%E6%98%AF%E5%90%A6%E5%AD%98%E5%9C%A8/" class="article-nav-link">
+      <a href="/2015/08/18/Linux/Linux%E9%9B%86%E7%BE%A4%E6%97%B6%E9%97%B4%E5%90%8C%E6%AD%A5/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Linux判断远程服务器文件是否存在</div>
+        <div class="article-nav-title">Linux集群时间同步</div>
       </a>
     
   </nav>
