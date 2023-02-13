@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Hive中count(1)和count(字段)的区别 |  大数据学习笔记
+    Hive文件存储格式 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Hive/Hive中count(1)和count(字段)的区别" class="article article-type-post" itemscope
+  <article id="post-Hive/Hive文件存储格式" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Hive中count(1)和count(字段)的区别
+  Hive文件存储格式
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2018/06/21/Hive/Hive%E4%B8%ADcount(1)%E5%92%8Ccount(%E5%AD%97%E6%AE%B5)%E7%9A%84%E5%8C%BA%E5%88%AB/" class="article-date">
-  <time datetime="2018-06-21T02:00:00.000Z" itemprop="datePublished">2018-06-21</time>
+      <a href="/2018/07/13/Hive/Hive%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" class="article-date">
+  <time datetime="2018-07-13T02:00:00.000Z" itemprop="datePublished">2018-07-13</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">70</span>
+            <span class="post-count">427</span>
         </span>
     </span>
 
@@ -111,7 +111,71 @@
       
 
       
-      <h1 id="Hive中count-1-和count-字段-的区别"><a href="#Hive中count-1-和count-字段-的区别" class="headerlink" title="Hive中count(1)和count(字段)的区别"></a>Hive中count(1)和count(字段)的区别</h1><p>count(1)和count(*)：对表中所有行数进行统计计算，包含NULL值。<br>count(字段)：对表中该字段的行数进行统计，不包含NULL值。如果字段为空字符串，同样会进行行数统计。</p>
+      <h1 id="Hive文件存储格式"><a href="#Hive文件存储格式" class="headerlink" title="Hive文件存储格式"></a>Hive文件存储格式</h1><h2 id="文件格式"><a href="#文件格式" class="headerlink" title="文件格式"></a>文件格式</h2><p>在HIVE中，常见的文件存储格式有</p>
+<ul>
+<li>TextFile</li>
+<li>Parquet</li>
+<li>ORC</li>
+<li>Sequence</li>
+<li>RC</li>
+<li>AVRO</li>
+</ul>
+<h2 id="建表语句"><a href="#建表语句" class="headerlink" title="建表语句"></a>建表语句</h2><p>这里我们根据不同的文件格式，新建测试表。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--textfile文件格式</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`test_textfile`</span>(<span class="string">`id`</span> <span class="keyword">STRING</span>,<span class="string">`desc`</span> <span class="keyword">STRING</span>)</span><br><span class="line"><span class="keyword">ROW</span> <span class="keyword">FORMAT</span> <span class="keyword">DELIMITED</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">','</span> <span class="keyword">STORED</span> <span class="keyword">AS</span> textfile;</span><br><span class="line"><span class="comment">--parquet文件格式</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`test_parquet`</span>(<span class="string">`id`</span> <span class="keyword">STRING</span>,<span class="string">`desc`</span> <span class="keyword">STRING</span>)</span><br><span class="line"><span class="keyword">ROW</span> <span class="keyword">FORMAT</span> <span class="keyword">DELIMITED</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">','</span> <span class="keyword">STORED</span> <span class="keyword">AS</span> parquet;</span><br><span class="line"><span class="comment">--orc文件格式</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`test_orc`</span>(<span class="string">`id`</span> <span class="keyword">STRING</span>,<span class="string">`desc`</span> <span class="keyword">STRING</span>)</span><br><span class="line"><span class="keyword">ROW</span> <span class="keyword">FORMAT</span> <span class="keyword">DELIMITED</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">','</span> <span class="keyword">STORED</span> <span class="keyword">AS</span> orc;</span><br><span class="line"><span class="comment">--sequence文件格式</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`test_sequence`</span>(<span class="string">`id`</span> <span class="keyword">STRING</span>,<span class="string">`desc`</span> <span class="keyword">STRING</span>)</span><br><span class="line"><span class="keyword">ROW</span> <span class="keyword">FORMAT</span> <span class="keyword">DELIMITED</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">','</span> <span class="keyword">STORED</span> <span class="keyword">AS</span> <span class="keyword">sequence</span>;</span><br><span class="line"><span class="comment">--rc文件格式</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`test_rc`</span>(<span class="string">`id`</span> <span class="keyword">STRING</span>,<span class="string">`desc`</span> <span class="keyword">STRING</span>)</span><br><span class="line"><span class="keyword">ROW</span> <span class="keyword">FORMAT</span> <span class="keyword">DELIMITED</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">','</span> <span class="keyword">STORED</span> <span class="keyword">AS</span> rc;</span><br><span class="line"><span class="comment">--avro文件格式</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`test_avro`</span>(<span class="string">`id`</span> <span class="keyword">STRING</span>,<span class="string">`desc`</span> <span class="keyword">STRING</span>)</span><br><span class="line"><span class="keyword">ROW</span> <span class="keyword">FORMAT</span> <span class="keyword">DELIMITED</span> <span class="keyword">FIELDS</span> <span class="keyword">TERMINATED</span> <span class="keyword">BY</span> <span class="string">','</span> <span class="keyword">STORED</span> <span class="keyword">AS</span> avro;</span><br></pre></td></tr></table></figure>
+
+<h2 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h2><p>我们从同一个源表新增数据到这六张测试表，为了体现存储数据的差异性，我们选取了一张数据量比较大的源表（源表数据量为30000000条）。<br>下面从存储空间和SQL查询两个方面进行比较。<br>其中SQL查询为包含group by的计量统计和不含group by的计量统计。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sql01:<span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> test_table;</span><br><span class="line">sql02:<span class="keyword">select</span> <span class="keyword">id</span>,<span class="keyword">count</span>(*) <span class="keyword">from</span> test_table <span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">id</span>;</span><br></pre></td></tr></table></figure>
+<p>相关的查询结果如下（为了防止出现偶然性，我们每条SQL至少执行三次，取平均值）</p>
+<table>
+<thead>
+<tr>
+<th>文件存储格式</th>
+<th>HDFS存储空间</th>
+<th>不含group by</th>
+<th>含group by</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TextFile</td>
+<td>7.3 G</td>
+<td>105s</td>
+<td>370s</td>
+</tr>
+<tr>
+<td>Parquet</td>
+<td>769.0 M</td>
+<td><font color=red>28s</td>
+<td><font color=red>195s</td>
+</tr>
+<tr>
+<td>ORC</td>
+<td><font color=red>246.0 M</td>
+<td>34s</td>
+<td>310s</td>
+</tr>
+<tr>
+<td>Sequence</td>
+<td>7.8 G</td>
+<td>135s</td>
+<td>385s</td>
+</tr>
+<tr>
+<td>RC</td>
+<td>6.9 G</td>
+<td>92s</td>
+<td>330s</td>
+</tr>
+<tr>
+<td>AVRO</td>
+<td>8.0G</td>
+<td>240s</td>
+<td>530s</td>
+</tr>
+</tbody></table>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><ul>
+<li>从占用存储空间来看，ORC和Parquet文件格式占用的空间相对而言要小得多。</li>
+<li>从执行SQL效率来看，Parquet文件格式查询耗时要相对而言要小得多。</li>
+</ul>
 
       
       <!-- reward -->
@@ -180,7 +244,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2018/06/21/Hive/Hive%E4%B8%ADcount(1)%E5%92%8Ccount(%E5%AD%97%E6%AE%B5)%E7%9A%84%E5%8C%BA%E5%88%AB/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2018/07/13/Hive/Hive%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -198,19 +262,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2018/06/22/Hive/Hive%E5%88%97%E8%BD%AC%E8%A1%8C%E5%92%8C%E8%A1%8C%E8%BD%AC%E5%88%97/" class="article-nav-link">
+      <a href="/2018/12/12/Hive/Hive%E9%97%AE%E9%A2%98%E6%B1%87%E6%80%BB/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Hive列转行和行转列
+            Hive问题汇总
           
         </div>
       </a>
     
     
-      <a href="/2018/06/20/Hive/Hive%E4%B8%ADconcat%E5%87%BD%E6%95%B0%E5%92%8Cconcat_ws%E5%87%BD%E6%95%B0%E7%9A%84%E5%8C%BA%E5%88%AB/" class="article-nav-link">
+      <a href="/2018/06/22/Hive/Hive%E5%88%97%E8%BD%AC%E8%A1%8C%E5%92%8C%E8%A1%8C%E8%BD%AC%E5%88%97/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Hive中concat函数和concat_ws函数的区别</div>
+        <div class="article-nav-title">Hive列转行和行转列</div>
       </a>
     
   </nav>
