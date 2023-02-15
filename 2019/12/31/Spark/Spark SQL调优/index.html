@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    IDEA上创建第一个Spark项目 |  大数据学习笔记
+    Spark SQL调优 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Spark/IDEA上创建第一个Spark项目" class="article article-type-post" itemscope
+  <article id="post-Spark/Spark SQL调优" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  IDEA上创建第一个Spark项目
+  Spark SQL调优
 </h1>
  
 
@@ -62,8 +62,8 @@
 
     
     <div class="article-meta">
-      <a href="/2019/01/08/Spark/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AASpark%E9%A1%B9%E7%9B%AE/" class="article-date">
-  <time datetime="2019-01-08T02:00:00.000Z" itemprop="datePublished">2019-01-08</time>
+      <a href="/2019/12/31/Spark/Spark%20SQL%E8%B0%83%E4%BC%98/" class="article-date">
+  <time datetime="2019-12-31T02:00:00.000Z" itemprop="datePublished">2019-12-31</time>
 </a>
       
   <div class="article-category">
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">561</span>
+            <span class="post-count">1.4k</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">2 分钟</span>
+            <span class="post-count">5 分钟</span>
         </span>
     </span>
 </div>
@@ -111,28 +111,59 @@
       
 
       
-      <h1 id="IDEA上创建第一个Spark项目"><a href="#IDEA上创建第一个Spark项目" class="headerlink" title="IDEA上创建第一个Spark项目"></a>IDEA上创建第一个Spark项目</h1><h2 id="编程语言选择"><a href="#编程语言选择" class="headerlink" title="编程语言选择"></a>编程语言选择</h2><p>可以选择Java或者Scala。<br>注意：如果选择Scala进行Spark编程，我们需要明确Spark版本和Scala的版本对应关系。在Spark官网已经进行了相关说明:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">## 请注意，Spark 2.x是用Scala 2.11预构建的，除了2.4.2版本，后者是用Scala 2.12预构建的。Spark 3.0+预装了Scala 2.12。</span></span><br><span class="line">Note that, Spark 2.x is pre-built with Scala 2.11 except version 2.4.2, <span class="built_in">which</span> is pre-built with Scala 2.12. Spark 3.0+ is pre-built with Scala 2.12.</span><br></pre></td></tr></table></figure>
+      <h1 id="Spark-SQL调优"><a href="#Spark-SQL调优" class="headerlink" title="Spark SQL调优"></a>Spark SQL调优</h1><h2 id="查看执行计划"><a href="#查看执行计划" class="headerlink" title="查看执行计划"></a>查看执行计划</h2><p>语法格式：EXPLAIN [SIMPLE|EXTENDED|CODEGEN|FORMATTED] QUERY-SQL<br>其中可选项：</p>
+<ul>
+<li>SIMPLE：只展示物理执行计划</li>
+<li>EXTENDED：展示逻辑和物理执行计划</li>
+<li>CODEGEN：展示可执行Java代码</li>
+<li>FORMATTED：展示格式化的物理执行计划</li>
+</ul>
+<p>执行计划主要包括四部分：</p>
+<ul>
+<li>Parsed Logical Plan：解析后的逻辑执行计划，这一步会检验SQL语法是否有问题，不检查表名、列名。</li>
+<li>Analyzed Logical Plan：分析后的逻辑执行计划，这一步通过访问Spark中的Catalog存储库来解析验证语义、列名、类型、表名等。</li>
+<li>Optimized Logical Plan：优化后的逻辑执行计划，这一步Spark中的Catalyst优化器会根据各种规则对SQL进行优化。</li>
+<li>Physical Plan：物理执行计划。根据优化后的逻辑执行计划生成。</li>
+</ul>
+<p>运算符说明：</p>
+<ul>
+<li>HashAggregate：表示数据聚合。一般HashAggregate是成对出现，第一个HashAggregate是将执行节点本地的数据进行局部聚合，另一个HashAggregate是将各个分区的数据进行进一步聚合。</li>
+<li>Exchange：其实就是Shuffle。表示需要在集群上移动数据。很多时候HashAggregate会以Exchange分割开来。</li>
+<li>Project：SQL中的投影操作，就是选择列（例如select name,age等）</li>
+<li>BroadcastHashJoin：表示通过基于广播方式进行HashJoin。</li>
+<li>LocalTableScan：全表扫描本地的表。</li>
+</ul>
+<h2 id="资源调优"><a href="#资源调优" class="headerlink" title="资源调优"></a>资源调优</h2><p>重点关注以下参数：<br>executor-cores：每个executor的最大核数。例如单节点32核，设置为4，那么该节点最多可以启8个executor。<br>num-executors：executor的总执行数（节点 x 单节点的executors数）。例如上面如果有三个节点，那么num-executors= 8 * 3<br>executor-memory：每个executor的内存数。该参数=yarn-nodemanager.resource.memory-mb/每个节点的excutor数量。<br>生产环境中一般根据SQL数据量在调度平台（例如海豚调度器）参数入口配置。</p>
+<h2 id="并行度优化"><a href="#并行度优化" class="headerlink" title="并行度优化"></a>并行度优化</h2><p>相关参数如下：<br>Shuffle Reduce阶段默认的并行度。默认值为200。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--此参数只能控制Spark SQL、DataFrame、DataSet分区个数，不能控制RDD分区个数。</span></span><br><span class="line"><span class="keyword">set</span> spark.sql.shuffle.partitions=<span class="number">600</span>;</span><br></pre></td></tr></table></figure>
 
-<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><p>这里主要是Scala相关版本的准备(默认IDEA已配置JAVA1.8+环境)。<br>Scala官网下载地址：<a href="https://www.scala-lang.org/download/" target="_blank" rel="noopener">https://www.scala-lang.org/download/</a><br>由于我们采用的是Spark3.0+，这里选择<code>scala-2.12.12.zip</code>。<br>下载完成之后解压到指定目录，打开IDEA开始配置。<br>File-&gt;Project Structure-&gt;Global Libraries-&gt;Scala SDK，选择Browser,找到之前解压好的Scala文件夹即可。</p>
-<img src="/2019/01/08/Spark/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AASpark%E9%A1%B9%E7%9B%AE/scala-choice.png" class="">
+<p>并发度：同时执行的Task数。与集群核数（Vcores）有关。<br>比如有200个Task，集群可用核数10，那么并发度为10，理论上需要20轮执行完成。</p>
+<p>为了合理利用资源，一般会将并行度（Task数）设置成并发度的2到3倍。</p>
+<h3 id="数据倾斜"><a href="#数据倾斜" class="headerlink" title="数据倾斜"></a>数据倾斜</h3><p>数据倾斜是指在Spark SQL执行过程中，大多数Task任务运行速度很快，但是有少部分Task运行极其缓慢，甚至出现OOM。<br>解决数据倾斜主要依赖调整SQL。<br>可以考虑以下解决方案：</p>
+<h4 id="过滤掉NULL值"><a href="#过滤掉NULL值" class="headerlink" title="过滤掉NULL值"></a>过滤掉NULL值</h4><p>如果SQL语句Join字段中出现NULL=NULL的情况，可能会造成笛卡尔积，从而导致出现数据倾斜。</p>
+<h4 id="拆分大Key"><a href="#拆分大Key" class="headerlink" title="拆分大Key"></a>拆分大Key</h4><p>通过调整SQL来将大Key拆分。例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--原SQL</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> table_a</span><br><span class="line"><span class="keyword">join</span> table_b</span><br><span class="line"><span class="keyword">on</span> table_a.id = table_b.id</span><br><span class="line"></span><br><span class="line"><span class="comment">--调整之后的SQL</span></span><br><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> (</span><br><span class="line">    <span class="comment">--打散操作，rand() 随机数范围默认为0到1，*2转换为int之后必然为0或者1。打散的越多，b表需要扩容的越多。</span></span><br><span class="line">	<span class="keyword">select</span> <span class="keyword">concat</span>(<span class="keyword">id</span>,’_’,<span class="keyword">cast</span>(<span class="keyword">rand</span>()*<span class="number">2</span> <span class="keyword">as</span> <span class="built_in">int</span>)) <span class="keyword">id</span></span><br><span class="line">	<span class="keyword">from</span> table_a</span><br><span class="line">) ta</span><br><span class="line"><span class="keyword">Join</span>(</span><br><span class="line">       <span class="comment">--扩容操作，保证a表和b表能关联上。</span></span><br><span class="line">	<span class="keyword">select</span> <span class="keyword">concat</span>(<span class="keyword">id</span>,’_’,<span class="number">0</span>) <span class="keyword">id</span> <span class="keyword">from</span> table_b</span><br><span class="line">	<span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line">	<span class="keyword">select</span> <span class="keyword">concat</span>(<span class="keyword">id</span>,’_’,<span class="number">1</span>) <span class="keyword">id</span> <span class="keyword">from</span> table_b</span><br><span class="line"></span><br><span class="line">) tb</span><br><span class="line"><span class="keyword">on</span> ta.id =tb.id</span><br></pre></td></tr></table></figure>
 
-<h2 id="创建Maven项目"><a href="#创建Maven项目" class="headerlink" title="创建Maven项目"></a>创建Maven项目</h2><p>环境准备好之后，我们创建一个名叫spark-demo的普通Maven项目。在这里我们还需要添加框架支持。<br>选中项目右键-&gt;选择Add FrameWorks Support，勾选Scala即可。</p>
-<img src="/2019/01/08/Spark/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AASpark%E9%A1%B9%E7%9B%AE/scala-support.png" class="">
+<h2 id="基于RBO优化"><a href="#基于RBO优化" class="headerlink" title="基于RBO优化"></a>基于RBO优化</h2><p>RBO：基于规则的优化。<br>Spark SQL在整个执行计划过程中，使用了CataLyst优化器。在Spark3.0版本中，Catalyst总共有81条优化规则（Rules），分成27组（Batches）。从优化角度来讲，这些规则可以分为三大类。</p>
+<h3 id="谓词下推"><a href="#谓词下推" class="headerlink" title="谓词下推"></a>谓词下推</h3><p>谓词下推（Predicate Pushdown）指的是将过滤条件尽可能前移，减少下游数据的处理量。</p>
+<h3 id="列裁剪"><a href="#列裁剪" class="headerlink" title="列裁剪"></a>列裁剪</h3><p>列裁剪（Column Pruning）指的是扫描数据源的时候，只读取那些与查询相关的字段。</p>
+<h3 id="常量替换"><a href="#常量替换" class="headerlink" title="常量替换"></a>常量替换</h3><p>常量替换（Constant Folding）指的是Catalyst优化器自动替换SQL中的常量。例如将age=(10+20)替换成age=30</p>
+<h2 id="基于CBO优化"><a href="#基于CBO优化" class="headerlink" title="基于CBO优化"></a>基于CBO优化</h2><p>CBO：基于代价的优化。需要手动开启。<br>相关参数如下：<br>—开启CBO后，CBO优化器可以基于表和列的统计信息，进行一系列的估算，最终选择出最优的查询计划。比如：Join类型优化、多表Join顺序优化等。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--开启CBO</span></span><br><span class="line">spark.sql.cbo.enabled=true;</span><br><span class="line"><span class="comment">--使用CBO来自动调整连续的inner join顺序。</span></span><br><span class="line">spark.sql.cbo.joinRecorder.enabled=true;</span><br><span class="line"><span class="comment">--使用CBO来自动调整连续的inner join的表的个数阈值。</span></span><br><span class="line">spark.sql.cbo.joinRecorder.dp.threshold=6;</span><br></pre></td></tr></table></figure>
 
-<h2 id="运行Hello-World"><a href="#运行Hello-World" class="headerlink" title="运行Hello World"></a>运行Hello World</h2><p>新建一个Hello World的Scala Object，点击运行即可。</p>
-<img src="/2019/01/08/Spark/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AASpark%E9%A1%B9%E7%9B%AE/hello-world.png" class="">
+<h3 id="Spark3-0-AQE"><a href="#Spark3-0-AQE" class="headerlink" title="Spark3.0 AQE"></a>Spark3.0 AQE</h3><p>AQE（Adaptive Query Execution），即自适应查询执行。AQE是Spark SQL的一种动态优化机制。在运行时，每当Shuffle Map阶段执行完成完毕，AQE都会结合这个阶段的统计信息，来完成对原始查询语句的运行时优化。<br>主要包括以下三方便优化：</p>
+<ul>
+<li>动态合并分区</li>
+<li>动态切换Join策略</li>
+<li>动态优化Join倾斜</li>
+</ul>
+<p>相关参数如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- AQE总开关。需要手动开启。</span></span><br><span class="line">spark.sql.adaptive.enabled=true;</span><br></pre></td></tr></table></figure>
 
-<h2 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h2><p>在IDEA的使用过程中，有时候可能出现无法新建Scala文件的情况，此时需要我们删除Global Libraries中的scala配置项并重新添加。<br>在IDEA中以本地模式运行Spark项目的时候是不需要在本地搭建Spark和Hadoop环境的。</p>
-<h2 id="通用开发流程"><a href="#通用开发流程" class="headerlink" title="通用开发流程"></a>通用开发流程</h2><p>实际上不管是WordCount还是其它更为复杂的业务实现，开发流程基本一致。简单点来说可以分为以下几部分：</p>
-<ol>
-<li>新建连接：用于连接Spark集群。包括SparkContext上下文对象和SparkConf对象</li>
-<li>读取源数据：实际开发中一般是从HDFS上读取数据，这里我们是从本地读取</li>
-<li>业务逻辑处理：根据实际情况处理业务逻辑</li>
-<li>数据持久化：将处理好的业务数据保存到MySQL或其它数据库中，这里我们是直接打印输出</li>
-<li>关闭连接：主要是SparkContext的关闭</li>
-</ol>
+<h3 id="Spark3-0-DPP"><a href="#Spark3-0-DPP" class="headerlink" title="Spark3.0 DPP"></a>Spark3.0 DPP</h3><p>DPP（Dynamic Partition Pruning），即动态分区裁剪。DPP的核心思路是先将Join一侧作为子查询计算出来，再将其所有分区用到Join另一侧作为表过滤条件，从而实现对分区的动态裁剪。<br>相关参数如下：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">--默认开启</span></span><br><span class="line">spark.sql.optimizer.d = true;</span><br></pre></td></tr></table></figure>
 
+<h3 id="Spark3-0-Hint增强"><a href="#Spark3-0-Hint增强" class="headerlink" title="Spark3.0 Hint增强"></a>Spark3.0 Hint增强</h3>
       
       <!-- reward -->
       
@@ -200,7 +231,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/01/08/Spark/IDEA%E4%B8%8A%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AASpark%E9%A1%B9%E7%9B%AE/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/12/31/Spark/Spark%20SQL%E8%B0%83%E4%BC%98/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -218,19 +249,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2019/01/10/Spark/%E8%A7%A3%E5%86%B3IDEA%E4%B8%8A%E8%BF%90%E8%A1%8CSpark%E4%BB%BB%E5%8A%A1%E6%8A%A5%E9%94%99%E9%97%AE%E9%A2%98/" class="article-nav-link">
+      <a href="/2020/01/01/CDH/CDH6.1.1%E7%A6%BB%E7%BA%BF%E9%83%A8%E7%BD%B2/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            解决IDEA上运行Spark任务报错问题
+            CDH6.1.1离线部署
           
         </div>
       </a>
     
     
-      <a href="/2019/01/01/Other/%E4%B8%AA%E4%BA%BA%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2%E6%8E%A8%E8%8D%90/" class="article-nav-link">
+      <a href="/2019/07/18/Azkaban/Azkaban3.x%E4%B8%A4%E7%A7%8D%E9%83%A8%E7%BD%B2%E6%A8%A1%E5%BC%8F/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">个人技术博客推荐</div>
+        <div class="article-nav-title">Azkaban3.x两种部署模式</div>
       </a>
     
   </nav>

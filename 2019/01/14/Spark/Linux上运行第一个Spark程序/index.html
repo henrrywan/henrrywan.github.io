@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">424</span>
+            <span class="post-count">733</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">1 分钟</span>
+            <span class="post-count">3 分钟</span>
         </span>
     </span>
 </div>
@@ -111,19 +111,60 @@
       
 
       
-      <h1 id="Linux上运行第一个Spark程序"><a href="#Linux上运行第一个Spark程序" class="headerlink" title="Linux上运行第一个Spark程序"></a>Linux上运行第一个Spark程序</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在前面的章节中，我们学习了如何在Linux上部署Spark Standalone集群以及如何在IDEA上编写一个简单的Spark应用程序WordCount。<br>这一章节，我们将学习如何在Linux上运行我们编写好的WordCount程序。</p>
-<h2 id="源文件准备"><a href="#源文件准备" class="headerlink" title="源文件准备"></a>源文件准备</h2><p>之前我们将hello.txt文件放在了IDEA里面，并指明了路径<code>data/hello.txt</code>，这里我们将源文件上传至/spark/data文件目录下</p>
+      <h1 id="Linux上运行第一个Spark应用程序"><a href="#Linux上运行第一个Spark应用程序" class="headerlink" title="Linux上运行第一个Spark应用程序"></a>Linux上运行第一个Spark应用程序</h1><h2 id="源文件准备"><a href="#源文件准备" class="headerlink" title="源文件准备"></a>源文件准备</h2><p>之前我们将hello.txt文件放在了IDEA里面，并指明了路径<code>data/hello.txt</code>，这里我们将源文件上传至/spark/data文件目录下</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 spark-2.4.0]<span class="comment"># ls data/</span></span><br><span class="line">graphx  hello.txt  mllib  streaming</span><br></pre></td></tr></table></figure>
+
+<h2 id="Demo代码"><a href="#Demo代码" class="headerlink" title="Demo代码"></a>Demo代码</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 1.创建SparkConf对象</span></span><br><span class="line">    SparkConf sparkConf = <span class="keyword">new</span> SparkConf().setAppName(<span class="string">"JavaWordCountWithLambda"</span>).setMaster(<span class="string">"local[*]"</span>);</span><br><span class="line">    <span class="comment">// 2.创建JavaSparkContext对象</span></span><br><span class="line">    JavaSparkContext sc = <span class="keyword">new</span> JavaSparkContext(sparkConf);</span><br><span class="line">    <span class="comment">// 3.读取源文件</span></span><br><span class="line">    JavaRDD&lt;String&gt; lines = sc.textFile(<span class="string">"data/hello.txt"</span>);</span><br><span class="line">    <span class="comment">// 4.拆分单词，使用lambda表达式</span></span><br><span class="line">    JavaRDD&lt;String&gt; words = lines.flatMap(line -&gt; Arrays.asList(line.split(<span class="string">","</span>)).iterator());</span><br><span class="line">    <span class="comment">// 5.将单词转换成(word,1)的形式</span></span><br><span class="line">    JavaPairRDD&lt;String, Integer&gt; pairs = words.mapToPair(word -&gt; <span class="keyword">new</span> Tuple2&lt;&gt;(word, <span class="number">1</span>));</span><br><span class="line">    <span class="comment">// 6.word count操作</span></span><br><span class="line">    JavaPairRDD&lt;String, Integer&gt; counts = pairs.reduceByKey((i1, i2) -&gt; i1 + i2);</span><br><span class="line">    <span class="comment">// 7.输出结果</span></span><br><span class="line">    <span class="keyword">for</span> (Tuple2&lt;String, Integer&gt; output : counts.collect())&#123;</span><br><span class="line">        System.out.println(output._1 + <span class="string">":"</span> + output._2);</span><br><span class="line">    &#125;</span><br><span class="line">    sc.stop();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <h2 id="jar包准备"><a href="#jar包准备" class="headerlink" title="jar包准备"></a>jar包准备</h2><p>使用IDEA将编写好的Spark程序打成jar包上传到之前部署好的Spark集群指定目录。这里我将打包好的jar包放在了examples/test目录下。</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 spark-2.4.0]<span class="comment"># ls examples/test/</span></span><br><span class="line">spark-core-1.0-SNAPSHOT.jar</span><br></pre></td></tr></table></figure>
 
-<h2 id="不同模式运行"><a href="#不同模式运行" class="headerlink" title="不同模式运行"></a>不同模式运行</h2><p>我们可以指定不同的模式运行Spark程序。这里以local模式和Standalone模式为例。<br>后续的YARN模式我们会在部署之后再学习。</p>
+<h2 id="不同模式运行"><a href="#不同模式运行" class="headerlink" title="不同模式运行"></a>不同模式运行</h2><h3 id="参数详解"><a href="#参数详解" class="headerlink" title="参数详解"></a>参数详解</h3><p>一个常规的spark-submit操作可能包含如下参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">./bin/spark-submit \</span><br><span class="line">  --class &lt;main-class&gt; \</span><br><span class="line">  --master &lt;master-url&gt; \</span><br><span class="line">  --deploy-mode &lt;deploy-mode&gt; \</span><br><span class="line">  --conf &lt;key&gt;=&lt;value&gt; \</span><br><span class="line">  ... <span class="comment"># other options</span></span><br><span class="line">  &lt;application-jar&gt; \</span><br><span class="line">  [application-arguments]</span><br></pre></td></tr></table></figure>
+
+<p>参数说明：</p>
+<ul>
+<li>–class:应用程序的入口点。例如com.spark.core.JavaWordCount</li>
+<li>–master：集群的Master URL。指明local模式或者Standalone模式等</li>
+<li>-deploy-mode：指明是在worker节点上（cluster）还是在本地作为一个外部的客户端（client）部署Driver。默认client。</li>
+<li>–conf：按照 key=value 格式任意的 Spark 配置属性。例如spark.executor.memory = 2g</li>
+<li>application-jar：jar包路径。</li>
+<li>application-arguments：传递到main class的main方法参数。</li>
+</ul>
 <h3 id="local模式运行"><a href="#local模式运行" class="headerlink" title="local模式运行"></a>local模式运行</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 spark-2.4.0]<span class="comment"># ./bin/spark-submit \</span></span><br><span class="line">--class com.spark.core.JavaWordCount \</span><br><span class="line">--master <span class="built_in">local</span>[*] \</span><br><span class="line">./examples/<span class="built_in">test</span>/spark-core-1.0-SNAPSHOT.jar</span><br><span class="line"></span><br><span class="line"><span class="comment">## 查看执行结果</span></span><br><span class="line">scala:1</span><br><span class="line">hello:3</span><br><span class="line">java:1</span><br><span class="line">spark:1</span><br></pre></td></tr></table></figure>
+
+<p>在使用Local模式时，master后面的参数可能稍有不同。这里简单说明：</p>
+<table>
+<thead>
+<tr>
+<th>Master URL</th>
+<th>具体含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>local</td>
+<td>使用一个线程本地运行Spark应用程序</td>
+</tr>
+<tr>
+<td>local[K]</td>
+<td>使用 K 个 worker 线程本地运行 Spark（理想情况下，设置这个值的数量为您机器的 core 数量）。</td>
+</tr>
+<tr>
+<td>local[K,F]</td>
+<td>使用 K 个 worker 线程本地运行 Spark并允许最多失败 F次</td>
+</tr>
+<tr>
+<td>local[*]</td>
+<td>使用更多的 worker 线程作为逻辑的 core 在您的机器上来本地的运行 Spark。</td>
+</tr>
+<tr>
+<td>local[*,F]</td>
+<td>使用更多的 worker 线程作为逻辑的 core 在您的机器上来本地的运行 Spark并允许最多失败 F次。</td>
+</tr>
+</tbody></table>
 <h3 id="Standalone模式运行"><a href="#Standalone模式运行" class="headerlink" title="Standalone模式运行"></a>Standalone模式运行</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@node01 spark-2.4.0]<span class="comment"># ./bin/spark-submit \</span></span><br><span class="line">--class com.spark.core.JavaWordCount \</span><br><span class="line">--master spark://node01:7077 \</span><br><span class="line">./examples/<span class="built_in">test</span>/spark-core-1.0-SNAPSHOT.jar</span><br><span class="line"> </span><br><span class="line"> <span class="comment">## 查看执行结果</span></span><br><span class="line"> scala:1</span><br><span class="line">hello:3</span><br><span class="line">java:1</span><br><span class="line">spark:1</span><br></pre></td></tr></table></figure>
 
-<h3 id="区别"><a href="#区别" class="headerlink" title="区别"></a>区别</h3><p>在上面的Spark应用程序提交中，唯一不同的地方在于master后面的参数不同。这是我们区分Spark运行环境的重要标识。<br>注意：这里不管是指定local模式还是Standalone模式我们都没有启动Spark集群（无需启动）。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>Spark官网文档：<a href="https://spark.apache.org/docs/latest/submitting-applications.html" target="_blank" rel="noopener">https://spark.apache.org/docs/latest/submitting-applications.html</a></p>
+<p>注意：这里不管是指定local模式还是Standalone模式我们都没有启动Spark集群（无需启动）。</p>
 
       
       <!-- reward -->
@@ -210,19 +251,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2019/01/15/Spark/Spark%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3/" class="article-nav-link">
+      <a href="/2019/01/17/Spark/%E5%88%9D%E8%AF%86Spark%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84%E5%92%8C%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            Spark应用程序提交参数详解
+            初识Spark总体架构和运行流程
           
         </div>
       </a>
     
     
-      <a href="/2019/01/13/Spark/IDEA%E4%B8%8A%E8%AE%BE%E7%BD%AESpark%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%97%A5%E5%BF%97%E8%BE%93%E5%87%BA%E7%BA%A7%E5%88%AB/" class="article-nav-link">
+      <a href="/2019/01/10/Spark/%E8%A7%A3%E5%86%B3IDEA%E4%B8%8A%E8%BF%90%E8%A1%8CSpark%E4%BB%BB%E5%8A%A1%E6%8A%A5%E9%94%99%E9%97%AE%E9%A2%98/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">IDEA上设置Spark应用程序日志输出级别</div>
+        <div class="article-nav-title">解决IDEA上运行Spark任务报错问题</div>
       </a>
     
   </nav>

@@ -119,7 +119,7 @@
 <p>注意：上面四个参数可以基于SQL进行单独配置。</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> mapreduce.map.memory.mb = <span class="number">1024</span></span><br></pre></td></tr></table></figure>
 
-<h2 id="SQL优化"><a href="#SQL优化" class="headerlink" title="SQL优化"></a>SQL优化</h2><h3 id="查看SQL执行计划"><a href="#查看SQL执行计划" class="headerlink" title="查看SQL执行计划"></a>查看SQL执行计划</h3><p>使用Explain查看SQL执行计划。<br>执行计划由一系列Stage组成。这一系列Stage具有依赖关系，每个Stage对应一个MapReduce Job或者一个文件系统操作（例如Fetch Operator操作）。如果某个Stage对应一个MapReduce Job。那么其Map端和Reduce端的计算逻辑分别由Map Operator Tree和Reduce Operator Tree进行描述，Operator Tree由一系列的Operator组成，一个Operator代表在Map或Reduce阶段的一个单一的逻辑操作。</p>
+<h2 id="SQL优化"><a href="#SQL优化" class="headerlink" title="SQL优化"></a>SQL优化</h2><h3 id="查看SQL执行计划"><a href="#查看SQL执行计划" class="headerlink" title="查看SQL执行计划"></a>查看SQL执行计划</h3><p>使用Explain查看SQL执行计划。<br>执行计划由一系列Stage组成。这一系列Stage具有依赖关系，每个Stage对应一个MapReduce Job或者一个文件系统操作（例如Fetch Operator操作）。如果某个Stage对应一个MapReduce Job，那么其Map端和Reduce端的计算逻辑分别由Map Operator Tree和Reduce Operator Tree进行描述。Operator Tree由一系列的Operator组成，一个Operator代表在Map或Reduce阶段的一个单一的逻辑操作。</p>
 <p>Hive中常见的Operator操作有：</p>
 <ul>
 <li>TableScan：表扫描操作，通常map端第一个操作肯定是表扫描操作。 </li>
