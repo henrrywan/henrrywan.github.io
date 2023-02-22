@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    初识Spark总体架构和运行流程 |  大数据学习笔记
+    Spark架构和运行流程 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Spark/初识Spark总体架构和运行流程" class="article article-type-post" itemscope
+  <article id="post-Spark/Spark架构和运行流程" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  初识Spark总体架构和运行流程
+  Spark架构和运行流程
 </h1>
  
 
@@ -62,7 +62,7 @@
 
     
     <div class="article-meta">
-      <a href="/2019/01/17/Spark/%E5%88%9D%E8%AF%86Spark%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84%E5%92%8C%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B/" class="article-date">
+      <a href="/2019/01/17/Spark/Spark%E6%9E%B6%E6%9E%84%E5%92%8C%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B/" class="article-date">
   <time datetime="2019-01-17T02:00:00.000Z" itemprop="datePublished">2019-01-17</time>
 </a>
       
@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">459</span>
+            <span class="post-count">372</span>
         </span>
     </span>
 
@@ -111,8 +111,8 @@
       
 
       
-      <h1 id="初识Spark总体架构和运行流程"><a href="#初识Spark总体架构和运行流程" class="headerlink" title="初识Spark总体架构和运行流程"></a>初识Spark总体架构和运行流程</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在前面的Spark Standalone集群部署和WordCount的学习中，我们对Spark有了一个大致的了解。<br>我们知道一个Spark集群正常启动的情况下会存在Master进程和Worker进程，也知道了只有创建了SparkContext对象才能实现与Spark集群的连接。在这一章节中，我们将重点学习Spark的总体架构和运行流程。</p>
-<h2 id="两大核心组件"><a href="#两大核心组件" class="headerlink" title="两大核心组件"></a>两大核心组件</h2><img src="/2019/01/17/Spark/%E5%88%9D%E8%AF%86Spark%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84%E5%92%8C%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B/cluster-overview.png" class="">
+      <h1 id="Spark架构和运行流程"><a href="#Spark架构和运行流程" class="headerlink" title="Spark架构和运行流程"></a>Spark架构和运行流程</h1><p>一个Spark集群正常启动的情况下会存在Master进程和Worker进程，只有创建了SparkContext对象才能实现与Spark集群的连接。</p>
+<h2 id="两大核心组件"><a href="#两大核心组件" class="headerlink" title="两大核心组件"></a>两大核心组件</h2><img src="/2019/01/17/Spark/Spark%E6%9E%B6%E6%9E%84%E5%92%8C%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B/cluster-overview.png" class="">
 <p>从这张图里面我们可以看出Spark运行过程中的两个核心组件。</p>
 <ul>
 <li>Driver Program</li>
@@ -137,7 +137,6 @@
 <li>SparkContext将应用程序转化为具体的调度任务（Task），并分配给Executor（这一步内部还可以细化，后续补充）。</li>
 <li>Executor执行相关Task任务。</li>
 </ol>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>Spark官网文档：<a href="http://spark.apache.org/docs/latest/cluster-overview.html#cluster-manager-types" target="_blank" rel="noopener">http://spark.apache.org/docs/latest/cluster-overview.html#cluster-manager-types</a></p>
 
       
       <!-- reward -->
@@ -206,7 +205,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/01/17/Spark/%E5%88%9D%E8%AF%86Spark%E6%80%BB%E4%BD%93%E6%9E%B6%E6%9E%84%E5%92%8C%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/01/17/Spark/Spark%E6%9E%B6%E6%9E%84%E5%92%8C%E8%BF%90%E8%A1%8C%E6%B5%81%E7%A8%8B/" alt="微信分享二维码">
     </div>
 </div>
 

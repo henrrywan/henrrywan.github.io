@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">3.2k</span>
+            <span class="post-count">3.7k</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">10 分钟</span>
+            <span class="post-count">12 分钟</span>
         </span>
     </span>
 </div>
@@ -259,7 +259,12 @@
 </ul>
 </li>
 </ul>
-<h2 id="垃圾收集算法"><a href="#垃圾收集算法" class="headerlink" title="垃圾收集算法"></a>垃圾收集算法</h2>
+<h2 id="垃圾收集算法"><a href="#垃圾收集算法" class="headerlink" title="垃圾收集算法"></a>垃圾收集算法</h2><p>根据对象存活周期的不同，将内存划分为几块。一般是把 Java 堆分为新生代和老年代。<br>新生代：复制算法<br>老年代：标记-清除算法、标记整理算法</p>
+<h3 id="复制算法（新生代）"><a href="#复制算法（新生代）" class="headerlink" title="复制算法（新生代）"></a>复制算法（新生代）</h3><p>原理：将可用内存按容量划分为大小相等的两块，每次只使用其中的一块。当这一块内存用完，需要进行垃圾收集时，就将存活者的对象复制到另一块上面，然后将第一块内存全部清除。<br>优点：不会有内存碎片的问题。<br>缺点：内存缩小为原来的一半，浪费空间。<br>为了解决空间利用率问题，可以将内存分为三块： Eden、From Survivor、To Survivor，比例是 8:1:1，每次使用 Eden 和其中一块 Survivor。回收时，将 Eden 和 Survivor 中还存活的对象一次性复制到另外一块 Survivor 空间上，最后清理掉 Eden 和刚才使用的 Survivor 空间。这样只有 10% 的内存被浪费。</p>
+<h3 id="标记-清除算法（老年代）"><a href="#标记-清除算法（老年代）" class="headerlink" title="标记-清除算法（老年代）"></a>标记-清除算法（老年代）</h3><p>原理：判断哪些数据需要被删除并对它们进行标记，然后清除被标记的数据。<br>不足：<br>效率问题：标记和清除两个过程的效率都不高。<br>空间问题：标记清除之后会产生大量不连续的内存碎片，碎片太多可能导致以后需要分配较大对象时，无法找到足够的连续内存而不得不提前触发另一次垃圾收集动作。</p>
+<h3 id="标记-整理算法（老年代）"><a href="#标记-整理算法（老年代）" class="headerlink" title="标记-整理算法（老年代）"></a>标记-整理算法（老年代）</h3><p>原理：在回收垃圾前，首先将废弃对象做上标记，然后将未标记的对象移到一边，最后清空另一边区域即可。</p>
+<h2 id="HotSpot垃圾收集器"><a href="#HotSpot垃圾收集器" class="headerlink" title="HotSpot垃圾收集器"></a>HotSpot垃圾收集器</h2><p>新生代垃圾收集器：Serial 垃圾收集器（单线程）、ParNew 垃圾收集器（多线程）、Parallel Scavenge 垃圾收集器（多线程）<br>老年代垃圾收集器：Serial Old 垃圾收集器（单线程）、Parallel Old 垃圾收集器（多线程）、CMS 垃圾收集器<br>G1 通用垃圾收集器：它没有新生代和老年代的概念，而是将堆划分为一块块独立的 Region。</p>
+
       
       <!-- reward -->
       
