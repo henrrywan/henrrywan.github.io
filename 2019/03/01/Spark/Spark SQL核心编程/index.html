@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Spark SQL核心编程 |  大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-Spark/Spark SQL核心编程" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Spark SQL核心编程
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/03/01/Spark/Spark%20SQL%E6%A0%B8%E5%BF%83%E7%BC%96%E7%A8%8B/" class="article-date">
+  <time datetime="2019-03-01T02:00:00.000Z" itemprop="datePublished">2019-03-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spark/">Spark</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">4 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Spark-SQL核心编程"><a href="#Spark-SQL核心编程" class="headerlink" title="Spark SQL核心编程"></a>Spark SQL核心编程</h1><h2 id="SparkSession"><a href="#SparkSession" class="headerlink" title="SparkSession"></a>SparkSession</h2><p>SparkSession是Spark最新的SQL查询起始点，实质上是SQLContext和HiveContext的组合。SparkSession内部封装了SparkContext，所以计算实际上是由SparkContext完成的。</p>
+<h3 id="引入相关pom依赖"><a href="#引入相关pom依赖" class="headerlink" title="引入相关pom依赖"></a>引入相关pom依赖</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.spark<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spark-core_2.12<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.1.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!--使用SparkSession需要引入spark-sql相关依赖--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.spark<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spark-sql_2.12<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.1.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="初始化SparkSession"><a href="#初始化SparkSession" class="headerlink" title="初始化SparkSession"></a>初始化SparkSession</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 初始化SparkSession</span></span><br><span class="line"><span class="keyword">val</span> sparkConf = <span class="keyword">new</span> <span class="type">SparkConf</span>()</span><br><span class="line"><span class="keyword">val</span> sparkSession: <span class="type">SparkSession</span> = <span class="type">SparkSession</span></span><br><span class="line">  .builder()</span><br><span class="line">  .config(sparkConf)</span><br><span class="line">  .master(<span class="string">"local[*]"</span>)</span><br><span class="line">  .appName(<span class="string">"SparkDemo"</span>)</span><br><span class="line">  .getOrCreate()</span><br><span class="line"><span class="comment">// 获取SparkContext对象</span></span><br><span class="line"><span class="keyword">val</span> sc = sparkSession.sparkContext</span><br></pre></td></tr></table></figure>
+
+<h2 id="DataFrame、DataSet和RDD"><a href="#DataFrame、DataSet和RDD" class="headerlink" title="DataFrame、DataSet和RDD"></a>DataFrame、DataSet和RDD</h2><p>DataFrame是一种以RDD为基础的分布式数据集，类似于传统数据库中的二维表格。<br>DataFrame与RDD的主要区别在于DataFrame带有Schema元信息。<br>DataSet是DataFrame API的一个扩展，是SparkSQL最新的数据抽象。<br>DataSet是强类型的。比如DataSet[Person]。DataFrame是DataSet的特例，DataFrame = DataSet[Row]。这里的Row是一个类型，所有的表结构信息都要用Row来表示，获取数据时需要指定顺序。<br>如果同样的数据都给到这三个数据结构，他们分别计算之后，都会得到相同的结果。不同的是他们的执行效率和执行方式。在后期的Spark版本中，DataSet有可能逐步取代RDD和DataFrame成为唯一的API接口。</p>
+<h3 id="创建DataFrame"><a href="#创建DataFrame" class="headerlink" title="创建DataFrame"></a>创建DataFrame</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建DataFrame</span></span><br><span class="line"><span class="keyword">val</span> studentDataFrame: <span class="type">DataFrame</span> = sparkSession.read.json(<span class="string">"datas/student.json"</span>)</span><br><span class="line"><span class="comment">// 查看数据。注意：df.show()只显示前20行记录。</span></span><br><span class="line">studentDataFrame.show()</span><br></pre></td></tr></table></figure>
+<h3 id="SQL语法"><a href="#SQL语法" class="headerlink" title="SQL语法"></a>SQL语法</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建DataFrame</span></span><br><span class="line"><span class="keyword">val</span> studentDataFrame: <span class="type">DataFrame</span> = sparkSession.read.json(<span class="string">"datas/student.json"</span>)</span><br><span class="line"><span class="comment">// 1.创建视图</span></span><br><span class="line">studentDataFrame.createGlobalTempView(<span class="string">"student"</span>)</span><br><span class="line"><span class="comment">// 2.编写SQL查看数据。注意：这里需要带上数据库名</span></span><br><span class="line">sparkSession.sql(<span class="string">"select username,age from global_temp.student"</span>).show()</span><br></pre></td></tr></table></figure>
+
+<h3 id="DSL语法"><a href="#DSL语法" class="headerlink" title="DSL语法"></a>DSL语法</h3><p>DataFrame 提供一个特定领域语言(domain-specific language, DSL)去管理结构化的数据。使用 DSL 语法风格不必创建临时视图。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建DataFrame</span></span><br><span class="line"><span class="keyword">val</span> studentDataFrame: <span class="type">DataFrame</span> = sparkSession.read.json(<span class="string">"datas/student.json"</span>)</span><br><span class="line"><span class="comment">// 1.使用DSL语言。</span></span><br><span class="line">studentDataFrame.select(<span class="string">"username"</span>, <span class="string">"age"</span>).show()</span><br><span class="line"><span class="comment">// 查看Schema信息</span></span><br><span class="line">studentDataFrame.printSchema()</span><br></pre></td></tr></table></figure>
+
+<h3 id="RDD转DataFrame"><a href="#RDD转DataFrame" class="headerlink" title="RDD转DataFrame"></a>RDD转DataFrame</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment">// 创建RDD</span></span><br><span class="line">  <span class="keyword">val</span> rdd: <span class="type">RDD</span>[(<span class="type">String</span>, <span class="type">Int</span>)] = sparkSession.sparkContext.makeRDD(<span class="type">List</span>((<span class="string">"zhangsan"</span>,<span class="number">20</span>),(<span class="string">"lisi"</span>,<span class="number">21</span>)))</span><br><span class="line">  <span class="comment">// 注意：这里的 SparkSession是创建的 sparkSession 对象的变量名称，所以必须先创建 SparkSession 对象再导入。</span></span><br><span class="line">  <span class="keyword">import</span> sparkSession.implicits._</span><br><span class="line">  <span class="comment">// 1.RDD转DataFrame。通过case class实现(实际开发更常用)。</span></span><br><span class="line">  rdd.map(student =&gt; <span class="type">Student</span>(student._1,student._2)).toDF().show()</span><br><span class="line">  <span class="comment">// 2.也可以直接指定字段名</span></span><br><span class="line">  <span class="keyword">val</span> dataFrame1 = rdd.toDF(<span class="string">"username"</span>, <span class="string">"age"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Student样例类</span></span><br><span class="line"><span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Student</span>(<span class="params">name:<span class="type">String</span>,age:<span class="type">Int</span></span>)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="DataFrame转RDD"><a href="#DataFrame转RDD" class="headerlink" title="DataFrame转RDD"></a>DataFrame转RDD</h3><p>DataFrame其实就是对RDD的封装，所以可以直接获取内部RDD</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建DataFrame</span></span><br><span class="line"><span class="keyword">val</span> dataFrame = sparkSession.read.json(<span class="string">"datas/Student.json"</span>)</span><br><span class="line"><span class="comment">// DataFrame转RDD</span></span><br><span class="line"><span class="keyword">val</span> rdd = dataFrame.rdd</span><br><span class="line">rdd.foreach(println)</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建DataSet"><a href="#创建DataSet" class="headerlink" title="创建DataSet"></a>创建DataSet</h3><p>可以使用样例类序列创建或者使用基本类型的序列创建DataSet。<br>实际开发过程中，更多的是通过RDD来得到DataSet。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sparkSession.implicits._</span><br><span class="line"><span class="comment">// 1.使用样例类序列创建DataSet</span></span><br><span class="line"><span class="keyword">val</span> dataSet = <span class="type">Seq</span>(<span class="type">Student</span>(<span class="string">"zhangsan"</span>, <span class="number">18</span>), <span class="type">Student</span>(<span class="string">"lisi"</span>, <span class="number">17</span>)).toDS()</span><br><span class="line">dataSet.printSchema()</span><br><span class="line"><span class="comment">// 2.使用基本类型序列创建DataSet</span></span><br><span class="line"><span class="keyword">val</span> dataSet1 = <span class="type">Seq</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>).toDS()</span><br><span class="line">dataSet1.printSchema()</span><br></pre></td></tr></table></figure>
+
+<h3 id="DataSet转RDD"><a href="#DataSet转RDD" class="headerlink" title="DataSet转RDD"></a>DataSet转RDD</h3><p>DataSet其实也是对RDD的封装，所以也可以直接获取内部的RDD</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// DataSet转RDD</span></span><br><span class="line"><span class="keyword">val</span> rdd = dataSet.rdd</span><br><span class="line">rdd.collect().foreach(println)</span><br></pre></td></tr></table></figure>
+
+<h3 id="RDD转DataSet"><a href="#RDD转DataSet" class="headerlink" title="RDD转DataSet"></a>RDD转DataSet</h3><p>SparkSQL能够自动将包含case类的RDD转换成DataSet，case类定义了table的结构，case类属性通过反射变成了表的列名。case类可以包含Array或者Seq等复杂结构。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sparkSession.implicits._</span><br><span class="line">   <span class="comment">// 创建RDD</span></span><br><span class="line">   <span class="keyword">val</span> rdd = sparkSession.sparkContext.makeRDD(<span class="type">List</span>((<span class="string">"zhangsan"</span>, <span class="number">15</span>), (<span class="string">"lisi"</span>, <span class="number">16</span>)))</span><br><span class="line">   <span class="comment">// 通过样例类将RDD转为DataSet</span></span><br><span class="line">   <span class="keyword">val</span> dataSet = rdd.map(student =&gt; <span class="type">Student</span>(student._1, student._2)).toDS()</span><br><span class="line">   dataSet.show()</span><br></pre></td></tr></table></figure>
+
+<h3 id="DataSet转DataFrame"><a href="#DataSet转DataFrame" class="headerlink" title="DataSet转DataFrame"></a>DataSet转DataFrame</h3><p>DataFrame实际上就是DataSet的特例，可以直接转换。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sparkSession.implicits._</span><br><span class="line">   <span class="comment">// 创建DataSet</span></span><br><span class="line">   <span class="keyword">val</span> dataSet = <span class="type">Seq</span>(<span class="type">Student</span>(<span class="string">"zhangsan"</span>,<span class="number">18</span>), <span class="type">Student</span>(<span class="string">"lisi"</span>,<span class="number">10</span>)).toDS()</span><br><span class="line">   <span class="comment">// dataSet转DataFrame</span></span><br><span class="line">   <span class="keyword">val</span> dataFrame = dataSet.toDF()</span><br><span class="line">   dataFrame.show()</span><br></pre></td></tr></table></figure>
+
+<h3 id="DataFrame转DataSet"><a href="#DataFrame转DataSet" class="headerlink" title="DataFrame转DataSet"></a>DataFrame转DataSet</h3><p>通过样例类进行转换。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sparkSession.implicits._</span><br><span class="line">    <span class="comment">// 创建DataFrame</span></span><br><span class="line">    <span class="keyword">val</span> dataFrame = sparkSession.read.json(<span class="string">"datas/Student.json"</span>)</span><br><span class="line">    <span class="comment">// 通过样例类进行转换。注意：遇到数字类型，系统会自动地将其作为bigint来处理。后续如果把这些变量装进int型，则会抛出异常。</span></span><br><span class="line">    <span class="keyword">val</span> dataSet1 = dataFrame.as[<span class="type">Student</span>]</span><br><span class="line">    dataSet1.show()</span><br><span class="line">    <span class="comment">// 或者直接指定字段名实现转换</span></span><br><span class="line">    <span class="keyword">val</span> dataSet2 = dataFrame.as(<span class="string">"username,age"</span>)</span><br><span class="line">    dataSet2.show()</span><br><span class="line">    </span><br><span class="line">  <span class="comment">// 这里将age由Int类型变为Long类型，防止DataFrame转DataSet时系统报错</span></span><br><span class="line">  <span class="keyword">case</span> <span class="class"><span class="keyword">class</span> <span class="title">Student</span>(<span class="params">username: <span class="type">String</span>, age: <span class="type">Long</span></span>)</span></span><br></pre></td></tr></table></figure>
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2019/03/01/Spark/Spark%20SQL%E6%A0%B8%E5%BF%83%E7%BC%96%E7%A8%8B/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spark%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" rel="tag">Spark入门学习</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2019/03/05/IDEA/IDEA%E5%88%A0%E9%99%A4%E8%87%AA%E5%AE%9A%E4%B9%89Maven%20Archetype/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            IDEA删除自定义Maven Archetype
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/02/26/Spark/Spark%E4%B8%89%E5%A4%A7%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B9%8BRDD/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Spark三大数据结构之RDD</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2023
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+
+<!-- 复制 -->
+
+  
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+
+    
+  </div>
+</body>
+
+</html>
