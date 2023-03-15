@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Spark源码学习：应用程序提交（YARN Cluster&amp;Client） |  大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-Spark/Spark源码学习：应用程序提交（YARN Cluster&amp;Client）" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Spark源码学习：应用程序提交（YARN Cluster&amp;Client）
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/02/01/Spark/Spark%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4%EF%BC%88YARN%20Cluster&Client%EF%BC%89/" class="article-date">
+  <time datetime="2023-02-01T02:00:00.000Z" itemprop="datePublished">2023-02-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spark/">Spark</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.5k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">12 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Spark源码学习：应用程序提交（YARN-Cluster-amp-Client）"><a href="#Spark源码学习：应用程序提交（YARN-Cluster-amp-Client）" class="headerlink" title="Spark源码学习：应用程序提交（YARN Cluster&amp;Client）"></a>Spark源码学习：应用程序提交（YARN Cluster&amp;Client）</h1><h2 id="org-apache-spark-deploy-SparkSubmit"><a href="#org-apache-spark-deploy-SparkSubmit" class="headerlink" title="org.apache.spark.deploy.SparkSubmit"></a>org.apache.spark.deploy.SparkSubmit</h2><p>一个标准Spark程序的提交参数如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">./bin/spark-submit \</span><br><span class="line">  --class org.apache.spark.examples.SparkPi \</span><br><span class="line">  --master yarn \</span><br><span class="line">  --deploy-mode cluster \</span><br><span class="line">  --executor-memory 20G \</span><br><span class="line">  --num-executors 50 \</span><br><span class="line">  /path/to/examples.jar \</span><br><span class="line">  1000</span><br></pre></td></tr></table></figure>
+<p>通过查看Shell命令发现这里实际上是执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java org.apache.spark.deploy.SparkSubmit</span><br></pre></td></tr></table></figure>
+<p>因此Spark程序入口就在<code>org.apache.spark.deploy.SparkSubmit</code></p>
+<h3 id="submit-doSubmit-args"><a href="#submit-doSubmit-args" class="headerlink" title="submit.doSubmit(args)"></a>submit.doSubmit(args)</h3><p>submit.doSubmit(args)先进行参数解析，然后根据参数来模式匹配具体任务执行。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">doSubmit</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="keyword">val</span> appArgs = parseArguments(args)</span><br><span class="line">  <span class="comment">// TODU</span></span><br><span class="line">  appArgs.action <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">SparkSubmitAction</span>.<span class="type">SUBMIT</span> =&gt; submit(appArgs, uninitLog)</span><br><span class="line">    <span class="keyword">case</span> <span class="type">SparkSubmitAction</span>.<span class="type">KILL</span> =&gt; kill(appArgs)</span><br><span class="line">    <span class="keyword">case</span> <span class="type">SparkSubmitAction</span>.<span class="type">REQUEST_STATUS</span> =&gt; requestStatus(appArgs)</span><br><span class="line">    <span class="keyword">case</span> <span class="type">SparkSubmitAction</span>.<span class="type">PRINT_VERSION</span> =&gt; printVersion()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="runMain"><a href="#runMain" class="headerlink" title="runMain()"></a>runMain()</h3><p>在runMain方法里面会做环境的初始化准备：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> (childArgs, childClasspath, sparkConf, childMainClass) = prepareSubmitEnvironment(args)</span><br></pre></td></tr></table></figure>
+<p>在prepareSubmitEnvironment这个方法里面，会确定childMainClass。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 如果是YARN Cluster模式：</span></span><br><span class="line"><span class="keyword">if</span> (isYarnCluster) &#123;</span><br><span class="line">      <span class="comment">// val YARN_CLUSTER_SUBMIT_CLASS = "org.apache.spark.deploy.yarn.YarnClusterApplication"</span></span><br><span class="line">      childMainClass = <span class="type">YARN_CLUSTER_SUBMIT_CLASS</span></span><br><span class="line">      <span class="comment">// TODU</span></span><br><span class="line">&#125;</span><br><span class="line">  <span class="comment">// 如果是YARN Client模式：</span></span><br><span class="line"> <span class="keyword">if</span> (deployMode == <span class="type">CLIENT</span>) &#123;</span><br><span class="line">   childMainClass = args.mainClass</span><br><span class="line">  <span class="comment">// TODU</span></span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据childMainClass判断，如果是SparkApplication的子类，那么直接使用构造器初始化一个SparkApplication，如果不是新建一个SparkApplication。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> app: <span class="type">SparkApplication</span> = <span class="keyword">if</span> (classOf[<span class="type">SparkApplication</span>].isAssignableFrom(mainClass)) &#123;</span><br><span class="line">  mainClass.getConstructor().newInstance().asInstanceOf[<span class="type">SparkApplication</span>]</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="keyword">new</span> <span class="type">JavaMainApplication</span>(mainClass)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 调用start方法</span></span><br><span class="line">app.start(childArgs.toArray, sparkConf)</span><br></pre></td></tr></table></figure>
+
+<h2 id="org-apache-spark-deploy-yarn-YarnClusterApplication"><a href="#org-apache-spark-deploy-yarn-YarnClusterApplication" class="headerlink" title="org.apache.spark.deploy.yarn.YarnClusterApplication"></a>org.apache.spark.deploy.yarn.YarnClusterApplication</h2><p>想要查看这个类，需要额外引入依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.spark<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spark-yarn_2.12<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.1.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="start"><a href="#start" class="headerlink" title="start()"></a>start()</h3><p>在YarnClusterApplication中重写了start方法。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="class"><span class="keyword">class</span> <span class="title">YarnClusterApplication</span> <span class="keyword">extends</span> <span class="title">SparkApplication</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">start</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>], conf: <span class="type">SparkConf</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line">    <span class="comment">// TODO</span></span><br><span class="line">    <span class="keyword">new</span> <span class="type">Client</span>(<span class="keyword">new</span> <span class="type">ClientArguments</span>(args), conf, <span class="literal">null</span>).run()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="submitApplication-（核心源码）"><a href="#submitApplication-（核心源码）" class="headerlink" title="submitApplication()（核心源码）"></a>submitApplication()（核心源码）</h3><p>Client对象实例化之后会执行run方法。在这个run方法里面会提交我们的应用程序。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">run</span></span>(): <span class="type">Unit</span> = &#123;</span><br><span class="line">    <span class="keyword">this</span>.appId = submitApplication()</span><br><span class="line">    <span class="comment">// TODO</span></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>在submitApplication方法中，核心操作包括：</p>
+<ol>
+<li><p>初始化yarnClient（建立了与ResourceManager的连接）</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">launcherBackend.connect()</span><br><span class="line">yarnClient.init(hadoopConf)</span><br><span class="line">yarnClient.start()</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建ApplicationMaster</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Set up the appropriate contexts to launch our AM</span></span><br><span class="line"><span class="keyword">val</span> containerContext = createContainerLaunchContext(newAppResponse)</span><br><span class="line"><span class="keyword">val</span> appContext = createApplicationSubmissionContext(newApp, containerContext)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这里是以bin/java的形式启动AM，即JVM进程。</span></span><br><span class="line"><span class="type">Seq</span>(<span class="type">Environment</span>.<span class="type">JAVA_HOME</span>.$$() + <span class="string">"/bin/java"</span>, <span class="string">"-server"</span>) ++</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> amClass =</span><br><span class="line">  <span class="keyword">if</span> (isClusterMode) &#123;</span><br><span class="line">    <span class="type">Utils</span>.classForName(<span class="string">"org.apache.spark.deploy.yarn.ApplicationMaster"</span>).getName</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="type">Utils</span>.classForName(<span class="string">"org.apache.spark.deploy.yarn.ExecutorLauncher"</span>).getName</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>提交应用程序</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Finally, submit and monitor the application</span></span><br><span class="line">logInfo(<span class="string">s"Submitting application <span class="subst">$appId</span> to ResourceManager"</span>)</span><br><span class="line">yarnClient.submitApplication(appContext)</span><br><span class="line">launcherBackend.setAppId(appId.toString)</span><br><span class="line">reportLauncherState(<span class="type">SparkAppHandle</span>.<span class="type">State</span>.<span class="type">SUBMITTED</span>)</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ol>
+<h2 id="org-apache-spark-deploy-yarn-ApplicationMaster"><a href="#org-apache-spark-deploy-yarn-ApplicationMaster" class="headerlink" title="org.apache.spark.deploy.yarn.ApplicationMaster"></a>org.apache.spark.deploy.yarn.ApplicationMaster</h2><h3 id="runDriver"><a href="#runDriver" class="headerlink" title="runDriver()"></a>runDriver()</h3><p>上面以bin/java的形式启动AM，找到main方法，继续执行。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (isClusterMode) &#123;</span><br><span class="line">  runDriver()</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  runExecutorLauncher()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在runDriver()里会调用startUserApplication()方法，这个方法指向的就是我们提交的应用程序–class<br>在这个方法中会创建一个线程，也就是我们的Driver线程（注意：不是进程）。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">userThread.setName(<span class="string">"Driver"</span>)</span><br><span class="line">userThread.start()</span><br></pre></td></tr></table></figure>
+
+<p>调用这个方法之后，会等待SparkContext初始化。这也是为什么我们的程序上来就需要先创建SparkContext对象的原因。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">logInfo(<span class="string">"Waiting for spark context initialization..."</span>)</span><br><span class="line"><span class="keyword">val</span> totalWaitTime = sparkConf.get(<span class="type">AM_MAX_WAIT_TIME</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="registerAM"><a href="#registerAM" class="headerlink" title="registerAM()"></a>registerAM()</h3><p>SparkContext初始化之后，会调用registerAM()方法，这里是向ResourceManager注册ApplicationMaster，申请资源。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">registerAM(host, port, userConf, sc.ui.map(_.webUrl), appAttemptId)</span><br></pre></td></tr></table></figure>
+
+<h3 id="createAllocator"><a href="#createAllocator" class="headerlink" title="createAllocator()"></a>createAllocator()</h3><p>资源申请之后创建分配器，分配资源。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"> createAllocator()(driverRef, userConf, rpcEnv, appAttemptId, distCacheConf)</span><br><span class="line"> </span><br><span class="line"> <span class="comment">// 创建分配器</span></span><br><span class="line">allocator = client.createAllocator(</span><br><span class="line">  yarnConf,</span><br><span class="line">  _sparkConf,</span><br><span class="line">  appAttemptId,</span><br><span class="line">  driverUrl,</span><br><span class="line">  driverRef,</span><br><span class="line">  securityMgr,</span><br><span class="line">  localResources)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 分配资源</span></span><br><span class="line">allocator.allocateResources()</span><br></pre></td></tr></table></figure>
+
+<h2 id="org-apache-spark-deploy-yarn-YarnAllocator"><a href="#org-apache-spark-deploy-yarn-YarnAllocator" class="headerlink" title="org.apache.spark.deploy.yarn.YarnAllocator"></a>org.apache.spark.deploy.yarn.YarnAllocator</h2><h3 id="allocateResources"><a href="#allocateResources" class="headerlink" title="allocateResources()"></a>allocateResources()</h3><p>Allocator创建之后会调用allocateResources()方法。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 处理可被分配的容器：handleAllocatedContainers</span></span><br><span class="line">handleAllocatedContainers(allocatedContainers.asScala)</span><br><span class="line">processCompletedContainers(completedContainers.asScala)</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="runAllocatedContainers-containersToUse-（核心源码）"><a href="#runAllocatedContainers-containersToUse-（核心源码）" class="headerlink" title="runAllocatedContainers(containersToUse)（核心源码）"></a>runAllocatedContainers(containersToUse)（核心源码）</h3><p>在handleAllocatedContainers()方法中有一个方法runAllocatedContainers(containersToUse)，这个方法用于运行可被分配的容器。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (launchContainers) &#123;</span><br><span class="line">  launcherPool.execute(() =&gt; &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">new</span> <span class="type">ExecutorRunnable</span>(</span><br><span class="line">        <span class="type">Some</span>(container),</span><br><span class="line">        conf,</span><br><span class="line">        sparkConf,</span><br><span class="line">        driverUrl,</span><br><span class="line">        executorId,</span><br><span class="line">        executorHostname,</span><br><span class="line">        executorMemory,</span><br><span class="line">        executorCores,</span><br><span class="line">        appAttemptId.getApplicationId.toString,</span><br><span class="line">        securityMgr,</span><br><span class="line">        localResources,</span><br><span class="line">        <span class="type">ResourceProfile</span>.<span class="type">DEFAULT_RESOURCE_PROFILE_ID</span> <span class="comment">// use until fully supported</span></span><br><span class="line">      ).run()</span><br><span class="line">      <span class="comment">// TODO</span></span><br></pre></td></tr></table></figure>
+<p>在run方法里面会创建NMClient，启动Container容器。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">run</span></span>(): <span class="type">Unit</span> = &#123;</span><br><span class="line">  logDebug(<span class="string">"Starting Executor Container"</span>)</span><br><span class="line">  nmClient = <span class="type">NMClient</span>.createNMClient()</span><br><span class="line">  nmClient.init(conf)</span><br><span class="line">  nmClient.start()</span><br><span class="line">  startContainer()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="org-apache-spark-deploy-yarn-ExecutorRunnable"><a href="#org-apache-spark-deploy-yarn-ExecutorRunnable" class="headerlink" title="org.apache.spark.deploy.yarn.ExecutorRunnable"></a>org.apache.spark.deploy.yarn.ExecutorRunnable</h2><h3 id="startContainer"><a href="#startContainer" class="headerlink" title="startContainer()"></a>startContainer()</h3><h4 id="prepareCommand"><a href="#prepareCommand" class="headerlink" title="prepareCommand()"></a>prepareCommand()</h4><p>在startContainer()方法中，有一个prepareCommand()方法，这个方法用于准备启动一个JVM进程的命令。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">YarnSparkHadoopUtil</span>.addOutOfMemoryErrorArgument(javaOpts)</span><br><span class="line"><span class="keyword">val</span> commands = prefixEnv ++</span><br><span class="line">  <span class="type">Seq</span>(<span class="type">Environment</span>.<span class="type">JAVA_HOME</span>.$$() + <span class="string">"/bin/java"</span>, <span class="string">"-server"</span>) ++</span><br><span class="line">  javaOpts ++</span><br><span class="line">  <span class="type">Seq</span>(<span class="string">"org.apache.spark.executor.YarnCoarseGrainedExecutorBackend"</span>,</span><br><span class="line">    <span class="string">"--driver-url"</span>, masterAddress,</span><br><span class="line">    <span class="string">"--executor-id"</span>, executorId,</span><br><span class="line">    <span class="string">"--hostname"</span>, hostname,</span><br><span class="line">    <span class="string">"--cores"</span>, executorCores.toString,</span><br><span class="line">    <span class="string">"--app-id"</span>, appId,</span><br><span class="line">    <span class="string">"--resourceProfileId"</span>, resourceProfileId.toString) ++</span><br><span class="line">  userClassPath ++</span><br><span class="line">  <span class="type">Seq</span>(</span><br><span class="line">    <span class="string">s"1&gt;<span class="subst">$&#123;ApplicationConstants.LOG_DIR_EXPANSION_VAR&#125;</span>/stdout"</span>,</span><br><span class="line">    <span class="string">s"2&gt;<span class="subst">$&#123;ApplicationConstants.LOG_DIR_EXPANSION_VAR&#125;</span>/stderr"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// <span class="doctag">TODO:</span> it would be nicer to just make sure there are no null commands here</span></span><br><span class="line">commands.map(s =&gt; <span class="keyword">if</span> (s == <span class="literal">null</span>) <span class="string">"null"</span> <span class="keyword">else</span> s).toList</span><br></pre></td></tr></table></figure>
+
+<h4 id="nmClient-startContainer-container-get-ctx"><a href="#nmClient-startContainer-container-get-ctx" class="headerlink" title="nmClient.startContainer(container.get, ctx)"></a>nmClient.startContainer(container.get, ctx)</h4><p>prepareCommand()方法之后，就是真正的Container启动。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/bin/java org.apache.spark.executor.YarnCoarseGrainedExecutorBackend</span><br></pre></td></tr></table></figure>
+
+<h2 id="org-apache-spark-executor-YarnCoarseGrainedExecutorBackend"><a href="#org-apache-spark-executor-YarnCoarseGrainedExecutorBackend" class="headerlink" title="org.apache.spark.executor.YarnCoarseGrainedExecutorBackend"></a>org.apache.spark.executor.YarnCoarseGrainedExecutorBackend</h2><h3 id="main"><a href="#main" class="headerlink" title="main()"></a>main()</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="keyword">val</span> createFn: (<span class="type">RpcEnv</span>, <span class="type">CoarseGrainedExecutorBackend</span>.<span class="type">Arguments</span>, <span class="type">SparkEnv</span>, <span class="type">ResourceProfile</span>) =&gt;</span><br><span class="line">    <span class="type">CoarseGrainedExecutorBackend</span> = &#123; <span class="keyword">case</span> (rpcEnv, arguments, env, resourceProfile) =&gt;</span><br><span class="line">    <span class="keyword">new</span> <span class="type">YarnCoarseGrainedExecutorBackend</span>(rpcEnv, arguments.driverUrl, arguments.executorId,</span><br><span class="line">      arguments.bindAddress, arguments.hostname, arguments.cores, arguments.userClassPath, env,</span><br><span class="line">      arguments.resourcesFileOpt, resourceProfile)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">val</span> backendArgs = <span class="type">CoarseGrainedExecutorBackend</span>.parseArguments(args,</span><br><span class="line">    <span class="keyword">this</span>.getClass.getCanonicalName.stripSuffix(<span class="string">"$"</span>))</span><br><span class="line">  <span class="type">CoarseGrainedExecutorBackend</span>.run(backendArgs, createFn)</span><br><span class="line">  <span class="type">System</span>.exit(<span class="number">0</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意：这里的createFn返回的是new YarnCoarseGrainedExecutorBackend。在后面的run()方法里面，这个YarnCoarseGrainedExecutorBackend被我们定义为了Executor。</p>
+<h2 id="org-apache-spark-executor-CoarseGrainedExecutorBackend"><a href="#org-apache-spark-executor-CoarseGrainedExecutorBackend" class="headerlink" title="org.apache.spark.executor.CoarseGrainedExecutorBackend"></a>org.apache.spark.executor.CoarseGrainedExecutorBackend</h2><h3 id="run"><a href="#run" class="headerlink" title="run()"></a>run()</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"> <span class="function"><span class="keyword">def</span> <span class="title">run</span></span>(</span><br><span class="line">     arguments: <span class="type">Arguments</span>,</span><br><span class="line">     backendCreateFn: (<span class="type">RpcEnv</span>, <span class="type">Arguments</span>, <span class="type">SparkEnv</span>, <span class="type">ResourceProfile</span>) =&gt;</span><br><span class="line">       <span class="type">CoarseGrainedExecutorBackend</span>): <span class="type">Unit</span> = &#123;</span><br><span class="line"><span class="comment">// TODO  </span></span><br><span class="line">  <span class="comment">// YarnCoarseGrainedExecutorBackend被我们定义为了Executor。</span></span><br><span class="line">     env.rpcEnv.setupEndpoint(<span class="string">"Executor"</span>,</span><br><span class="line">       backendCreateFn(env.rpcEnv, arguments, env, cfg.resourceProfile))</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="onStart"><a href="#onStart" class="headerlink" title="onStart()"></a>onStart()</h3><p>在run()方法执行之后，会进入onStart()方法，中间涉及Netty通信，单独补充。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">onStart</span></span>(): <span class="type">Unit</span> = &#123;</span><br><span class="line">  logInfo(<span class="string">"Connecting to driver: "</span> + driverUrl)</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    _resources = parseOrFindResources(resourcesFileOpt)</span><br><span class="line">  &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">NonFatal</span>(e) =&gt;</span><br><span class="line">      exitExecutor(<span class="number">1</span>, <span class="string">"Unable to create executor due to "</span> + e.getMessage, e)</span><br><span class="line">  &#125;</span><br><span class="line">  rpcEnv.asyncSetupEndpointRefByURI(driverUrl).flatMap &#123; ref =&gt;</span><br><span class="line">    <span class="comment">// This is a very fast action so we can use "ThreadUtils.sameThread" </span></span><br><span class="line">    driver = <span class="type">Some</span>(ref)</span><br><span class="line">    ref.ask[<span class="type">Boolean</span>](<span class="type">RegisterExecutor</span>(executorId, self, hostname, cores, extractLogUrls,</span><br><span class="line">      extractAttributes, _resources, resourceProfile.id))</span><br><span class="line">  &#125;(<span class="type">ThreadUtils</span>.sameThread).onComplete &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Success</span>(_) =&gt;</span><br><span class="line">      self.send(<span class="type">RegisteredExecutor</span>)</span><br><span class="line">    <span class="keyword">case</span> <span class="type">Failure</span>(e) =&gt;</span><br><span class="line">      exitExecutor(<span class="number">1</span>, <span class="string">s"Cannot register with driver: <span class="subst">$driverUrl</span>"</span>, e, notifyDriver = <span class="literal">false</span>)</span><br><span class="line">  &#125;(<span class="type">ThreadUtils</span>.sameThread)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里会注册Executor。</p>
+<h3 id="receive"><a href="#receive" class="headerlink" title="receive()"></a>receive()</h3><p>onStart()方法执行完成之后，根据Netty通信原理，会执行receive()方法，这里会启动Executor计算对象。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">receive</span></span>: <span class="type">PartialFunction</span>[<span class="type">Any</span>, <span class="type">Unit</span>] = &#123;</span><br><span class="line">  <span class="keyword">case</span> <span class="type">RegisteredExecutor</span> =&gt;</span><br><span class="line">    logInfo(<span class="string">"Successfully registered with driver"</span>)</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      executor = <span class="keyword">new</span> <span class="type">Executor</span>(executorId, hostname, env, userClassPath, isLocal = <span class="literal">false</span>,</span><br><span class="line">        resources = _resources)</span><br><span class="line">      driver.get.send(<span class="type">LaunchedExecutor</span>(executorId))</span><br><span class="line">    &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="type">NonFatal</span>(e) =&gt;</span><br><span class="line">        exitExecutor(<span class="number">1</span>, <span class="string">"Unable to create executor due to "</span> + e.getMessage, e)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// TODO</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="从run-到onStart-补充说明"><a href="#从run-到onStart-补充说明" class="headerlink" title="从run()到onStart()补充说明"></a>从run()到onStart()补充说明</h3><h4 id="org-apache-spark-rpc-netty-NettyRpcEnv"><a href="#org-apache-spark-rpc-netty-NettyRpcEnv" class="headerlink" title="org.apache.spark.rpc.netty.NettyRpcEnv"></a>org.apache.spark.rpc.netty.NettyRpcEnv</h4><p>在setupEndpoint()方法中，会注册RPC的通信终端。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">setupEndpoint</span></span>(name: <span class="type">String</span>, endpoint: <span class="type">RpcEndpoint</span>): <span class="type">RpcEndpointRef</span> = &#123;</span><br><span class="line">  dispatcher.registerRpcEndpoint(name, endpoint)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="org-apache-spark-rpc-netty-Dispatcher"><a href="#org-apache-spark-rpc-netty-Dispatcher" class="headerlink" title="org.apache.spark.rpc.netty.Dispatcher"></a>org.apache.spark.rpc.netty.Dispatcher</h4><p>查看registerRpcEndpoint()方法，这里有个MessageLoop。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> messageLoop: <span class="type">MessageLoop</span> = <span class="literal">null</span></span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        messageLoop = endpoint <span class="keyword">match</span> &#123;</span><br><span class="line">          <span class="keyword">case</span> e: <span class="type">IsolatedRpcEndpoint</span> =&gt;</span><br><span class="line">            <span class="keyword">new</span> <span class="type">DedicatedMessageLoop</span>(name, e, <span class="keyword">this</span>)</span><br><span class="line">          <span class="keyword">case</span> _ =&gt;</span><br><span class="line">            sharedLoop.register(name, endpoint)</span><br><span class="line">            sharedLoop</span><br><span class="line">        &#125;</span><br><span class="line">        endpoints.put(name, messageLoop)</span><br><span class="line">      &#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">        <span class="keyword">case</span> <span class="type">NonFatal</span>(e) =&gt;</span><br><span class="line">          endpointRefs.remove(endpoint)</span><br><span class="line">          <span class="keyword">throw</span> e</span><br><span class="line">      &#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="org-apache-spark-rpc-netty-DedicatedMessageLoop"><a href="#org-apache-spark-rpc-netty-DedicatedMessageLoop" class="headerlink" title="org.apache.spark.rpc.netty.DedicatedMessageLoop"></a>org.apache.spark.rpc.netty.DedicatedMessageLoop</h4><p>这里有个setActive(inbox)，会处理 OnStart message。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">val</span> inbox = <span class="keyword">new</span> <span class="type">Inbox</span>(name, endpoint)</span><br><span class="line"></span><br><span class="line"><span class="keyword">override</span> <span class="keyword">protected</span> <span class="keyword">val</span> threadpool = <span class="keyword">if</span> (endpoint.threadCount() &gt; <span class="number">1</span>) &#123;</span><br><span class="line">  <span class="type">ThreadUtils</span>.newDaemonCachedThreadPool(<span class="string">s"dispatcher-<span class="subst">$name</span>"</span>, endpoint.threadCount())</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="type">ThreadUtils</span>.newDaemonSingleThreadExecutor(<span class="string">s"dispatcher-<span class="subst">$name</span>"</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> to endpoint.threadCount()).foreach &#123; _ =&gt;</span><br><span class="line">  threadpool.submit(receiveLoopRunnable)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Mark active to handle the OnStart message.</span></span><br><span class="line">setActive(inbox)</span><br></pre></td></tr></table></figure>
+
+<h2 id="Spark-On-YARN-Cluster执行流程"><a href="#Spark-On-YARN-Cluster执行流程" class="headerlink" title="Spark On YARN Cluster执行流程"></a>Spark On YARN Cluster执行流程</h2><p>根据上面的源码，将 Spark On YARN Cluster执行流程整理如下：<br>1.执行脚本提交任务，实际上是启动了一个SparkSubmit的JVM进程<br>2.SparkSubmit类中的main方法反射调用YarnClusterApplication的main方法<br>3.YarnClusterApplication创建客户端，然后向YARN服务器发送指令bin/java ApplicationMaster<br>4.YARN框架收到指令后会在指定的NodeManager中启动ApplicationMaster<br>5.ApplicationMaster启动Driver线程，执行用户的作业，初始化SparkContext<br>6.ApplicationMaster向ResourceManager注册，申请资源<br>7.获取资源后AM向NM发送指令bin/java YarnCoarseGrainedExecutorBackend<br>8.YarnCoarseGrainedExecutorBackend 进程会接收消息，跟 Driver 通信，注册已经启动的 Executor；然后启动计算对象 Executor 等待接收任务<br>9.Driver 线程继续执行完成作业的调度和任务的执行<br>10.Driver 分配任务并监控任务的执行</p>
+<h2 id="YARN-Client：初始化SparkContext"><a href="#YARN-Client：初始化SparkContext" class="headerlink" title="YARN Client：初始化SparkContext"></a>YARN Client：初始化SparkContext</h2><p>上面已经提到了，在SparkSubmit中，会根据mainClass进行判断。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> app: <span class="type">SparkApplication</span> = <span class="keyword">if</span> (classOf[<span class="type">SparkApplication</span>].isAssignableFrom(mainClass)) &#123;</span><br><span class="line">  mainClass.getConstructor().newInstance().asInstanceOf[<span class="type">SparkApplication</span>]</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">  <span class="keyword">new</span> <span class="type">JavaMainApplication</span>(mainClass)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>当为YARN Client模式时，会运行用户自己的程序，在程序里面会初始化SparkContext。<br>在SparkContext构建过程中，会创建_schedulerBackend和_taskScheduler, 然后启动它们。</p>
+<h2 id="org-apache-spark-SparkContext"><a href="#org-apache-spark-SparkContext" class="headerlink" title="org.apache.spark.SparkContext"></a>org.apache.spark.SparkContext</h2><h3 id="createTaskScheduler"><a href="#createTaskScheduler" class="headerlink" title="createTaskScheduler()"></a>createTaskScheduler()</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">val scheduler &#x3D; cm.createTaskScheduler(sc, masterUrl)</span><br><span class="line">val backend &#x3D; cm.createSchedulerBackend(sc, masterUrl, scheduler)</span><br></pre></td></tr></table></figure>
+<p>这个方法是在YarnClusterManager类中实现的。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">createTaskScheduler</span></span>(sc: <span class="type">SparkContext</span>, masterURL: <span class="type">String</span>): <span class="type">TaskScheduler</span> = &#123;</span><br><span class="line">  sc.deployMode <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">"cluster"</span> =&gt; <span class="keyword">new</span> <span class="type">YarnClusterScheduler</span>(sc)</span><br><span class="line">    <span class="keyword">case</span> <span class="string">"client"</span> =&gt; <span class="keyword">new</span> <span class="type">YarnScheduler</span>(sc)</span><br><span class="line">    <span class="keyword">case</span> _ =&gt; <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">SparkException</span>(<span class="string">s"Unknown deploy mode '<span class="subst">$&#123;sc.deployMode&#125;</span>' for Yarn"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"> <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">createSchedulerBackend</span></span>(sc: <span class="type">SparkContext</span>,</span><br><span class="line">    masterURL: <span class="type">String</span>,</span><br><span class="line">    scheduler: <span class="type">TaskScheduler</span>): <span class="type">SchedulerBackend</span> = &#123;</span><br><span class="line">  sc.deployMode <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="string">"cluster"</span> =&gt;</span><br><span class="line">      <span class="keyword">new</span> <span class="type">YarnClusterSchedulerBackend</span>(scheduler.asInstanceOf[<span class="type">TaskSchedulerImpl</span>], sc)</span><br><span class="line">    <span class="keyword">case</span> <span class="string">"client"</span> =&gt;</span><br><span class="line">      <span class="keyword">new</span> <span class="type">YarnClientSchedulerBackend</span>(scheduler.asInstanceOf[<span class="type">TaskSchedulerImpl</span>], sc)</span><br><span class="line">    <span class="keyword">case</span>  _ =&gt;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">SparkException</span>(<span class="string">s"Unknown deploy mode '<span class="subst">$&#123;sc.deployMode&#125;</span>' for Yarn"</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="org-apache-spark-scheduler-cluster-YarnClientSchedulerBackend"><a href="#org-apache-spark-scheduler-cluster-YarnClientSchedulerBackend" class="headerlink" title="org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend"></a>org.apache.spark.scheduler.cluster.YarnClientSchedulerBackend</h2><p>这里有个start方法，它创建了一个Client实例，通过client.submitApplication()来提交application。<br>注意：YARN的Cluster模式也是调用的这个方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">client &#x3D; new Client(args, conf, sc.env.rpcEnv)</span><br><span class="line">bindToYarn(client.submitApplication(), None)</span><br></pre></td></tr></table></figure>
+<p>接下来在创建容器的时候，YARN Cluster和Client有了一点点区别。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Set up the appropriate contexts to launch our AM</span></span><br><span class="line"><span class="keyword">val</span> containerContext = createContainerLaunchContext(newAppResponse)</span><br><span class="line"><span class="keyword">val</span> appContext = createApplicationSubmissionContext(newApp, containerContext)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 这里是以bin/java的形式启动AM，即JVM进程。</span></span><br><span class="line"><span class="type">Seq</span>(<span class="type">Environment</span>.<span class="type">JAVA_HOME</span>.$$() + <span class="string">"/bin/java"</span>, <span class="string">"-server"</span>) ++</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> amClass =</span><br><span class="line">  <span class="keyword">if</span> (isClusterMode) &#123;</span><br><span class="line">    <span class="type">Utils</span>.classForName(<span class="string">"org.apache.spark.deploy.yarn.ApplicationMaster"</span>).getName</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="type">Utils</span>.classForName(<span class="string">"org.apache.spark.deploy.yarn.ExecutorLauncher"</span>).getName</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h2 id="org-apache-spark-deploy-yarn-ExecutorLauncher"><a href="#org-apache-spark-deploy-yarn-ExecutorLauncher" class="headerlink" title="org.apache.spark.deploy.yarn.ExecutorLauncher"></a>org.apache.spark.deploy.yarn.ExecutorLauncher</h2><p>ExecutorLauncher本质上执行的还是ApplicationMaster.main()方法。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">object</span> <span class="title">ExecutorLauncher</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</span><br><span class="line">    <span class="type">ApplicationMaster</span>.main(args)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>不同的是：<br>在YARN Cluster模式下，执行的是  runDriver()方法；<br>在YARN Client模式下，执行的是  runExecutorLauncher()方法。</p>
+<h2 id="Spark-On-YARN-Client执行流程"><a href="#Spark-On-YARN-Client执行流程" class="headerlink" title="Spark On YARN Client执行流程"></a>Spark On YARN Client执行流程</h2><p>根据上面的源码，将 Spark On YARN Cluster执行流程整理如下：<br>1.执行脚本提交任务，实际上是启动了一个SparkSubmit的JVM进程<br>2.SparkSubmit类中的main方法反射调用用户代码的main方法<br>3启动Driver线程，初始化SparkContext，创建YarnClientSchedulerBackend<br>4.YarnClientSchedulerBackend向RM发送指令：bin/java ExecutorLauncher<br>5.YARN框架收到指令后，会在指定的NM中启动ExecutorLauncher（实际上还是调用了ApplicationMaster 的 main 方法）<br>6.ApplicationMaster向ResourceManager注册，申请资源<br>7.获取资源后AM向NM发送指令bin/java YarnCoarseGrainedExecutorBackend<br>8.YarnCoarseGrainedExecutorBackend进程会接收消息，跟 Driver 通信，注册已经启动的 Executor；然后启动计算对象 Executor 等待接收任务<br>9. Driver 分配任务并监控任务的执行。</p>
+<p>可以看到在cluster模式下和client模式下AM执行的入口类是不同的，在cluster模式下，AM进程既要执行Driver，也要负责Executor的资源申请和调度。而在client模式下，客户端spark-submit进程充当着Driver的角色，AM只负责Executor的资源调度。</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2023/02/01/Spark/Spark%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4%EF%BC%88YARN%20Cluster&Client%EF%BC%89/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spark%E8%BF%9B%E9%98%B6/" rel="tag">Spark进阶</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2023/02/05/MongoDB/MongoDB%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            MongoDB必知必会
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2023/01/31/Spark/Spark%20SQL%E8%B0%83%E4%BC%98/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Spark SQL调优</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2023
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+
+<!-- 复制 -->
+
+  
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+
+    
+  </div>
+</body>
+
+</html>

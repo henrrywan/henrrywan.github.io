@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">324</span>
+            <span class="post-count">345</span>
         </span>
     </span>
 
@@ -116,8 +116,8 @@
 <p>根据错误信息我们需要在本地配置Hadoop相关的环境并提供winutils.exe文件。</p>
 <h2 id="下载Hadoop压缩包"><a href="#下载Hadoop压缩包" class="headerlink" title="下载Hadoop压缩包"></a>下载Hadoop压缩包</h2><p>Hadoop官网下载地址：<a href="https://archive.apache.org/dist/hadoop/common/" target="_blank" rel="noopener">https://archive.apache.org/dist/hadoop/common/</a><br>这里以<code>hadoop-2.9.2-src.tar.gz</code>为例。下载到本地之后使用解压工具解压，存放到指定目录。</p>
 <h2 id="下载winutils-exe"><a href="#下载winutils-exe" class="headerlink" title="下载winutils.exe"></a>下载winutils.exe</h2><p>根据Hadoop版本下载对应winutils.exe程序。<br>github地址：<a href="https://github.com/cdarlint/winutils" target="_blank" rel="noopener">https://github.com/cdarlint/winutils</a><br>镜像仓库地址：<a href="https://codechina.csdn.net/mirrors/cdarlint" target="_blank" rel="noopener">https://codechina.csdn.net/mirrors/cdarlint</a><br>将下载好的文件复制到Hadoop的bin目录下。</p>
-<h2 id="配置环境变量"><a href="#配置环境变量" class="headerlink" title="配置环境变量"></a>配置环境变量</h2><p>这里主要是配置HADOOP_HOME。</p>
-<img src="/2019/01/10/Spark/%E8%A7%A3%E5%86%B3IDEA%E4%B8%8A%E8%BF%90%E8%A1%8CSpark%E4%BB%BB%E5%8A%A1%E6%8A%A5%E9%94%99%E9%97%AE%E9%A2%98/hadoop_home.png" class="">
+<h2 id="配置环境变量"><a href="#配置环境变量" class="headerlink" title="配置环境变量"></a>配置环境变量</h2><p>这里主要是配置HADOOP_HOME。编辑系统变量。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">变量名（N）:HADOOP_HOME</span><br><span class="line">变量值（V）:D:\hadoop-2.9.2</span><br></pre></td></tr></table></figure>
 <p>同时将hadoop下面的bin目录添加到Path中。<br>win10系统直接添加<code>%HADOOP_HOME%\bin</code>即可。</p>
 <h2 id="查看hadoop版本"><a href="#查看hadoop版本" class="headerlink" title="查看hadoop版本"></a>查看hadoop版本</h2><p>配置完成之后打开cmd控制台，查看相关hadoop版本。</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">C:\Users\henrr&gt;hadoop version</span><br><span class="line">Hadoop 2.9.2</span><br><span class="line">Subversion https://git-wip-us.apache.org/repos/asf/hadoop.git -r 826afbeae31ca687bc2f8471dc841b66ed2c6704</span><br><span class="line">Compiled by ajisaka on 2018-11-13T12:42Z</span><br><span class="line">Compiled with protoc 2.5.0</span><br><span class="line">From source with checksum 3a9939967262218aa556c684d107985</span><br><span class="line">This command was run using /D:/hadoop-2.9.2/share/hadoop/common/hadoop-common-2.9.2.jar</span><br></pre></td></tr></table></figure>
@@ -198,7 +198,7 @@
 <div id="share-mask"></div>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spark%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" rel="tag">Spark入门学习</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spark%E5%85%A5%E9%97%A8/" rel="tag">Spark入门</a></li></ul>
 
 
     </footer>

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Spark源码学习：Shuffle |  大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-Spark/Spark源码学习：Shuffle" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Spark源码学习：Shuffle
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/03/01/Spark/Spark%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9AShuffle/" class="article-date">
+  <time datetime="2023-03-01T02:00:00.000Z" itemprop="datePublished">2023-03-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spark/">Spark</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.4k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">7 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Spark源码学习：Shuffle"><a href="#Spark源码学习：Shuffle" class="headerlink" title="Spark源码学习：Shuffle"></a>Spark源码学习：Shuffle</h1><h2 id="ShuffleMapStage-amp-ResultStage"><a href="#ShuffleMapStage-amp-ResultStage" class="headerlink" title="ShuffleMapStage&amp;ResultStage"></a>ShuffleMapStage&amp;ResultStage</h2><p>在划分Stage时，最后一个Stage称为finalStage， 它本质上是一个ResultStage对象。<br>前面的所有Stage被称为shuffleMapStage。<br>ShuffleMapStage的结束伴随着Shuffle文件的写磁盘。</p>
+<h2 id="org-apache-spark-scheduler-DAGScheduler"><a href="#org-apache-spark-scheduler-DAGScheduler" class="headerlink" title="org.apache.spark.scheduler.DAGScheduler"></a>org.apache.spark.scheduler.DAGScheduler</h2><p>在DAGScheduler里处理Tasks时，根据stage进行模式匹配。这里先看ShuffleMapTask（包含Shuffle Write写操作）。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> tasks: <span class="type">Seq</span>[<span class="type">Task</span>[_]] = <span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="keyword">val</span> serializedTaskMetrics = closureSerializer.serialize(stage.latestInfo.taskMetrics).array()</span><br><span class="line">  stage <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> stage: <span class="type">ShuffleMapStage</span> =&gt;</span><br><span class="line">      stage.pendingPartitions.clear()</span><br><span class="line">      partitionsToCompute.map &#123; id =&gt;</span><br><span class="line">        <span class="keyword">val</span> locs = taskIdToLocations(id)</span><br><span class="line">        <span class="keyword">val</span> part = partitions(id)</span><br><span class="line">        stage.pendingPartitions += id</span><br><span class="line">        <span class="keyword">new</span> <span class="type">ShuffleMapTask</span>(stage.id, stage.latestInfo.attemptNumber,</span><br><span class="line">          taskBinary, part, locs, properties, serializedTaskMetrics, <span class="type">Option</span>(jobId),</span><br><span class="line">          <span class="type">Option</span>(sc.applicationId), sc.applicationAttemptId, stage.rdd.isBarrier())</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">case</span> stage: <span class="type">ResultStage</span> =&gt;</span><br><span class="line">      partitionsToCompute.map &#123; id =&gt;</span><br><span class="line">        <span class="keyword">val</span> p: <span class="type">Int</span> = stage.partitions(id)</span><br><span class="line">        <span class="keyword">val</span> part = partitions(p)</span><br><span class="line">        <span class="keyword">val</span> locs = taskIdToLocations(id)</span><br><span class="line">        <span class="keyword">new</span> <span class="type">ResultTask</span>(stage.id, stage.latestInfo.attemptNumber,</span><br><span class="line">          taskBinary, part, locs, id, properties, serializedTaskMetrics,</span><br><span class="line">          <span class="type">Option</span>(jobId), <span class="type">Option</span>(sc.applicationId), sc.applicationAttemptId,</span><br><span class="line">          stage.rdd.isBarrier())</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125; <span class="keyword">catch</span> &#123;</span><br><span class="line">  <span class="keyword">case</span> <span class="type">NonFatal</span>(e) =&gt;</span><br><span class="line">    abortStage(stage, <span class="string">s"Task creation failed: <span class="subst">$e</span>\n<span class="subst">$&#123;Utils.exceptionString(e)&#125;</span>"</span>, <span class="type">Some</span>(e))</span><br><span class="line">    runningStages -= stage</span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="org-apache-spark-scheduler-ShuffleMapTask"><a href="#org-apache-spark-scheduler-ShuffleMapTask" class="headerlink" title="org.apache.spark.scheduler.ShuffleMapTask"></a>org.apache.spark.scheduler.ShuffleMapTask</h3><p>在ShuffleMapTask中，有一个runTask()方法。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dep.shuffleWriterProcessor.write(rdd, dep, mapId, context, partition)</span><br></pre></td></tr></table></figure>
+
+<h3 id="org-apache-spark-shuffle-ShuffleWriteProcessor"><a href="#org-apache-spark-shuffle-ShuffleWriteProcessor" class="headerlink" title="org.apache.spark.shuffle.ShuffleWriteProcessor"></a>org.apache.spark.shuffle.ShuffleWriteProcessor</h3><p>跳转到write方法，有个write操作。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这里会获取shuffleManager。在Spark早期有HashShuffleManager，现在只有SortShuffleManager。</span></span><br><span class="line"><span class="keyword">val</span> manager = <span class="type">SparkEnv</span>.get.shuffleManager</span><br><span class="line">writer = manager.getWriter[<span class="type">Any</span>, <span class="type">Any</span>](</span><br><span class="line">  dep.shuffleHandle,</span><br><span class="line">  mapId,</span><br><span class="line">  context,</span><br><span class="line">  createMetricsReporter(context))</span><br><span class="line"></span><br><span class="line">writer.write(</span><br><span class="line">  rdd.iterator(partition, context).asInstanceOf[<span class="type">Iterator</span>[_ &lt;: <span class="type">Product2</span>[<span class="type">Any</span>, <span class="type">Any</span>]]])</span><br></pre></td></tr></table></figure>
+<p>这里点击查看write方法，发现是一个抽象方法，必然有实现。Ctrl+H快捷查看发现，ShuffleWriter类一共有三个实现类。<br>分别是：BypassMergeSortShuffleWriter、UnsafeShuffleWriter以及SortShuffleWriter。</p>
+<h4 id="org-apache-spark-shuffle-ShuffleWriter"><a href="#org-apache-spark-shuffle-ShuffleWriter" class="headerlink" title="org.apache.spark.shuffle.ShuffleWriter"></a>org.apache.spark.shuffle.ShuffleWriter</h4><p>具体选择哪个write类实现由前面的SortShuffleManager管理。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getWriter</span></span>[<span class="type">K</span>, <span class="type">V</span>](</span><br><span class="line">    handle: <span class="type">ShuffleHandle</span>,</span><br><span class="line">    mapId: <span class="type">Long</span>,</span><br><span class="line">    context: <span class="type">TaskContext</span>,</span><br><span class="line">    metrics: <span class="type">ShuffleWriteMetricsReporter</span>): <span class="type">ShuffleWriter</span>[<span class="type">K</span>, <span class="type">V</span>] = &#123;</span><br><span class="line">  <span class="keyword">val</span> mapTaskIds = taskIdMapsForShuffle.computeIfAbsent(</span><br><span class="line">    handle.shuffleId, _ =&gt; <span class="keyword">new</span> <span class="type">OpenHashSet</span>[<span class="type">Long</span>](<span class="number">16</span>))</span><br><span class="line">  mapTaskIds.synchronized &#123; mapTaskIds.add(context.taskAttemptId()) &#125;</span><br><span class="line">  <span class="keyword">val</span> env = <span class="type">SparkEnv</span>.get</span><br><span class="line">  handle <span class="keyword">match</span> &#123;</span><br><span class="line">    <span class="keyword">case</span> unsafeShuffleHandle: <span class="type">SerializedShuffleHandle</span>[<span class="type">K</span> <span class="meta">@unchecked</span>, <span class="type">V</span> <span class="meta">@unchecked</span>] =&gt;</span><br><span class="line">      <span class="keyword">new</span> <span class="type">UnsafeShuffleWriter</span>(</span><br><span class="line">        env.blockManager,</span><br><span class="line">        context.taskMemoryManager(),</span><br><span class="line">        unsafeShuffleHandle,</span><br><span class="line">        mapId,</span><br><span class="line">        context,</span><br><span class="line">        env.conf,</span><br><span class="line">        metrics,</span><br><span class="line">        shuffleExecutorComponents)</span><br><span class="line">    <span class="keyword">case</span> bypassMergeSortHandle: <span class="type">BypassMergeSortShuffleHandle</span>[<span class="type">K</span> <span class="meta">@unchecked</span>, <span class="type">V</span> <span class="meta">@unchecked</span>] =&gt;</span><br><span class="line">      <span class="keyword">new</span> <span class="type">BypassMergeSortShuffleWriter</span>(</span><br><span class="line">        env.blockManager,</span><br><span class="line">        bypassMergeSortHandle,</span><br><span class="line">        mapId,</span><br><span class="line">        env.conf,</span><br><span class="line">        metrics,</span><br><span class="line">        shuffleExecutorComponents)</span><br><span class="line">    <span class="keyword">case</span> other: <span class="type">BaseShuffleHandle</span>[<span class="type">K</span> <span class="meta">@unchecked</span>, <span class="type">V</span> <span class="meta">@unchecked</span>, _] =&gt;</span><br><span class="line">      <span class="keyword">new</span> <span class="type">SortShuffleWriter</span>(</span><br><span class="line">        shuffleBlockResolver, other, mapId, context, shuffleExecutorComponents)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在方法里面有具体的实现：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">registerShuffle</span></span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>](</span><br><span class="line">    shuffleId: <span class="type">Int</span>,</span><br><span class="line">    dependency: <span class="type">ShuffleDependency</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>]): <span class="type">ShuffleHandle</span> = &#123;</span><br><span class="line">  <span class="keyword">if</span> (<span class="type">SortShuffleWriter</span>.shouldBypassMergeSort(conf, dependency)) &#123;</span><br><span class="line">    <span class="comment">// If there are fewer than spark.shuffle.sort.bypassMergeThreshold partitions and we don't</span></span><br><span class="line">    <span class="comment">// need map-side aggregation, then write numPartitions files directly and just concatenate</span></span><br><span class="line">    <span class="comment">// them at the end. This avoids doing serialization and deserialization twice to merge</span></span><br><span class="line">    <span class="comment">// together the spilled files, which would happen with the normal code path. The downside is</span></span><br><span class="line">    <span class="comment">// having multiple files open at a time and thus more memory allocated to buffers.</span></span><br><span class="line">    <span class="keyword">new</span> <span class="type">BypassMergeSortShuffleHandle</span>[<span class="type">K</span>, <span class="type">V</span>](</span><br><span class="line">      shuffleId, dependency.asInstanceOf[<span class="type">ShuffleDependency</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">V</span>]])</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="type">SortShuffleManager</span>.canUseSerializedShuffle(dependency)) &#123;</span><br><span class="line">    <span class="comment">// Otherwise, try to buffer map outputs in a serialized form, since this is more efficient:</span></span><br><span class="line">    <span class="keyword">new</span> <span class="type">SerializedShuffleHandle</span>[<span class="type">K</span>, <span class="type">V</span>](</span><br><span class="line">      shuffleId, dependency.asInstanceOf[<span class="type">ShuffleDependency</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">V</span>]])</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// Otherwise, buffer map outputs in a deserialized form:</span></span><br><span class="line">    <span class="keyword">new</span> <span class="type">BaseShuffleHandle</span>(shuffleId, dependency)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里简单整理三个实现类：</p>
+<table>
+<thead>
+<tr>
+<th>ShuffleWriter实现类</th>
+<th>handle处理器</th>
+<th>使用条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>BypassMergeSortShuffleWriter</td>
+<td>BypassMergeSortShuffleHandle</td>
+<td>1.不能使用预聚合；2.下游的分区数小于等于 200。</td>
+</tr>
+<tr>
+<td>UnsafeShuffleWriter</td>
+<td>SerializedShuffleHandle</td>
+<td>1.序列化操作支持重定位（Java序列化不支持，Kryo支持）；2.不能使用预聚合；3.下游的分区数不能超过16777216</td>
+</tr>
+<tr>
+<td>SortShuffleWriter</td>
+<td>BaseShuffleHandle</td>
+<td>不满足BypassMergeSortShuffleWriter和SortShuffleWriter</td>
+</tr>
+</tbody></table>
+<h4 id="org-apache-spark-shuffle-sort-SortShuffleWriter"><a href="#org-apache-spark-shuffle-sort-SortShuffleWriter" class="headerlink" title="org.apache.spark.shuffle.sort.SortShuffleWriter"></a>org.apache.spark.shuffle.sort.SortShuffleWriter</h4><p>这里以SortShuffleWriter为例。查看write方法。由于SortShuffleWriter是支持预聚合操作的，这里首先会进行预聚合的判断以及相关操作。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1.这里会做预聚合相关操作</span></span><br><span class="line">sorter.insertAll(records)</span><br><span class="line"><span class="keyword">val</span> mapOutputWriter = shuffleExecutorComponents.createMapOutputWriter(</span><br><span class="line">  dep.shuffleId, mapId, dep.partitioner.numPartitions)</span><br><span class="line">sorter.writePartitionedMapOutput(dep.shuffleId, mapId, mapOutputWriter)</span><br><span class="line"><span class="comment">// 2.ShuffleWrite操作</span></span><br><span class="line"><span class="keyword">val</span> partitionLengths = mapOutputWriter.commitAllPartitions()</span><br><span class="line">mapStatus = <span class="type">MapStatus</span>(blockManager.shuffleServerId, partitionLengths, mapId)</span><br></pre></td></tr></table></figure>
+<p>需要注意的是在预聚合的判断里，会根据是否预聚合来用不同的数据结构存储数据。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@volatile</span> <span class="keyword">private</span> <span class="keyword">var</span> map = <span class="keyword">new</span> <span class="type">PartitionedAppendOnlyMap</span>[<span class="type">K</span>, <span class="type">C</span>]</span><br><span class="line"><span class="meta">@volatile</span> <span class="keyword">private</span> <span class="keyword">var</span> buffer = <span class="keyword">new</span> <span class="type">PartitionedPairBuffer</span>[<span class="type">K</span>, <span class="type">C</span>]</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">def</span> <span class="title">insertAll</span></span>(records: <span class="type">Iterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>]]): <span class="type">Unit</span> = &#123;</span><br><span class="line">  <span class="comment">// <span class="doctag">TODO:</span> stop combining if we find that the reduction factor isn't high</span></span><br><span class="line">  <span class="keyword">val</span> shouldCombine = aggregator.isDefined</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (shouldCombine) &#123;</span><br><span class="line">    <span class="comment">// Combine values in-memory first using our AppendOnlyMap</span></span><br><span class="line">    <span class="keyword">val</span> mergeValue = aggregator.get.mergeValue</span><br><span class="line">    <span class="keyword">val</span> createCombiner = aggregator.get.createCombiner</span><br><span class="line">    <span class="keyword">var</span> kv: <span class="type">Product2</span>[<span class="type">K</span>, <span class="type">V</span>] = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">val</span> update = (hadValue: <span class="type">Boolean</span>, oldValue: <span class="type">C</span>) =&gt; &#123;</span><br><span class="line">      <span class="keyword">if</span> (hadValue) mergeValue(oldValue, kv._2) <span class="keyword">else</span> createCombiner(kv._2)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">while</span> (records.hasNext) &#123;</span><br><span class="line">      addElementsRead()</span><br><span class="line">      kv = records.next()</span><br><span class="line">      map.changeValue((getPartition(kv._1), kv._1), update)</span><br><span class="line">      maybeSpillCollection(usingMap = <span class="literal">true</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// Stick values into our buffer</span></span><br><span class="line">    <span class="keyword">while</span> (records.hasNext) &#123;</span><br><span class="line">      addElementsRead()</span><br><span class="line">      <span class="keyword">val</span> kv = records.next()</span><br><span class="line">      buffer.insert(getPartition(kv._1), kv._1, kv._2.asInstanceOf[<span class="type">C</span>])</span><br><span class="line">      maybeSpillCollection(usingMap = <span class="literal">false</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里有一个commitAllPartitions方法，发现跳转的也是一个抽象类方法。我们找到具体的实现类。</p>
+<h4 id="org-apache-spark-shuffle-sort-io-LocalDiskShuffleMapOutputWriter"><a href="#org-apache-spark-shuffle-sort-io-LocalDiskShuffleMapOutputWriter" class="headerlink" title="org.apache.spark.shuffle.sort.io.LocalDiskShuffleMapOutputWriter"></a>org.apache.spark.shuffle.sort.io.LocalDiskShuffleMapOutputWriter</h4><p>在LocalDiskShuffleMapOutputWriter的commitAllPartitions方法里面，我们发现</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">blockResolver.writeIndexFileAndCommit(shuffleId, mapId, partitionLengths, resolvedTmp);</span><br></pre></td></tr></table></figure>
+<p>在这个方法里面我们发现有两个核心文件处理：indexFile和dataFile。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">if (indexFile.exists()) &#123;</span><br><span class="line">  indexFile.delete()</span><br><span class="line">&#125;</span><br><span class="line">if (dataFile.exists()) &#123;</span><br><span class="line">  dataFile.delete()</span><br><span class="line">&#125;</span><br><span class="line">if (!indexTmp.renameTo(indexFile)) &#123;</span><br><span class="line">  throw new IOException(&quot;fail to rename file &quot; + indexTmp + &quot; to &quot; + indexFile)</span><br><span class="line">&#125;</span><br><span class="line">if (dataTmp !&#x3D; null &amp;&amp; dataTmp.exists() &amp;&amp; !dataTmp.renameTo(dataFile)) &#123;</span><br><span class="line">  throw new IOException(&quot;fail to rename file &quot; + dataTmp + &quot; to &quot; + dataFile)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="org-apache-spark-scheduler-ResultTask"><a href="#org-apache-spark-scheduler-ResultTask" class="headerlink" title="org.apache.spark.scheduler.ResultTask"></a>org.apache.spark.scheduler.ResultTask</h3><p>在ResultTask中必然包含着Shuffle Read的相关操作。这里同样有一个runTask()方法。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">runTask</span></span>(context: <span class="type">TaskContext</span>): <span class="type">U</span> = &#123;</span><br><span class="line">  <span class="comment">// TODO</span></span><br><span class="line">  func(context, rdd.iterator(partition, context))</span><br><span class="line">&#125;</span><br><span class="line"> <span class="comment">// 跳转到这个迭代器里面</span></span><br><span class="line">  <span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">iterator</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] = &#123;</span><br><span class="line">  <span class="keyword">if</span> (storageLevel != <span class="type">StorageLevel</span>.<span class="type">NONE</span>) &#123;</span><br><span class="line">    getOrCompute(split, context)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    computeOrReadCheckpoint(split, context)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>查看getOrCompute方法，里面有一个computeOrReadCheckpoint(partition, context)方法。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>[spark] <span class="function"><span class="keyword">def</span> <span class="title">computeOrReadCheckpoint</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] =</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">if</span> (isCheckpointedAndMaterialized) &#123;</span><br><span class="line">    firstParent[<span class="type">T</span>].iterator(split, context)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    compute(split, context)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>点击compute发现是一个抽象方法，这里进行的是Shuffle操作，确定ShuffleRDD实现类。</p>
+<h4 id="org-apache-spark-rdd-ShuffledRDD"><a href="#org-apache-spark-rdd-ShuffledRDD" class="headerlink" title="org.apache.spark.rdd.ShuffledRDD"></a>org.apache.spark.rdd.ShuffledRDD</h4><p>查看compute方法。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">compute</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)] = &#123;</span><br><span class="line">  <span class="keyword">val</span> dep = dependencies.head.asInstanceOf[<span class="type">ShuffleDependency</span>[<span class="type">K</span>, <span class="type">V</span>, <span class="type">C</span>]]</span><br><span class="line">  <span class="keyword">val</span> metrics = context.taskMetrics().createTempShuffleReadMetrics()</span><br><span class="line">  <span class="type">SparkEnv</span>.get.shuffleManager.getReader(</span><br><span class="line">    dep.shuffleHandle, split.index, split.index + <span class="number">1</span>, context, metrics)</span><br><span class="line">    .read()</span><br><span class="line">    .asInstanceOf[<span class="type">Iterator</span>[(<span class="type">K</span>, <span class="type">C</span>)]]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里发现有个read的抽象方法，我们找到它的实现类，查看read方法的实现。</p>
+<h4 id="org-apache-spark-shuffle-BlockStoreShuffleReader"><a href="#org-apache-spark-shuffle-BlockStoreShuffleReader" class="headerlink" title="org.apache.spark.shuffle.BlockStoreShuffleReader"></a>org.apache.spark.shuffle.BlockStoreShuffleReader</h4><p>这里的read方法就是Shuffle Read读数据操作的地方。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">read</span></span>(): <span class="type">Iterator</span>[<span class="type">Product2</span>[<span class="type">K</span>, <span class="type">C</span>]] = &#123;</span><br><span class="line"><span class="comment">// TODO</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2023/03/01/Spark/Spark%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9AShuffle/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spark%E8%BF%9B%E9%98%B6/" rel="tag">Spark进阶</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+    
+      <a href="/2023/02/15/Spark/Spark%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%89%A7%E8%A1%8C/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Spark源码学习：应用程序执行</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2023
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+
+<!-- 复制 -->
+
+  
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+
+    
+  </div>
+</body>
+
+</html>
