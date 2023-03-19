@@ -13,7 +13,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Spark源码学习：应用程序提交（YARN Cluster&amp;Client） |  大数据学习笔记
+    Spark源码学习：应用程序提交 |  大数据学习笔记
   </title>
   <meta name="generator" content="hexo-theme-ayer">
   
@@ -45,7 +45,7 @@
   <div id="app">
     <main class="content on">
       <section class="outer">
-  <article id="post-Spark/Spark源码学习：应用程序提交（YARN Cluster&amp;Client）" class="article article-type-post" itemscope
+  <article id="post-Spark/Spark源码学习：应用程序提交" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -53,7 +53,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Spark源码学习：应用程序提交（YARN Cluster&amp;Client）
+  Spark源码学习：应用程序提交
 </h1>
  
 
@@ -62,7 +62,7 @@
 
     
     <div class="article-meta">
-      <a href="/2023/02/01/Spark/Spark%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4%EF%BC%88YARN%20Cluster&Client%EF%BC%89/" class="article-date">
+      <a href="/2023/02/01/Spark/Spark%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4/" class="article-date">
   <time datetime="2023-02-01T02:00:00.000Z" itemprop="datePublished">2023-02-01</time>
 </a>
       
@@ -111,7 +111,7 @@
       
 
       
-      <h1 id="Spark源码学习：应用程序提交（YARN-Cluster-amp-Client）"><a href="#Spark源码学习：应用程序提交（YARN-Cluster-amp-Client）" class="headerlink" title="Spark源码学习：应用程序提交（YARN Cluster&amp;Client）"></a>Spark源码学习：应用程序提交（YARN Cluster&amp;Client）</h1><h2 id="org-apache-spark-deploy-SparkSubmit"><a href="#org-apache-spark-deploy-SparkSubmit" class="headerlink" title="org.apache.spark.deploy.SparkSubmit"></a>org.apache.spark.deploy.SparkSubmit</h2><p>一个标准Spark程序的提交参数如下：</p>
+      <h1 id="Spark源码学习：应用程序提交"><a href="#Spark源码学习：应用程序提交" class="headerlink" title="Spark源码学习：应用程序提交"></a>Spark源码学习：应用程序提交</h1><h2 id="org-apache-spark-deploy-SparkSubmit"><a href="#org-apache-spark-deploy-SparkSubmit" class="headerlink" title="org.apache.spark.deploy.SparkSubmit"></a>org.apache.spark.deploy.SparkSubmit</h2><p>一个标准Spark程序的提交参数如下：</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">./bin/spark-submit \</span><br><span class="line">  --class org.apache.spark.examples.SparkPi \</span><br><span class="line">  --master yarn \</span><br><span class="line">  --deploy-mode cluster \</span><br><span class="line">  --executor-memory 20G \</span><br><span class="line">  --num-executors 50 \</span><br><span class="line">  /path/to/examples.jar \</span><br><span class="line">  1000</span><br></pre></td></tr></table></figure>
 <p>通过查看Shell命令发现这里实际上是执行</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java org.apache.spark.deploy.SparkSubmit</span><br></pre></td></tr></table></figure>
@@ -281,7 +281,7 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2023/02/01/Spark/Spark%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4%EF%BC%88YARN%20Cluster&Client%EF%BC%89/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2023/02/01/Spark/Spark%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -309,9 +309,9 @@
       </a>
     
     
-      <a href="/2023/01/31/Spark/Spark%20SQL%E8%B0%83%E4%BC%98/" class="article-nav-link">
+      <a href="/2023/01/31/Hive/Hive%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Spark SQL调优</div>
+        <div class="article-nav-title">Hive源码学习：应用程序提交</div>
       </a>
     
   </nav>

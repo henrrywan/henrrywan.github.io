@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Hive源码学习：应用程序提交 |  大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-Hive/Hive源码学习：应用程序提交" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Hive源码学习：应用程序提交
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/01/31/Hive/Hive%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4/" class="article-date">
+  <time datetime="2023-01-31T02:00:00.000Z" itemprop="datePublished">2023-01-31</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hive/">Hive</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">3.7k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">19 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Hive源码学习：应用程序提交"><a href="#Hive源码学习：应用程序提交" class="headerlink" title="Hive源码学习：应用程序提交"></a>Hive源码学习：应用程序提交</h1><h2 id="核心组件"><a href="#核心组件" class="headerlink" title="核心组件"></a>核心组件</h2><p>SQL Parser：解析器<br>Physical Plan：编译器<br>Query  Optimizer：优化器<br>Execution：执行器</p>
+<h2 id="HQL编译MR流程"><a href="#HQL编译MR流程" class="headerlink" title="HQL编译MR流程"></a>HQL编译MR流程</h2><p>先看具体流程图：</p>
+<img src="/2023/01/31/Hive/Hive%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4/HQL%E7%BC%96%E8%AF%91%E6%B5%81%E7%A8%8B.png" class="">
+
+
+<p>通过流程图，对相关流程进行总结：</p>
+<ol>
+<li>提交作业，进入程序，定义HQL的语法规则，对HQL完成语法解析，将HQL转换为AST（抽象语法树）</li>
+<li>遍历AST，抽象出查询的基本组成单元QueryBlock（查询块）</li>
+<li>遍历QueryBlock，将其转换成OperatorTree（操作树，也就是逻辑执行计划）</li>
+<li>利用逻辑优化器对OperatorTree进行逻辑优化</li>
+<li>遍历OperatorTree，转换为TaskTree。也就是翻译为MR任务的流程，将逻辑执行计划转换为物理执行计划</li>
+<li>使用物理优化器对TaskTree进行物理优化</li>
+<li>生成最终的执行计划，提交任务到Hadoop集群运行。</li>
+</ol>
+<h2 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h2><p>根据上面的流程图，我们查看具体源码。</p>
+<h3 id="新建CliDriver"><a href="#新建CliDriver" class="headerlink" title="新建CliDriver"></a>新建CliDriver</h3><p>CliDriver主要负责：</p>
+<ul>
+<li>解析客户端-e、-f等参数</li>
+<li>定义标准输入输出流</li>
+<li>定义Hive客户端输出前缀</li>
+<li>切分HQL，执行HQL</li>
+</ul>
+<p>一个通用的提交程序是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bin&#x2F;hive -e &quot;select * from table&quot;</span><br></pre></td></tr></table></figure>
+<p>通过查看shell脚本，找到程序入口：<code>org.apache.hadoop.hive.cli.CliDriver</code></p>
+<p>核心源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment">// 确定程序入口，找到main方法</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> ret = <span class="keyword">new</span> CliDriver().run(args);</span><br><span class="line">  System.exit(ret);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 通过main方法找到run方法。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span>  <span class="keyword">int</span> <span class="title">run</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">  OptionsProcessor oproc = <span class="keyword">new</span> OptionsProcessor();</span><br><span class="line">  <span class="comment">// 参数解析：hiveconf等</span></span><br><span class="line">  <span class="keyword">if</span> (!oproc.process_stage1(args)) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">boolean</span> logInitFailed = <span class="keyword">false</span>;</span><br><span class="line">  String logInitDetailMessage;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    logInitDetailMessage = LogUtils.initHiveLog4j();</span><br><span class="line">  &#125; <span class="keyword">catch</span> (LogInitializationException e) &#123;</span><br><span class="line">    logInitFailed = <span class="keyword">true</span>;</span><br><span class="line">    logInitDetailMessage = e.getMessage();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  CliSessionState ss = <span class="keyword">new</span> CliSessionState(<span class="keyword">new</span> HiveConf(SessionState<span class="class">.<span class="keyword">class</span>))</span>;</span><br><span class="line">  <span class="comment">// 定义标准输入输出流</span></span><br><span class="line">  ss.in = System.in;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    ss.out = <span class="keyword">new</span> PrintStream(System.out, <span class="keyword">true</span>, <span class="string">"UTF-8"</span>);</span><br><span class="line">    ss.info = <span class="keyword">new</span> PrintStream(System.err, <span class="keyword">true</span>, <span class="string">"UTF-8"</span>);</span><br><span class="line">    ss.err = <span class="keyword">new</span> CachingPrintStream(System.err, <span class="keyword">true</span>, <span class="string">"UTF-8"</span>);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">3</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 参数解析：-e、-f等。</span></span><br><span class="line">  <span class="keyword">if</span> (!oproc.process_stage2(ss)) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">2</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!ss.getIsSilent()) &#123;</span><br><span class="line">    <span class="keyword">if</span> (logInitFailed) &#123;</span><br><span class="line">      System.err.println(logInitDetailMessage);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      SessionState.getConsole().printInfo(logInitDetailMessage);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// set all properties specified via command line</span></span><br><span class="line">  HiveConf conf = ss.getConf();</span><br><span class="line">  <span class="keyword">for</span> (Map.Entry&lt;Object, Object&gt; item : ss.cmdProperties.entrySet()) &#123;</span><br><span class="line">    conf.set((String) item.getKey(), (String) item.getValue());</span><br><span class="line">    ss.getOverriddenConfigurations().put((String) item.getKey(), (String) item.getValue());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 定义hive客户端前缀。默认hive,客户端体现 hive&gt;</span></span><br><span class="line">  <span class="comment">// read prompt configuration and substitute variables.</span></span><br><span class="line">  prompt = conf.getVar(HiveConf.ConfVars.CLIPROMPT);</span><br><span class="line">  prompt = <span class="keyword">new</span> VariableSubstitution(<span class="keyword">new</span> HiveVariableSource() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, String&gt; <span class="title">getHiveVariable</span><span class="params">()</span> </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> SessionState.get().getHiveVariables();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;).substitute(conf, prompt);</span><br><span class="line">  prompt2 = spacesForString(prompt);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (HiveConf.getBoolVar(conf, ConfVars.HIVE_CLI_TEZ_SESSION_ASYNC)) &#123;</span><br><span class="line">    <span class="comment">// Start the session in a fire-and-forget manner. When the asynchronously initialized parts of</span></span><br><span class="line">    <span class="comment">// the session are needed, the corresponding getters and other methods will wait as needed.</span></span><br><span class="line">    SessionState.beginStart(ss, console);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    SessionState.start(ss);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ss.updateThreadName();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Create views registry</span></span><br><span class="line">  HiveMaterializedViewsRegistry.get().init();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// execute cli driver work</span></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 这里是启动一个Hive Cli客户端。</span></span><br><span class="line">    <span class="keyword">return</span> executeDriver(ss, conf, oproc);</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    ss.resetThreadName();</span><br><span class="line">    ss.close();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="初始化Hive-Cli客户端"><a href="#初始化Hive-Cli客户端" class="headerlink" title="初始化Hive Cli客户端"></a>初始化Hive Cli客户端</h3><p>这里主要包括：</p>
+<p>1.如果是quit或者exit，关闭客户端并退出<br>2.如果是source，在Hive Cli中来执行一个HQL文件<br>3.如果是!则执行一个shell命令<br>4.如果是标准的HQL，执行HQL命令</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//初始化Hive Cli客户端，处理SQL语句。</span></span><br><span class="line"> <span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">executeDriver</span><span class="params">(CliSessionState ss, HiveConf conf, OptionsProcessor oproc)</span></span></span><br><span class="line"><span class="function">     <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">   CliDriver cli = <span class="keyword">new</span> CliDriver();</span><br><span class="line">   cli.setHiveVariables(oproc.getHiveVariables());</span><br><span class="line"></span><br><span class="line">   <span class="comment">// TODO</span></span><br><span class="line">   <span class="comment">// MR引擎输出信息</span></span><br><span class="line">   <span class="keyword">if</span> (<span class="string">"mr"</span>.equals(HiveConf.getVar(conf, ConfVars.HIVE_EXECUTION_ENGINE))) &#123;</span><br><span class="line">     console.printInfo(HiveConf.generateMrDeprecationWarning());</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 初始化控制台阅读器</span></span><br><span class="line">   setupConsoleReader();</span><br><span class="line"></span><br><span class="line">   String line;</span><br><span class="line">   <span class="keyword">int</span> ret = <span class="number">0</span>;</span><br><span class="line">   String prefix = <span class="string">""</span>;</span><br><span class="line">   String curDB = getFormattedDb(conf, ss);</span><br><span class="line">   String curPrompt = prompt + curDB;</span><br><span class="line">   String dbSpaces = spacesForString(curDB);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">while</span> ((line = reader.readLine(curPrompt + <span class="string">"&gt; "</span>)) != <span class="keyword">null</span>) &#123;</span><br><span class="line">     <span class="keyword">if</span> (!prefix.equals(<span class="string">""</span>)) &#123;</span><br><span class="line">       prefix += <span class="string">'\n'</span>;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="comment">// Hive Cli中用--表示注释。如果遇见--注释，直接跳过。</span></span><br><span class="line">     <span class="keyword">if</span> (line.trim().startsWith(<span class="string">"--"</span>)) &#123;</span><br><span class="line">       <span class="keyword">continue</span>;</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="comment">// 如果以;结尾说明一个SQL结束。处理SQL。</span></span><br><span class="line">     <span class="keyword">if</span> (line.trim().endsWith(<span class="string">";"</span>) &amp;&amp; !line.trim().endsWith(<span class="string">"\\;"</span>)) &#123;</span><br><span class="line">       line = prefix + line;</span><br><span class="line">       ret = cli.processLine(line, <span class="keyword">true</span>);</span><br><span class="line">       prefix = <span class="string">""</span>;</span><br><span class="line">       curDB = getFormattedDb(conf, ss);</span><br><span class="line">       curPrompt = prompt + curDB;</span><br><span class="line">       dbSpaces = dbSpaces.length() == curDB.length() ? dbSpaces : spacesForString(curDB);</span><br><span class="line">     &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">       prefix = prefix + line;</span><br><span class="line">       curPrompt = prompt2 + dbSpaces;</span><br><span class="line">       <span class="keyword">continue</span>;</span><br><span class="line">     &#125;</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">return</span> ret;</span><br><span class="line"> &#125;</span><br><span class="line"> </span><br><span class="line">  <span class="comment">// 进入processLine方法，处理SQL</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">processLine</span><span class="params">(String line, <span class="keyword">boolean</span> allowInterrupting)</span> </span>&#123;</span><br><span class="line"><span class="comment">// TODO</span></span><br><span class="line">ret = processCmd(command);</span><br><span class="line">command = <span class="string">""</span>;</span><br><span class="line">lastRet = ret;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="分情况处理HQL"><a href="#分情况处理HQL" class="headerlink" title="分情况处理HQL"></a>分情况处理HQL</h4><p>这里主要包括：</p>
+<p>1.如果是quit或者exit，关闭客户端并退出<br>2.如果是source，在Hive Cli中来执行一个HQL文件<br>3.如果是!则执行一个shell命令<br>4.如果是标准的HQL，执行HQL命令</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">   * 分情况处理SQL</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@param</span> cmd</span></span><br><span class="line"><span class="comment">   * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">processCmd</span><span class="params">(String cmd)</span> </span>&#123;</span><br><span class="line">    CliSessionState ss = (CliSessionState) SessionState.get();</span><br><span class="line">    ss.setLastCommand(cmd);</span><br><span class="line"></span><br><span class="line">    ss.updateThreadName();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Flush the print stream, so it doesn't include output from the last command</span></span><br><span class="line">    ss.err.flush();</span><br><span class="line">    String cmd_trimmed = HiveStringUtils.removeComments(cmd).trim();</span><br><span class="line">    String[] tokens = tokenizeCmd(cmd_trimmed);</span><br><span class="line">    <span class="keyword">int</span> ret = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果是quit或者exit，关闭客户端并退出。</span></span><br><span class="line">    <span class="keyword">if</span> (cmd_trimmed.toLowerCase().equals(<span class="string">"quit"</span>) || cmd_trimmed.toLowerCase().equals(<span class="string">"exit"</span>)) &#123;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// if we have come this far - either the previous commands</span></span><br><span class="line">      <span class="comment">// are all successful or this is command line. in either case</span></span><br><span class="line">      <span class="comment">// this counts as a successful run</span></span><br><span class="line">      ss.close();</span><br><span class="line">      System.exit(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// 如果是source，在Hive Cli中来执行一个HQL文件</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (tokens[<span class="number">0</span>].equalsIgnoreCase(<span class="string">"source"</span>)) &#123;</span><br><span class="line">      String cmd_1 = getFirstCmd(cmd_trimmed, tokens[<span class="number">0</span>].length());</span><br><span class="line">      cmd_1 = <span class="keyword">new</span> VariableSubstitution(<span class="keyword">new</span> HiveVariableSource() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Map&lt;String, String&gt; <span class="title">getHiveVariable</span><span class="params">()</span> </span>&#123;</span><br><span class="line">          <span class="keyword">return</span> SessionState.get().getHiveVariables();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;).substitute(ss.getConf(), cmd_1);</span><br><span class="line"></span><br><span class="line">      File sourceFile = <span class="keyword">new</span> File(cmd_1);</span><br><span class="line">      <span class="keyword">if</span> (! sourceFile.isFile())&#123;</span><br><span class="line">        console.printError(<span class="string">"File: "</span>+ cmd_1 + <span class="string">" is not a file."</span>);</span><br><span class="line">        ret = <span class="number">1</span>;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">          ret = processFile(cmd_1);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">          console.printError(<span class="string">"Failed processing file "</span>+ cmd_1 +<span class="string">" "</span>+ e.getLocalizedMessage(),</span><br><span class="line">            stringifyException(e));</span><br><span class="line">          ret = <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 如果是!则执行一个shell命令</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (cmd_trimmed.startsWith(<span class="string">"!"</span>)) &#123;</span><br><span class="line">      <span class="comment">// for shell commands, use unstripped command</span></span><br><span class="line">      String shell_cmd = cmd.trim().substring(<span class="number">1</span>);</span><br><span class="line">      shell_cmd = <span class="keyword">new</span> VariableSubstitution(<span class="keyword">new</span> HiveVariableSource() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> Map&lt;String, String&gt; <span class="title">getHiveVariable</span><span class="params">()</span> </span>&#123;</span><br><span class="line">          <span class="keyword">return</span> SessionState.get().getHiveVariables();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;).substitute(ss.getConf(), shell_cmd);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// shell_cmd = "/bin/bash -c \'" + shell_cmd + "\'";</span></span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        ShellCmdExecutor executor = <span class="keyword">new</span> ShellCmdExecutor(shell_cmd, ss.out, ss.err);</span><br><span class="line">        ret = executor.execute();</span><br><span class="line">        <span class="keyword">if</span> (ret != <span class="number">0</span>) &#123;</span><br><span class="line">          console.printError(<span class="string">"Command failed with exit code = "</span> + ret);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        console.printError(<span class="string">"Exception raised from Shell command "</span> + e.getLocalizedMessage(),</span><br><span class="line">            stringifyException(e));</span><br><span class="line">        ret = <span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;  <span class="keyword">else</span> &#123; <span class="comment">// local mode</span></span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 其它情况则是SQL命令</span></span><br><span class="line">        <span class="keyword">try</span> (CommandProcessor proc = CommandProcessorFactory.get(tokens, (HiveConf) conf)) &#123;</span><br><span class="line">          <span class="keyword">if</span> (proc <span class="keyword">instanceof</span> IDriver) &#123;</span><br><span class="line">            <span class="comment">// Let Driver strip comments using sql parser</span></span><br><span class="line">            ret = processLocalCmd(cmd, proc, ss);</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            ret = processLocalCmd(cmd_trimmed, proc, ss);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">catch</span> (SQLException e) &#123;</span><br><span class="line">        console.printError(<span class="string">"Failed processing command "</span> + tokens[<span class="number">0</span>] + <span class="string">" "</span> + e.getLocalizedMessage(),</span><br><span class="line">          org.apache.hadoop.util.StringUtils.stringifyException(e));</span><br><span class="line">        ret = <span class="number">1</span>;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    ss.resetThreadName();</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="新建Driver"><a href="#新建Driver" class="headerlink" title="新建Driver"></a>新建Driver</h3><p>这里主要包括：</p>
+<p>1.解析编译HQL（解析、编译、优化）<br>2.执行优化后的物理执行计划（执行）</p>
+<p>流程如下：<br>如果是标准HQL，先通过抽象方法找到Driver类中具体的实现方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment">// 进入 processLocalCmd(cmd, proc, ss)方法，找到run方法。</span></span><br><span class="line"> ret = qp.run(cmd).getResponseCode();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 找到具体的实现方法。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> CommandProcessorResponse <span class="title">run</span><span class="params">(String command, <span class="keyword">boolean</span> alreadyCompiled)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 找到SQL命令执行的地方。此时alreadyCompiled为false。</span></span><br><span class="line">    runInternal(command, alreadyCompiled);</span><br><span class="line">    <span class="keyword">return</span> createProcessorResponse(<span class="number">0</span>);</span><br><span class="line">    <span class="comment">// TODO</span></span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment">//进入runInternal方法，找到具体的SQL编译入口。</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">runInternal</span><span class="params">(String command, <span class="keyword">boolean</span> alreadyCompiled)</span> <span class="keyword">throws</span> CommandProcessorResponse </span>&#123;</span><br><span class="line">  errorMessage = <span class="keyword">null</span>;</span><br><span class="line">  SQLState = <span class="keyword">null</span>;</span><br><span class="line">  downstreamError = <span class="keyword">null</span>;</span><br><span class="line">  LockedDriverState.setLockedDriverState(lDrvState);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// TODO</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!alreadyCompiled) &#123;</span><br><span class="line">      <span class="comment">// 编译SQL。</span></span><br><span class="line">      <span class="comment">// compile internal will automatically reset the perf logger</span></span><br><span class="line">      compileInternal(command, <span class="keyword">true</span>);</span><br><span class="line">      <span class="comment">// then we continue to use this perf logger</span></span><br><span class="line">      perfLogger = SessionState.getPerfLogger();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// reuse existing perf logger.</span></span><br><span class="line">      perfLogger = SessionState.getPerfLogger();</span><br><span class="line">      <span class="comment">// Since we're reusing the compiled plan, we need to update its start time for current run</span></span><br><span class="line">      plan.setQueryStartTime(perfLogger.getStartTime(PerfLogger.DRIVER_RUN));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// TODO</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// SQL编译完成之后再执行。</span></span><br><span class="line">      execute();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (CommandProcessorResponse cpr) &#123;</span><br><span class="line">      rollback(cpr);</span><br><span class="line">      <span class="keyword">throw</span> cpr;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// TODO</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="解析、编译、优化HQL（核心源码）"><a href="#解析、编译、优化HQL（核心源码）" class="headerlink" title="解析、编译、优化HQL（核心源码）"></a>解析、编译、优化HQL（核心源码）</h4><p>这里分为两步：<br>1.解析器工作，将HQL转换成AST<br>2.编译器和优化器工作，将AST优化输出</p>
+<h5 id="HQL转AST"><a href="#HQL转AST" class="headerlink" title="HQL转AST"></a>HQL转AST</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> ASTNode <span class="title">parse</span><span class="params">(String command, Context ctx, String viewFullyQualifiedName)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> ParseException </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (LOG.isDebugEnabled()) &#123;</span><br><span class="line">    LOG.debug(<span class="string">"Parsing command: "</span> + command);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 构建词法解析器</span></span><br><span class="line">  HiveLexerX lexer = <span class="keyword">new</span> HiveLexerX(<span class="keyword">new</span> ANTLRNoCaseStringStream(command));</span><br><span class="line">  TokenRewriteStream tokens = <span class="keyword">new</span> TokenRewriteStream(lexer);</span><br><span class="line">  <span class="keyword">if</span> (ctx != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (viewFullyQualifiedName == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// Top level query</span></span><br><span class="line">      ctx.setTokenRewriteStream(tokens);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// It is a view</span></span><br><span class="line">      ctx.addViewTokenRewriteStream(viewFullyQualifiedName, tokens);</span><br><span class="line">    &#125;</span><br><span class="line">    lexer.setHiveConf(ctx.getConf());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 将HQL中的关键词替换为Token</span></span><br><span class="line">  HiveParser parser = <span class="keyword">new</span> HiveParser(tokens);</span><br><span class="line">  <span class="keyword">if</span> (ctx != <span class="keyword">null</span>) &#123;</span><br><span class="line">    parser.setHiveConf(ctx.getConf());</span><br><span class="line">  &#125;</span><br><span class="line">  parser.setTreeAdaptor(adaptor);</span><br><span class="line">  HiveParser.statement_return r = <span class="keyword">null</span>;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 进行语法解析，生成最终的AST。</span></span><br><span class="line">    r = parser.statement();</span><br><span class="line">  &#125; <span class="keyword">catch</span> (RecognitionException e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> ParseException(parser.errors);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (lexer.getErrors().size() == <span class="number">0</span> &amp;&amp; parser.errors.size() == <span class="number">0</span>) &#123;</span><br><span class="line">    LOG.debug(<span class="string">"Parse Completed"</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (lexer.getErrors().size() != <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> ParseException(lexer.getErrors());</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> ParseException(parser.errors);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ASTNode tree = (ASTNode) r.getTree();</span><br><span class="line">  tree.setUnknownTokenBoundaries();</span><br><span class="line">  <span class="keyword">return</span> tree;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="AST解析"><a href="#AST解析" class="headerlink" title="AST解析"></a>AST解析</h5><p>主要包括：</p>
+<ol>
+<li>将AST转换为QueryBlock进一步转换为OperatorTree</li>
+<li>对OperatorTree进行逻辑优化（LogicalOptimizer）</li>
+<li>将OperatorTree转换为TaskTree（任务树）</li>
+<li>对TaskTree进行物理优化（PhysicalOptimizer）</li>
+</ol>
+<p>通过抽象方法找到实现类SemanticAnalyzer里面的实现方法analyzeInternal。注释里面进行了比较详细的说明，一共11条。<br>1.Generate Resolved Parse tree from syntax tree（从语法树AST生成解析分析树）<br>2.Gen OP Tree from resolved Parse Tree（从解析的分析树生成OP树：OperatorTree）<br>3.Deduce Resultset Schema（推导结果集Schema）<br>4.Generate Parse Context for Optimizer &amp; Physical compiler（为优化器Optimizer和物理编译器生成分析上下文）<br>5.Take care of view creation（注意视图创建）<br>6.Generate table access stats if required（如果需要，生成表访问统计信息）<br>7.Perform Logical optimization（执行逻辑优化）<br>8.Generate column access stats if required - wait until column pruning（如果需要，生成列访问统计信息-等待列修剪）<br>9.Optimize Physical op tree &amp; Translate to target execution engine (MR,TEZ..)（优化物理操作树并转换为目标执行引擎（MR，TEZ等）<br>10.Attach CTAS/Insert-Commit-hooks for Storage Handlers（为存储处理程序附加CTAS/插入提交hooks）<br>11.put accessed columns to readEntity（将访问的列放入readEntity）</p>
+<p>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">analyzeInternal</span><span class="params">(ASTNode ast, PlannerContextFactory pcf)</span> <span class="keyword">throws</span> SemanticException </span>&#123;</span><br><span class="line">  LOG.info(<span class="string">"Starting Semantic Analysis"</span>);</span><br><span class="line">  <span class="comment">// 1. Generate Resolved Parse tree from syntax tree</span></span><br><span class="line">  <span class="keyword">boolean</span> needsTransform = needsTransform();</span><br><span class="line">  <span class="comment">//change the location of position alias process here</span></span><br><span class="line">  processPositionAlias(ast);</span><br><span class="line">  PlannerContext plannerCtx = pcf.create();</span><br><span class="line">  <span class="keyword">if</span> (!genResolvedParseTree(ast, plannerCtx)) &#123;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (HiveConf.getBoolVar(conf, ConfVars.HIVE_REMOVE_ORDERBY_IN_SUBQUERY)) &#123;</span><br><span class="line">    <span class="keyword">for</span> (String alias : qb.getSubqAliases()) &#123;</span><br><span class="line">      removeOBInSubQuery(qb.getSubqForAlias(alias));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Check query results cache.</span></span><br><span class="line">  <span class="comment">// If no masking/filtering required, then we can check the cache now, before</span></span><br><span class="line">  <span class="comment">// generating the operator tree and going through CBO.</span></span><br><span class="line">  <span class="comment">// Otherwise we have to wait until after the masking/filtering step.</span></span><br><span class="line">  <span class="keyword">boolean</span> isCacheEnabled = isResultsCacheEnabled();</span><br><span class="line">  QueryResultsCache.LookupInfo lookupInfo = <span class="keyword">null</span>;</span><br><span class="line">  <span class="keyword">if</span> (isCacheEnabled &amp;&amp; !needsTransform &amp;&amp; queryTypeCanUseCache()) &#123;</span><br><span class="line">    lookupInfo = createLookupInfoForQuery(ast);</span><br><span class="line">    <span class="keyword">if</span> (checkResultsCache(lookupInfo)) &#123;</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  ASTNode astForMasking;</span><br><span class="line">  <span class="keyword">if</span> (isCBOExecuted() &amp;&amp; needsTransform &amp;&amp;</span><br><span class="line">      (qb.isCTAS() || qb.isView() || qb.isMaterializedView() || qb.isMultiDestQuery())) &#123;</span><br><span class="line">    <span class="comment">// If we use CBO and we may apply masking/filtering policies, we create a copy of the ast.</span></span><br><span class="line">    <span class="comment">// The reason is that the generation of the operator tree may modify the initial ast,</span></span><br><span class="line">    <span class="comment">// but if we need to parse for a second time, we would like to parse the unmodified ast.</span></span><br><span class="line">    astForMasking = (ASTNode) ParseDriver.adaptor.dupTree(ast);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    astForMasking = ast;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 2. Gen OP Tree from resolved Parse Tree</span></span><br><span class="line">  Operator sinkOp = genOPTree(ast, plannerCtx);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">boolean</span> usesMasking = <span class="keyword">false</span>;</span><br><span class="line">  <span class="keyword">if</span> (!unparseTranslator.isEnabled() &amp;&amp;</span><br><span class="line">      (tableMask.isEnabled() &amp;&amp; analyzeRewrite == <span class="keyword">null</span>)) &#123;</span><br><span class="line">    <span class="comment">// Here we rewrite the * and also the masking table</span></span><br><span class="line">    ASTNode rewrittenAST = rewriteASTWithMaskAndFilter(tableMask, astForMasking, ctx.getTokenRewriteStream(),</span><br><span class="line">        ctx, db, tabNameToTabObject, ignoredTokens);</span><br><span class="line">    <span class="keyword">if</span> (astForMasking != rewrittenAST) &#123;</span><br><span class="line">      usesMasking = <span class="keyword">true</span>;</span><br><span class="line">      plannerCtx = pcf.create();</span><br><span class="line">      ctx.setSkipTableMasking(<span class="keyword">true</span>);</span><br><span class="line">      init(<span class="keyword">true</span>);</span><br><span class="line">      <span class="comment">//change the location of position alias process here</span></span><br><span class="line">      processPositionAlias(rewrittenAST);</span><br><span class="line">      genResolvedParseTree(rewrittenAST, plannerCtx);</span><br><span class="line">      <span class="keyword">if</span> (<span class="keyword">this</span> <span class="keyword">instanceof</span> CalcitePlanner) &#123;</span><br><span class="line">        ((CalcitePlanner) <span class="keyword">this</span>).resetCalciteConfiguration();</span><br><span class="line">      &#125;</span><br><span class="line">      sinkOp = genOPTree(rewrittenAST, plannerCtx);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Check query results cache</span></span><br><span class="line">  <span class="comment">// In the case that row or column masking/filtering was required, we do not support caching.</span></span><br><span class="line">  <span class="comment">// <span class="doctag">TODO:</span> Enable caching for queries with masking/filtering</span></span><br><span class="line">  <span class="keyword">if</span> (isCacheEnabled &amp;&amp; needsTransform &amp;&amp; !usesMasking &amp;&amp; queryTypeCanUseCache()) &#123;</span><br><span class="line">    lookupInfo = createLookupInfoForQuery(ast);</span><br><span class="line">    <span class="keyword">if</span> (checkResultsCache(lookupInfo)) &#123;</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 3. Deduce Resultset Schema</span></span><br><span class="line">  <span class="keyword">if</span> (createVwDesc != <span class="keyword">null</span> &amp;&amp; !<span class="keyword">this</span>.ctx.isCboSucceeded()) &#123;</span><br><span class="line">    resultSchema = convertRowSchemaToViewSchema(opParseCtx.get(sinkOp).getRowResolver());</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// resultSchema will be null if</span></span><br><span class="line">    <span class="comment">// (1) cbo is disabled;</span></span><br><span class="line">    <span class="comment">// (2) or cbo is enabled with AST return path (whether succeeded or not,</span></span><br><span class="line">    <span class="comment">// resultSchema will be re-initialized)</span></span><br><span class="line">    <span class="comment">// It will only be not null if cbo is enabled with new return path and it</span></span><br><span class="line">    <span class="comment">// succeeds.</span></span><br><span class="line">    <span class="keyword">if</span> (resultSchema == <span class="keyword">null</span>) &#123;</span><br><span class="line">      resultSchema = convertRowSchemaToResultSetSchema(opParseCtx.get(sinkOp).getRowResolver(),</span><br><span class="line">          HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_RESULTSET_USE_UNIQUE_COLUMN_NAMES));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 4. Generate Parse Context for Optimizer &amp; Physical compiler</span></span><br><span class="line">  copyInfoToQueryProperties(queryProperties);</span><br><span class="line">  ParseContext pCtx = <span class="keyword">new</span> ParseContext(queryState, opToPartPruner, opToPartList, topOps,</span><br><span class="line">      <span class="keyword">new</span> HashSet&lt;JoinOperator&gt;(joinContext.keySet()),</span><br><span class="line">      <span class="keyword">new</span> HashSet&lt;SMBMapJoinOperator&gt;(smbMapJoinContext.keySet()),</span><br><span class="line">      loadTableWork, loadFileWork, columnStatsAutoGatherContexts, ctx, idToTableNameMap, destTableId, uCtx,</span><br><span class="line">      listMapJoinOpsNoReducer, prunedPartitions, tabNameToTabObject, opToSamplePruner,</span><br><span class="line">      globalLimitCtx, nameToSplitSample, inputs, rootTasks, opToPartToSkewedPruner,</span><br><span class="line">      viewAliasToInput, reduceSinkOperatorsAddedByEnforceBucketingSorting,</span><br><span class="line">      analyzeRewrite, tableDesc, createVwDesc, materializedViewUpdateDesc,</span><br><span class="line">      queryProperties, viewProjectToTableSchema, acidFileSinks);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Set the semijoin hints in parse context</span></span><br><span class="line">  pCtx.setSemiJoinHints(parseSemiJoinHint(getQB().getParseInfo().getHintList()));</span><br><span class="line">  <span class="comment">// Set the mapjoin hint if it needs to be disabled.</span></span><br><span class="line">  pCtx.setDisableMapJoin(disableMapJoinWithHint(getQB().getParseInfo().getHintList()));</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 5. Take care of view creation</span></span><br><span class="line">  <span class="keyword">if</span> (createVwDesc != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (ctx.getExplainAnalyze() == AnalyzeState.RUNNING) &#123;</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (!ctx.isCboSucceeded()) &#123;</span><br><span class="line">      saveViewDefinition();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// validate the create view statement at this point, the createVwDesc gets</span></span><br><span class="line">    <span class="comment">// all the information for semanticcheck</span></span><br><span class="line">    validateCreateView();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (createVwDesc.isMaterialized()) &#123;</span><br><span class="line">      createVwDesc.setTablesUsed(getTablesUsed(pCtx));</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// Since we're only creating a view (not executing it), we don't need to</span></span><br><span class="line">      <span class="comment">// optimize or translate the plan (and in fact, those procedures can</span></span><br><span class="line">      <span class="comment">// interfere with the view creation). So skip the rest of this method.</span></span><br><span class="line">      ctx.setResDir(<span class="keyword">null</span>);</span><br><span class="line">      ctx.setResFile(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">        PlanUtils.addInputsForView(pCtx);</span><br><span class="line">      &#125; <span class="keyword">catch</span> (HiveException e) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> SemanticException(e);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Generate lineage info for create view statements</span></span><br><span class="line">      <span class="comment">// if LineageLogger hook is configured.</span></span><br><span class="line">      <span class="comment">// Add the transformation that computes the lineage information.</span></span><br><span class="line">      Set&lt;String&gt; postExecHooks = Sets.newHashSet(Splitter.on(<span class="string">","</span>).trimResults()</span><br><span class="line">          .omitEmptyStrings()</span><br><span class="line">          .split(Strings.nullToEmpty(HiveConf.getVar(conf, HiveConf.ConfVars.POSTEXECHOOKS))));</span><br><span class="line">      <span class="keyword">if</span> (postExecHooks.contains(<span class="string">"org.apache.hadoop.hive.ql.hooks.PostExecutePrinter"</span>)</span><br><span class="line">          || postExecHooks.contains(<span class="string">"org.apache.hadoop.hive.ql.hooks.LineageLogger"</span>)</span><br><span class="line">          || postExecHooks.contains(<span class="string">"org.apache.atlas.hive.hook.HiveHook"</span>)) &#123;</span><br><span class="line">        ArrayList&lt;Transform&gt; transformations = <span class="keyword">new</span> ArrayList&lt;Transform&gt;();</span><br><span class="line">        transformations.add(<span class="keyword">new</span> HiveOpConverterPostProc());</span><br><span class="line">        transformations.add(<span class="keyword">new</span> Generator(postExecHooks));</span><br><span class="line">        <span class="keyword">for</span> (Transform t : transformations) &#123;</span><br><span class="line">          pCtx = t.transform(pCtx);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// we just use view name as location.</span></span><br><span class="line">        queryState.getLineageState()</span><br><span class="line">            .mapDirToOp(<span class="keyword">new</span> Path(createVwDesc.getViewName()), sinkOp);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 6. Generate table access stats if required</span></span><br><span class="line">  <span class="keyword">if</span> (HiveConf.getBoolVar(<span class="keyword">this</span>.conf, HiveConf.ConfVars.HIVE_STATS_COLLECT_TABLEKEYS)) &#123;</span><br><span class="line">    TableAccessAnalyzer tableAccessAnalyzer = <span class="keyword">new</span> TableAccessAnalyzer(pCtx);</span><br><span class="line">    setTableAccessInfo(tableAccessAnalyzer.analyzeTableAccess());</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 7. Perform Logical optimization</span></span><br><span class="line">  <span class="keyword">if</span> (LOG.isDebugEnabled()) &#123;</span><br><span class="line">    LOG.debug(<span class="string">"Before logical optimization\n"</span> + Operator.toString(pCtx.getTopOps().values()));</span><br><span class="line">  &#125;</span><br><span class="line">  Optimizer optm = <span class="keyword">new</span> Optimizer();</span><br><span class="line">  optm.setPctx(pCtx);</span><br><span class="line">  optm.initialize(conf);</span><br><span class="line">  pCtx = optm.optimize();</span><br><span class="line">  <span class="keyword">if</span> (pCtx.getColumnAccessInfo() != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">// set ColumnAccessInfo for view column authorization</span></span><br><span class="line">    setColumnAccessInfo(pCtx.getColumnAccessInfo());</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (LOG.isDebugEnabled()) &#123;</span><br><span class="line">    LOG.debug(<span class="string">"After logical optimization\n"</span> + Operator.toString(pCtx.getTopOps().values()));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 8. Generate column access stats if required - wait until column pruning</span></span><br><span class="line">  <span class="comment">// takes place during optimization</span></span><br><span class="line">  <span class="keyword">boolean</span> isColumnInfoNeedForAuth = SessionState.get().isAuthorizationModeV2()</span><br><span class="line">      &amp;&amp; HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_AUTHORIZATION_ENABLED);</span><br><span class="line">  <span class="keyword">if</span> (isColumnInfoNeedForAuth</span><br><span class="line">      || HiveConf.getBoolVar(<span class="keyword">this</span>.conf, HiveConf.ConfVars.HIVE_STATS_COLLECT_SCANCOLS)) &#123;</span><br><span class="line">    ColumnAccessAnalyzer columnAccessAnalyzer = <span class="keyword">new</span> ColumnAccessAnalyzer(pCtx);</span><br><span class="line">    <span class="comment">// view column access info is carried by this.getColumnAccessInfo().</span></span><br><span class="line">    setColumnAccessInfo(columnAccessAnalyzer.analyzeColumnAccess(<span class="keyword">this</span>.getColumnAccessInfo()));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 9. Optimize Physical op tree &amp; Translate to target execution engine (MR,</span></span><br><span class="line">  <span class="comment">// TEZ..)</span></span><br><span class="line">  <span class="keyword">if</span> (!ctx.getExplainLogical()) &#123;</span><br><span class="line">    TaskCompiler compiler = TaskCompilerFactory.getCompiler(conf, pCtx);</span><br><span class="line">    compiler.init(queryState, console, db);</span><br><span class="line">    compiler.compile(pCtx, rootTasks, inputs, outputs);</span><br><span class="line">    fetchTask = pCtx.getFetchTask();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">//find all Acid FileSinkOperatorS</span></span><br><span class="line">  QueryPlanPostProcessor qp = <span class="keyword">new</span> QueryPlanPostProcessor(rootTasks, acidFileSinks, ctx.getExecutionId());</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 10. Attach CTAS/Insert-Commit-hooks for Storage Handlers</span></span><br><span class="line">  <span class="keyword">final</span> Optional&lt;TezTask&gt; optionalTezTask =</span><br><span class="line">      rootTasks.stream().filter(task -&gt; task <span class="keyword">instanceof</span> TezTask).map(task -&gt; (TezTask) task)</span><br><span class="line">          .findFirst();</span><br><span class="line">  <span class="keyword">if</span> (optionalTezTask.isPresent()) &#123;</span><br><span class="line">    <span class="keyword">final</span> TezTask tezTask = optionalTezTask.get();</span><br><span class="line">    rootTasks.stream()</span><br><span class="line">        .filter(task -&gt; task.getWork() <span class="keyword">instanceof</span> DDLWork)</span><br><span class="line">        .map(task -&gt; (DDLWork) task.getWork())</span><br><span class="line">        .filter(ddlWork -&gt; ddlWork.getPreInsertTableDesc() != <span class="keyword">null</span>)</span><br><span class="line">        .map(ddlWork -&gt; ddlWork.getPreInsertTableDesc())</span><br><span class="line">        .map(ddlPreInsertTask -&gt; <span class="keyword">new</span> InsertCommitHookDesc(ddlPreInsertTask.getTable(),</span><br><span class="line">            ddlPreInsertTask.isOverwrite()))</span><br><span class="line">        .forEach(insertCommitHookDesc -&gt; tezTask.addDependentTask(</span><br><span class="line">            TaskFactory.get(<span class="keyword">new</span> DDLWork(getInputs(), getOutputs(), insertCommitHookDesc), conf)));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  LOG.info(<span class="string">"Completed plan generation"</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 11. put accessed columns to readEntity</span></span><br><span class="line">  <span class="keyword">if</span> (HiveConf.getBoolVar(<span class="keyword">this</span>.conf, HiveConf.ConfVars.HIVE_STATS_COLLECT_SCANCOLS)) &#123;</span><br><span class="line">    putAccessedColumnsToReadEntity(inputs, columnAccessInfo);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (isCacheEnabled &amp;&amp; lookupInfo != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (queryCanBeCached()) &#123;</span><br><span class="line">      QueryResultsCache.QueryInfo queryInfo = createCacheQueryInfoForQuery(lookupInfo);</span><br><span class="line"></span><br><span class="line">      <span class="comment">// Specify that the results of this query can be cached.</span></span><br><span class="line">      setCacheUsage(<span class="keyword">new</span> CacheUsage(</span><br><span class="line">          CacheUsage.CacheStatus.CAN_CACHE_QUERY_RESULTS, queryInfo));</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="执行优化后的物理执行计划"><a href="#执行优化后的物理执行计划" class="headerlink" title="执行优化后的物理执行计划"></a>执行优化后的物理执行计划</h4><p>主要包括：</p>
+<ol>
+<li>根据TaskTree构建MR Job</li>
+<li>运行MR Job</li>
+</ol>
+<p>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">execute</span><span class="params">()</span> <span class="keyword">throws</span> CommandProcessorResponse </span>&#123;</span><br><span class="line">  PerfLogger perfLogger = SessionState.getPerfLogger();</span><br><span class="line">  perfLogger.PerfLogBegin(CLASS_NAME, PerfLogger.DRIVER_EXECUTE);</span><br><span class="line">    <span class="comment">// TODO</span></span><br><span class="line">    setQueryDisplays(plan.getRootTasks());</span><br><span class="line">    <span class="comment">// 将TaskTree转换成MR Jobs</span></span><br><span class="line">    <span class="keyword">int</span> mrJobs = Utilities.getMRTasks(plan.getRootTasks()).size();</span><br><span class="line">    <span class="keyword">int</span> jobs = mrJobs + Utilities.getTezTasks(plan.getRootTasks()).size()</span><br><span class="line">        + Utilities.getSparkTasks(plan.getRootTasks()).size();</span><br><span class="line">    <span class="keyword">if</span> (jobs &gt; <span class="number">0</span>) &#123;</span><br><span class="line">      logMrWarning(mrJobs);</span><br><span class="line">      console.printInfo(<span class="string">"Query ID = "</span> + queryId);</span><br><span class="line">      console.printInfo(<span class="string">"Total jobs = "</span> + jobs);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (SessionState.get() != <span class="keyword">null</span>) &#123;</span><br><span class="line">      SessionState.get().getHiveHistory().setQueryProperty(queryId, Keys.QUERY_NUM_TASKS,</span><br><span class="line">          String.valueOf(jobs));</span><br><span class="line">      SessionState.get().getHiveHistory().setIdToTableMap(plan.getIdToTableNameMap());</span><br><span class="line">    &#125;</span><br><span class="line">    String jobname = Utilities.abbreviate(queryStr, maxlen - <span class="number">6</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// A runtime that launches runnable tasks as separate Threads through</span></span><br><span class="line">    <span class="comment">// TaskRunners</span></span><br><span class="line">    <span class="comment">// As soon as a task isRunnable, it is put in a queue</span></span><br><span class="line">    <span class="comment">// At any time, at most maxthreads tasks can be running</span></span><br><span class="line">    <span class="comment">// The main thread polls the TaskRunners to check if they have finished.</span></span><br><span class="line"></span><br><span class="line">    checkInterrupted(<span class="string">"before running tasks."</span>, hookContext, perfLogger);</span><br><span class="line"></span><br><span class="line">    DriverContext driverCxt = <span class="keyword">new</span> DriverContext(ctx);</span><br><span class="line">    driverCxt.prepare(plan);</span><br><span class="line"></span><br><span class="line">    ctx.setHDFSCleanup(<span class="keyword">true</span>);</span><br><span class="line">    <span class="keyword">this</span>.driverCxt = driverCxt; <span class="comment">// for canceling the query (should be bound to session?)</span></span><br><span class="line"></span><br><span class="line">    SessionState.get().setMapRedStats(<span class="keyword">new</span> LinkedHashMap&lt;&gt;());</span><br><span class="line">    SessionState.get().setStackTraces(<span class="keyword">new</span> HashMap&lt;&gt;());</span><br><span class="line">    SessionState.get().setLocalMapRedErrors(<span class="keyword">new</span> HashMap&lt;&gt;());</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Add root Tasks to runnable</span></span><br><span class="line">    <span class="keyword">for</span> (Task&lt;? extends Serializable&gt; tsk : plan.getRootTasks()) &#123;</span><br><span class="line">      <span class="comment">// This should never happen, if it does, it's a bug with the potential to produce</span></span><br><span class="line">      <span class="comment">// incorrect results.</span></span><br><span class="line">      <span class="keyword">assert</span> tsk.getParentTasks() == <span class="keyword">null</span> || tsk.getParentTasks().isEmpty();</span><br><span class="line">      driverCxt.addToRunnable(tsk);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (metrics != <span class="keyword">null</span>) &#123;</span><br><span class="line">        tsk.updateTaskMetrics(metrics);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    preExecutionCacheActions();</span><br><span class="line"></span><br><span class="line">    perfLogger.PerfLogBegin(CLASS_NAME, PerfLogger.RUN_TASKS);</span><br><span class="line">    <span class="comment">// Loop while you either have tasks running, or tasks queued up</span></span><br><span class="line">    <span class="keyword">while</span> (driverCxt.isRunning()) &#123;</span><br><span class="line">      <span class="comment">// Launch upto maxthreads tasks</span></span><br><span class="line">      Task&lt;? extends Serializable&gt; task;</span><br><span class="line">      <span class="keyword">while</span> ((task = driverCxt.getRunnable(maxthreads)) != <span class="keyword">null</span>) &#123;</span><br><span class="line"> <span class="comment">// 运行MR Job</span></span><br><span class="line">        TaskRunner runner = launchTask(task, queryId, noName, jobname, jobs, driverCxt);</span><br><span class="line">        <span class="keyword">if</span> (!runner.isRunning()) &#123;</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// TODO   </span></span><br><span class="line">  <span class="comment">// 控制台打印OK。</span></span><br><span class="line">  <span class="keyword">if</span> (console != <span class="keyword">null</span>) &#123;</span><br><span class="line">    console.printInfo(<span class="string">"OK"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2023/01/31/Hive/Hive%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hive%E8%BF%9B%E9%98%B6/" rel="tag">Hive进阶</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2023/02/01/Spark/Spark%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9A%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%8F%90%E4%BA%A4/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Spark源码学习：应用程序提交
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2023/01/31/Spark/Spark%20SQL%E8%B0%83%E4%BC%98/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Spark SQL调优</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2023
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+
+<!-- 复制 -->
+
+  
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+
+    
+  </div>
+</body>
+
+</html>
