@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Hadoop源码学习：NameNode启动 |  大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-Hadoop/Hadoop源码学习：NameNode启动" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Hadoop源码学习：NameNode启动
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/01/01/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9ANameNode%E5%90%AF%E5%8A%A8/" class="article-date">
+  <time datetime="2023-01-01T02:00:00.000Z" itemprop="datePublished">2023-01-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.1k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h2><p>流程图</p>
+<img src="/2023/01/01/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9ANameNode%E5%90%AF%E5%8A%A8/NameNode%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B.png" class="">
+
+<p>根据流程图，总结流程：</p>
+<ol>
+<li>启动9870端口服务</li>
+<li>加载镜像文件和编辑日志</li>
+<li>开启别名映射服务（如有必要）</li>
+<li>初始化NameNode的RPC服务端</li>
+<li>启动公共服务（NameNode启动资源检查、NameNode对心跳超时判断、安全模式）</li>
+</ol>
+<h2 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h2><h3 id="程序入口"><a href="#程序入口" class="headerlink" title="程序入口"></a>程序入口</h3><p>找到程序入口：<code>org.apache.hadoop.hdfs.server.namenode.NameNode</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment">// 进入main方法</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] argv)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (DFSUtil.parseHelpArgument(argv, USAGE, System.out, <span class="keyword">true</span>)) &#123;</span><br><span class="line">          System.exit(<span class="number">0</span>);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">try</span> &#123;</span><br><span class="line">          StringUtils.startupShutdownMessage(NameNode<span class="class">.<span class="keyword">class</span>, <span class="title">argv</span>, <span class="title">LOG</span>)</span>;</span><br><span class="line">          NameNode namenode = createNameNode(argv, (Configuration)<span class="keyword">null</span>);</span><br><span class="line">          <span class="keyword">if</span> (namenode != <span class="keyword">null</span>) &#123;</span><br><span class="line">              namenode.join();</span><br><span class="line">          &#125;</span><br><span class="line">      &#125; <span class="keyword">catch</span> (Throwable var2) &#123;</span><br><span class="line">          LOG.error(<span class="string">"Failed to start namenode."</span>, var2);</span><br><span class="line">          ExitUtil.terminate(<span class="number">1</span>, var2);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line"><span class="comment">// 进入createNameNode方法，主要进行参数解析和实例化NameNode。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> NameNode <span class="title">createNameNode</span><span class="params">(String argv[], Configuration conf)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  LOG.info(<span class="string">"createNameNode "</span> + Arrays.asList(argv));</span><br><span class="line">  <span class="keyword">if</span> (conf == <span class="keyword">null</span>)</span><br><span class="line">    conf = <span class="keyword">new</span> HdfsConfiguration();</span><br><span class="line">  <span class="comment">// Parse out some generic args into Configuration.</span></span><br><span class="line">  GenericOptionsParser hParser = <span class="keyword">new</span> GenericOptionsParser(conf, argv);</span><br><span class="line">  argv = hParser.getRemainingArgs();</span><br><span class="line">  <span class="comment">// Parse the rest, NN specific args.</span></span><br><span class="line">  StartupOption startOpt = parseArguments(argv);</span><br><span class="line">  <span class="keyword">if</span> (startOpt == <span class="keyword">null</span>) &#123;</span><br><span class="line">    printUsage(System.err);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  setStartupOption(conf, startOpt);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">boolean</span> aborted = <span class="keyword">false</span>;</span><br><span class="line">  <span class="keyword">switch</span> (startOpt) &#123;</span><br><span class="line">  <span class="keyword">case</span> FORMAT:</span><br><span class="line">    aborted = format(conf, startOpt.getForceFormat(),</span><br><span class="line">        startOpt.getInteractiveFormat());</span><br><span class="line">    terminate(aborted ? <span class="number">1</span> : <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>; <span class="comment">// avoid javac warning</span></span><br><span class="line">  <span class="comment">// TODO</span></span><br><span class="line">  <span class="keyword">default</span>:</span><br><span class="line">    DefaultMetricsSystem.initialize(<span class="string">"NameNode"</span>);</span><br><span class="line">    <span class="comment">// 从这里进入查看。</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> NameNode(conf);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="initialize-getConf-方法（核心源码）"><a href="#initialize-getConf-方法（核心源码）" class="headerlink" title="initialize(getConf())方法（核心源码）"></a>initialize(getConf())方法（核心源码）</h3><p>进入new NameNode(conf)，找到initialize(getConf())方法。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(Configuration conf)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (conf.get(HADOOP_USER_GROUP_METRICS_PERCENTILES_INTERVALS) == <span class="keyword">null</span>) &#123;</span><br><span class="line">      String intervals = conf.get(DFS_METRICS_PERCENTILES_INTERVALS_KEY);</span><br><span class="line">      <span class="keyword">if</span> (intervals != <span class="keyword">null</span>) &#123;</span><br><span class="line">        conf.set(HADOOP_USER_GROUP_METRICS_PERCENTILES_INTERVALS,</span><br><span class="line">          intervals);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    UserGroupInformation.setConfiguration(conf);</span><br><span class="line">    loginAsNameNodeUser(conf);</span><br><span class="line"></span><br><span class="line">    NameNode.initMetrics(conf, <span class="keyword">this</span>.getRole());</span><br><span class="line">    StartupProgressMetrics.register(startupProgress);</span><br><span class="line"></span><br><span class="line">    pauseMonitor = <span class="keyword">new</span> JvmPauseMonitor();</span><br><span class="line">    pauseMonitor.init(conf);</span><br><span class="line">    pauseMonitor.start();</span><br><span class="line">    metrics.getJvmMetrics().setPauseMonitor(pauseMonitor);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (NamenodeRole.NAMENODE == role) &#123;</span><br><span class="line">      <span class="comment">// 启动HttpServer2服务，确定9870端口</span></span><br><span class="line">      startHttpServer(conf);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 加载镜像文件和编辑日志</span></span><br><span class="line">    loadNamesystem(conf);</span><br><span class="line">    <span class="comment">// 开启别名映射服务（如有必要）</span></span><br><span class="line">    startAliasMapServerIfNecessary(conf);</span><br><span class="line">    <span class="comment">// 创建RPC服务器</span></span><br><span class="line">    rpcServer = createRpcServer(conf);</span><br><span class="line"></span><br><span class="line">    initReconfigurableBackoffKey();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (clientNamenodeAddress == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// This is expected for MiniDFSCluster. Set it now using </span></span><br><span class="line">      <span class="comment">// the RPC server's bind address.</span></span><br><span class="line">      clientNamenodeAddress = </span><br><span class="line">          NetUtils.getHostPortString(getNameNodeAddress());</span><br><span class="line">      LOG.info(<span class="string">"Clients are to use "</span> + clientNamenodeAddress + <span class="string">" to access"</span></span><br><span class="line">          + <span class="string">" this namenode/service."</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (NamenodeRole.NAMENODE == role) &#123;</span><br><span class="line">      httpServer.setNameNodeAddress(getNameNodeAddress());</span><br><span class="line">      httpServer.setFSImage(getFSImage());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 启动公共服务（包括资源检查、心跳超时判断、安全模式）</span></span><br><span class="line">    startCommonServices(conf);</span><br><span class="line">    startMetricsLogger(conf);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="启动9870服务端口"><a href="#启动9870服务端口" class="headerlink" title="启动9870服务端口"></a>启动9870服务端口</h4><p>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">startHttpServer</span><span class="params">(<span class="keyword">final</span> Configuration conf)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="comment">// 根据getHttpServerBindAddress来确定服务端口号：9870</span></span><br><span class="line">  httpServer = <span class="keyword">new</span> NameNodeHttpServer(conf, <span class="keyword">this</span>, getHttpServerBindAddress(conf));</span><br><span class="line">  <span class="comment">// 启动HttpServer2服务</span></span><br><span class="line">  httpServer.start();</span><br><span class="line">  httpServer.setStartupProgress(startupProgress);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="加载镜像文件和编辑日志"><a href="#加载镜像文件和编辑日志" class="headerlink" title="加载镜像文件和编辑日志"></a>加载镜像文件和编辑日志</h4><p>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">loadNamesystem</span><span class="params">(Configuration conf)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">   <span class="keyword">this</span>.namesystem = FSNamesystem.loadFromDisk(conf);</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="开启别名映射服务"><a href="#开启别名映射服务" class="headerlink" title="开启别名映射服务"></a>开启别名映射服务</h4><p>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">startAliasMapServerIfNecessary</span><span class="params">(Configuration conf)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (conf.getBoolean(DFSConfigKeys.DFS_NAMENODE_PROVIDED_ENABLED,</span><br><span class="line">      DFSConfigKeys.DFS_NAMENODE_PROVIDED_ENABLED_DEFAULT)</span><br><span class="line">      &amp;&amp; conf.getBoolean(DFSConfigKeys.DFS_PROVIDED_ALIASMAP_INMEMORY_ENABLED,</span><br><span class="line">          DFSConfigKeys.DFS_PROVIDED_ALIASMAP_INMEMORY_ENABLED_DEFAULT)) &#123;</span><br><span class="line">    levelDBAliasMapServer = <span class="keyword">new</span> InMemoryLevelDBAliasMapServer(</span><br><span class="line">        InMemoryAliasMap::init, namesystem.getBlockPoolId());</span><br><span class="line">    levelDBAliasMapServer.setConf(conf);</span><br><span class="line">    levelDBAliasMapServer.start();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="初始化NameNode的RPC服务端"><a href="#初始化NameNode的RPC服务端" class="headerlink" title="初始化NameNode的RPC服务端"></a>初始化NameNode的RPC服务端</h4><p>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Create the RPC server implementation. Used as an extension point for the</span></span><br><span class="line"><span class="comment"> * BackupNode.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> NameNodeRpcServer <span class="title">createRpcServer</span><span class="params">(Configuration conf)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> NameNodeRpcServer(conf, <span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动公共服务（资源检测、心跳超时判断、安全模式）"><a href="#启动公共服务（资源检测、心跳超时判断、安全模式）" class="headerlink" title="启动公共服务（资源检测、心跳超时判断、安全模式）"></a>启动公共服务（资源检测、心跳超时判断、安全模式）</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">startCommonServices</span><span class="params">(Configuration conf, HAContext haContext)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="keyword">this</span>.registerMBean(); <span class="comment">// register the MBean for the FSNamesystemState</span></span><br><span class="line">  writeLock();</span><br><span class="line">  <span class="keyword">this</span>.haContext = haContext;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    nnResourceChecker = <span class="keyword">new</span> NameNodeResourceChecker(conf);</span><br><span class="line">    <span class="comment">// 检测资源</span></span><br><span class="line">    checkAvailableResources();</span><br><span class="line">    <span class="keyword">assert</span> !blockManager.isPopulatingReplQueues();</span><br><span class="line">    StartupProgress prog = NameNode.getStartupProgress();</span><br><span class="line">    prog.beginPhase(Phase.SAFEMODE);</span><br><span class="line">    <span class="keyword">long</span> completeBlocksTotal = getCompleteBlocksTotal();</span><br><span class="line">    prog.setTotal(Phase.SAFEMODE, STEP_AWAITING_REPORTED_BLOCKS,</span><br><span class="line">        completeBlocksTotal);</span><br><span class="line">    <span class="comment">// blockManager：心跳超时判断，安全模式</span></span><br><span class="line">    blockManager.activate(conf, completeBlocksTotal);</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    writeUnlock(<span class="string">"startCommonServices"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  registerMXBean();</span><br><span class="line">  DefaultMetricsSystem.instance().register(<span class="keyword">this</span>);</span><br><span class="line">  <span class="keyword">if</span> (inodeAttributeProvider != <span class="keyword">null</span>) &#123;</span><br><span class="line">    inodeAttributeProvider.start();</span><br><span class="line">    dir.setINodeAttributeProvider(inodeAttributeProvider);</span><br><span class="line">  &#125;</span><br><span class="line">  snapshotManager.registerMXBean();</span><br><span class="line">  InetSocketAddress serviceAddress = NameNode.getServiceAddress(conf, <span class="keyword">true</span>);</span><br><span class="line">  <span class="keyword">this</span>.nameNodeHostName = (serviceAddress != <span class="keyword">null</span>) ?</span><br><span class="line">      serviceAddress.getHostName() : <span class="string">""</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="NameNode启动资源检测"><a href="#NameNode启动资源检测" class="headerlink" title="NameNode启动资源检测"></a>NameNode启动资源检测</h5><p>默认元数据存储空间100M。<br>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Perform resource checks and cache the results.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">checkAvailableResources</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">long</span> resourceCheckTime = monotonicNow();</span><br><span class="line">  Preconditions.checkState(nnResourceChecker != <span class="keyword">null</span>,</span><br><span class="line">      <span class="string">"nnResourceChecker not initialized"</span>);</span><br><span class="line">  hasResourcesAvailable = nnResourceChecker.hasAvailableDiskSpace();</span><br><span class="line">  resourceCheckTime = monotonicNow() - resourceCheckTime;</span><br><span class="line">  NameNode.getNameNodeMetrics().addResourceCheckTime(resourceCheckTime);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="Block块管理：blockManager"><a href="#Block块管理：blockManager" class="headerlink" title="Block块管理：blockManager"></a>Block块管理：blockManager</h5><p>这里包括：<br>NameNode对心跳超时判断<br>安全模式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">activate</span><span class="params">(Configuration conf, <span class="keyword">long</span> blockTotal)</span> </span>&#123;</span><br><span class="line">  pendingReconstruction.start();</span><br><span class="line">  <span class="comment">// 心跳超时检测</span></span><br><span class="line">  datanodeManager.activate(conf);</span><br><span class="line">  <span class="keyword">this</span>.redundancyThread.setName(<span class="string">"RedundancyMonitor"</span>);</span><br><span class="line">  <span class="keyword">this</span>.redundancyThread.start();</span><br><span class="line">  storageInfoDefragmenterThread.setName(<span class="string">"StorageInfoMonitor"</span>);</span><br><span class="line">  storageInfoDefragmenterThread.start();</span><br><span class="line">  <span class="keyword">this</span>.blockReportThread.start();</span><br><span class="line">  mxBeanName = MBeans.register(<span class="string">"NameNode"</span>, <span class="string">"BlockStats"</span>, <span class="keyword">this</span>);</span><br><span class="line">  <span class="comment">// 安全模式</span></span><br><span class="line">  bmSafeMode.activate(blockTotal);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h6 id="NameNode对心跳超时判断"><a href="#NameNode对心跳超时判断" class="headerlink" title="NameNode对心跳超时判断"></a>NameNode对心跳超时判断</h6><p>判断DataNode心跳超时默认时间：10min+30s<br>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">  <span class="keyword">while</span>(namesystem.isRunning()) &#123;</span><br><span class="line">    restartHeartbeatStopWatch();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">final</span> <span class="keyword">long</span> now = Time.monotonicNow();</span><br><span class="line">      <span class="keyword">if</span> (lastHeartbeatCheck + heartbeatRecheckInterval &lt; now) &#123;</span><br><span class="line">        heartbeatCheck();</span><br><span class="line">        lastHeartbeatCheck = now;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">if</span> (blockManager.shouldUpdateBlockKey(now - lastBlockKeyUpdate)) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span>(HeartbeatManager.<span class="keyword">this</span>) &#123;</span><br><span class="line">          <span class="keyword">for</span>(DatanodeDescriptor d : datanodes) &#123;</span><br><span class="line">            d.setNeedKeyUpdate(<span class="keyword">true</span>);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        lastBlockKeyUpdate = now;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">      LOG.error(<span class="string">"Exception while checking heartbeat"</span>, e);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      Thread.sleep(<span class="number">5000</span>);  <span class="comment">// 5 seconds</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (InterruptedException ignored) &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// avoid declaring nodes dead for another cycle if a GC pause lasts</span></span><br><span class="line">    <span class="comment">// longer than the node recheck interval</span></span><br><span class="line">    <span class="keyword">if</span> (shouldAbortHeartbeatCheck(-<span class="number">5000</span>)) &#123;</span><br><span class="line">      LOG.warn(<span class="string">"Skipping next heartbeat scan due to excessive pause"</span>);</span><br><span class="line">      lastHeartbeatCheck = Time.monotonicNow();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="安全模式"><a href="#安全模式" class="headerlink" title="安全模式"></a>安全模式</h6><p>阈值：0.999<br>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">activate</span><span class="params">(<span class="keyword">long</span> total)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">assert</span> namesystem.hasWriteLock();</span><br><span class="line">  <span class="keyword">assert</span> status == BMSafeModeStatus.OFF;</span><br><span class="line"></span><br><span class="line">  startTime = monotonicNow();</span><br><span class="line">  setBlockTotal(total);</span><br><span class="line">  <span class="keyword">if</span> (areThresholdsMet()) &#123;</span><br><span class="line">    <span class="keyword">boolean</span> exitResult = leaveSafeMode(<span class="keyword">false</span>);</span><br><span class="line">    Preconditions.checkState(exitResult, <span class="string">"Failed to leave safe mode."</span>);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// enter safe mode</span></span><br><span class="line">    status = BMSafeModeStatus.PENDING_THRESHOLD;</span><br><span class="line">    initializeReplQueuesIfNecessary();</span><br><span class="line">    reportStatus(<span class="string">"STATE* Safe mode ON."</span>, <span class="keyword">true</span>);</span><br><span class="line">    lastStatusReport = monotonicNow();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2023/01/01/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9ANameNode%E5%90%AF%E5%8A%A8/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop%E8%BF%9B%E9%98%B6/" rel="tag">Hadoop进阶</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2023/01/03/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9ADataNode%E5%90%AF%E5%8A%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Hadoop源码学习：DataNode启动
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/12/31/Hive/HQL%E8%B0%83%E4%BC%98/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">HQL调优</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2023
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+
+<!-- 复制 -->
+
+  
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+
+    
+  </div>
+</body>
+
+</html>

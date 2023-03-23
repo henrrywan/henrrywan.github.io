@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Hadoop源码学习：HDFS写流程 |  大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-Hadoop/Hadoop源码学习：HDFS写流程" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Hadoop源码学习：HDFS写流程
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/01/05/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9AHDFS%E5%86%99%E6%B5%81%E7%A8%8B/" class="article-date">
+  <time datetime="2023-01-05T02:00:00.000Z" itemprop="datePublished">2023-01-05</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.7k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">8 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Hadoop源码学习：HDFS写流程"><a href="#Hadoop源码学习：HDFS写流程" class="headerlink" title="Hadoop源码学习：HDFS写流程"></a>Hadoop源码学习：HDFS写流程</h1><h2 id="流程分析"><a href="#流程分析" class="headerlink" title="流程分析"></a>流程分析</h2><p>流程图</p>
+<img src="/2023/01/05/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9AHDFS%E5%86%99%E6%B5%81%E7%A8%8B/HDFS%E5%86%99%E6%B5%81%E7%A8%8B.png" class="">
+
+<p>根据流程图，总结：</p>
+<ol>
+<li>使用HDFS提供的客户端开发库，向远程的Namenode发起RPC请求；</li>
+<li>Namenode会检查要创建的文件是否已经存在，创建者是否有权限进行操作，成功则会为文件创建一个记录，否则会让客户端抛出异常；</li>
+<li>当客户端开始写入文件的时候，开发库会将文件切分成多个packets，并在内部以”dataQueue（数据队列）”的形式管理这些packets，并向Namenode申请新的blocks，获取用来存储replicas的合适的datanodes列表。</li>
+<li>开始以pipeline（管道）的形式将packet写入所有的replicas中。开发库把packet以流的方式写入第一个datanode，该datanode把该packet存储之后，再将其传递给在此pipeline中的下一个datanode，直到最后一个datanode，这种写数据的方式呈流水线的形式。</li>
+<li>最后一个datanode成功存储之后会返回一个ack packet（确认队列），在pipeline里传递至客户端，在客户端的开发库内部维护着”ack queue”，成功收到datanode返回的ack packet后会从”ack queue”移除相应的packet。</li>
+<li>如果传输过程中，有某个datanode出现了故障，那么当前的pipeline会被关闭，出现故障的datanode会从当前的pipeline中移除，剩余的block会继续剩下的datanode中继续以pipeline的形式传输，同时Namenode会分配一个新的datanode，保持replicas设定的数量。</li>
+</ol>
+<h2 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h2><p>一个基本的写操作如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 写数据到hdfs</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">FSDataOutputStream fsDataOutputStream = fs.create(<span class="keyword">new</span> Path(<span class="string">"/test"</span>));</span><br><span class="line">fsDataOutputStream.write(<span class="string">"Hello,HDFS"</span>.getBytes());</span><br></pre></td></tr></table></figure>
+<p>这里分为两部分：</p>
+<ol>
+<li>创建（create）文件目录</li>
+<li>写（write）数据到文件目录</li>
+</ol>
+<h3 id="create创建流程"><a href="#create创建流程" class="headerlink" title="create创建流程"></a>create创建流程</h3><p>具体可以分为三部分：</p>
+<ol>
+<li>创建文件</li>
+<li>初始化streamer</li>
+<li>启动线程，准备dataQueue等待数据写入</li>
+</ol>
+<p>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 通过create方法找到实现类DistributedFileSystem中的实现方法。</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> FSDataOutputStream <span class="title">create</span><span class="params">(<span class="keyword">final</span> Path f, <span class="keyword">final</span> FsPermission permission,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">final</span> EnumSet&lt;CreateFlag&gt; cflags, <span class="keyword">final</span> <span class="keyword">int</span> bufferSize,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">final</span> <span class="keyword">short</span> replication, <span class="keyword">final</span> <span class="keyword">long</span> blockSize,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">final</span> Progressable progress, <span class="keyword">final</span> ChecksumOpt checksumOpt)</span></span></span><br><span class="line"><span class="function">    <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  statistics.incrementWriteOps(<span class="number">1</span>);</span><br><span class="line">  storageStatistics.incrementOpCounter(OpType.CREATE);</span><br><span class="line">  Path absF = fixRelativePart(f);</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> FileSystemLinkResolver&lt;FSDataOutputStream&gt;() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> FSDataOutputStream <span class="title">doCall</span><span class="params">(<span class="keyword">final</span> Path p)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">      <span class="comment">// 这里有一个create方法</span></span><br><span class="line">      <span class="keyword">final</span> DFSOutputStream dfsos = dfs.create(getPathName(p), permission,</span><br><span class="line">          cflags, replication, blockSize, progress, bufferSize,</span><br><span class="line">          checksumOpt);</span><br><span class="line">      <span class="keyword">return</span> dfs.createWrappedOutputStream(dfsos, statistics);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> FSDataOutputStream <span class="title">next</span><span class="params">(<span class="keyword">final</span> FileSystem fs, <span class="keyword">final</span> Path p)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> fs.create(p, permission, cflags, bufferSize,</span><br><span class="line">          replication, blockSize, progress, checksumOpt);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;.resolve(<span class="keyword">this</span>, absF);</span><br><span class="line">&#125;</span><br><span class="line">  <span class="comment">// 找到dfs.create方法</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> DFSOutputStream <span class="title">create</span><span class="params">(String src, FsPermission permission,</span></span></span><br><span class="line"><span class="function"><span class="params">    EnumSet&lt;CreateFlag&gt; flag, <span class="keyword">boolean</span> createParent, <span class="keyword">short</span> replication,</span></span></span><br><span class="line"><span class="function"><span class="params">    <span class="keyword">long</span> blockSize, Progressable progress, <span class="keyword">int</span> buffersize,</span></span></span><br><span class="line"><span class="function"><span class="params">    ChecksumOpt checksumOpt, InetSocketAddress[] favoredNodes,</span></span></span><br><span class="line"><span class="function"><span class="params">    String ecPolicyName)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  checkOpen();</span><br><span class="line">  <span class="keyword">final</span> FsPermission masked = applyUMask(permission);</span><br><span class="line">  LOG.debug(<span class="string">"&#123;&#125;: masked=&#123;&#125;"</span>, src, masked);</span><br><span class="line">  <span class="comment">// 这里有一个newStreamForCreate方法</span></span><br><span class="line">  <span class="keyword">final</span> DFSOutputStream result = DFSOutputStream.newStreamForCreate(<span class="keyword">this</span>,</span><br><span class="line">      src, masked, flag, createParent, replication, blockSize, progress,</span><br><span class="line">      dfsClientConf.createChecksum(checksumOpt),</span><br><span class="line">      getFavoredNodesStr(favoredNodes), ecPolicyName);</span><br><span class="line">  beginFileLease(result.getFileId(), result);</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>进入newStreamForCreate方法，这里分为两步：</p>
+<ul>
+<li>创建目标文件</li>
+<li>初始化Streamer</li>
+<li>准备dataQueue</li>
+</ul>
+<h4 id="创建目标文件"><a href="#创建目标文件" class="headerlink" title="创建目标文件"></a>创建目标文件</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 找到最终的create方法。这是NameNode的一个服务。</span></span><br><span class="line">  stat = dfsClient.namenode.create(src, masked, dfsClient.clientName,</span><br><span class="line">              <span class="keyword">new</span> EnumSetWritable&lt;&gt;(flag), createParent, replication,</span><br><span class="line">              blockSize, SUPPORTED_CRYPTO_VERSIONS, ecPolicyName);</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">          </span><br><span class="line">  <span class="comment">// 通过ctrl+alt+B快捷键找到具体实现方法。</span></span><br><span class="line">    <span class="meta">@Override</span> <span class="comment">// ClientProtocol</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> HdfsFileStatus <span class="title">create</span><span class="params">(String src, FsPermission masked,</span></span></span><br><span class="line"><span class="function"><span class="params">      String clientName, EnumSetWritable&lt;CreateFlag&gt; flag,</span></span></span><br><span class="line"><span class="function"><span class="params">      <span class="keyword">boolean</span> createParent, <span class="keyword">short</span> replication, <span class="keyword">long</span> blockSize,</span></span></span><br><span class="line"><span class="function"><span class="params">      CryptoProtocolVersion[] supportedVersions, String ecPolicyName)</span></span></span><br><span class="line"><span class="function">      <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">      <span class="comment">// TODO</span></span><br><span class="line">      PermissionStatus perm = <span class="keyword">new</span> PermissionStatus(getRemoteUser()</span><br><span class="line">          .getShortUserName(), <span class="keyword">null</span>, masked);</span><br><span class="line">         <span class="comment">// 这里同样有一个startFile方法，继续往下找。</span></span><br><span class="line">      status = namesystem.startFile(src, perm, clientName, clientMachine,</span><br><span class="line">          flag.get(), createParent, replication, blockSize, supportedVersions,</span><br><span class="line">          ecPolicyName, cacheEntry != <span class="keyword">null</span>);</span><br><span class="line">          <span class="comment">// TODO</span></span><br><span class="line">     &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 进入startFile方法。</span></span><br><span class="line">    <span class="function"><span class="keyword">static</span> HdfsFileStatus <span class="title">startFile</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">      FSNamesystem fsn, INodesInPath iip,</span></span></span><br><span class="line"><span class="function"><span class="params">      PermissionStatus permissions, String holder, String clientMachine,</span></span></span><br><span class="line"><span class="function"><span class="params">      EnumSet&lt;CreateFlag&gt; flag, <span class="keyword">boolean</span> createParent,</span></span></span><br><span class="line"><span class="function"><span class="params">      <span class="keyword">short</span> replication, <span class="keyword">long</span> blockSize,</span></span></span><br><span class="line"><span class="function"><span class="params">      FileEncryptionInfo feInfo, INode.BlocksMapUpdateInfo toRemoveBlocks,</span></span></span><br><span class="line"><span class="function"><span class="params">      <span class="keyword">boolean</span> shouldReplicate, String ecPolicyName, <span class="keyword">boolean</span> logRetryEntry)</span></span></span><br><span class="line"><span class="function">      <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="keyword">assert</span> fsn.hasWriteLock();</span><br><span class="line">    <span class="keyword">boolean</span> overwrite = flag.contains(CreateFlag.OVERWRITE);</span><br><span class="line">    <span class="keyword">boolean</span> isLazyPersist = flag.contains(CreateFlag.LAZY_PERSIST);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> String src = iip.getPath();</span><br><span class="line">    FSDirectory fsd = fsn.getFSDirectory();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (iip.getLastINode() != <span class="keyword">null</span>) &#123;</span><br><span class="line">	<span class="comment">// 检测文件是否存在</span></span><br><span class="line">      <span class="keyword">if</span> (overwrite) &#123;</span><br><span class="line">        List&lt;INode&gt; toRemoveINodes = <span class="keyword">new</span> ChunkedArrayList&lt;&gt;();</span><br><span class="line">        List&lt;Long&gt; toRemoveUCFiles = <span class="keyword">new</span> ChunkedArrayList&lt;&gt;();</span><br><span class="line">        <span class="keyword">long</span> ret = FSDirDeleteOp.delete(fsd, iip, toRemoveBlocks,</span><br><span class="line">                                        toRemoveINodes, toRemoveUCFiles, now());</span><br><span class="line">        <span class="keyword">if</span> (ret &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">          iip = INodesInPath.replace(iip, iip.length() - <span class="number">1</span>, <span class="keyword">null</span>);</span><br><span class="line">          FSDirDeleteOp.incrDeletedFileCount(ret);</span><br><span class="line">          fsn.removeLeasesAndINodes(toRemoveUCFiles, toRemoveINodes, <span class="keyword">true</span>);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// If lease soft limit time is expired, recover the lease</span></span><br><span class="line">        fsn.recoverLeaseInternal(FSNamesystem.RecoverLeaseOp.CREATE_FILE, iip,</span><br><span class="line">                                 src, holder, clientMachine, <span class="keyword">false</span>);</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> FileAlreadyExistsException(src + <span class="string">" for client "</span> +</span><br><span class="line">            clientMachine + <span class="string">" already exists"</span>);</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    fsn.checkFsObjectLimit();</span><br><span class="line">    INodeFile newNode = <span class="keyword">null</span>;</span><br><span class="line">    INodesInPath parent =</span><br><span class="line">        FSDirMkdirOp.createAncestorDirectories(fsd, iip, permissions);</span><br><span class="line">    <span class="keyword">if</span> (parent != <span class="keyword">null</span>) &#123;</span><br><span class="line">	<span class="comment">// 添加文件</span></span><br><span class="line">      iip = addFile(fsd, parent, iip.getLastLocalName(), permissions,</span><br><span class="line">          replication, blockSize, holder, clientMachine, shouldReplicate,</span><br><span class="line">          ecPolicyName);</span><br><span class="line">      newNode = iip != <span class="keyword">null</span> ? iip.getLastINode().asFile() : <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (newNode == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">"Unable to add "</span> + src +  <span class="string">" to namespace"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    fsn.leaseManager.addLease(</span><br><span class="line">        newNode.getFileUnderConstructionFeature().getClientName(),</span><br><span class="line">        newNode.getId());</span><br><span class="line">    <span class="keyword">if</span> (feInfo != <span class="keyword">null</span>) &#123;</span><br><span class="line">      FSDirEncryptionZoneOp.setFileEncryptionInfo(fsd, iip, feInfo,</span><br><span class="line">          XAttrSetFlag.CREATE);</span><br><span class="line">    &#125;</span><br><span class="line">    setNewINodeStoragePolicy(fsd.getBlockManager(), iip, isLazyPersist);</span><br><span class="line">    fsd.getEditLog().logOpenFile(src, newNode, overwrite, logRetryEntry);</span><br><span class="line">    <span class="keyword">if</span> (NameNode.stateChangeLog.isDebugEnabled()) &#123;</span><br><span class="line">      NameNode.stateChangeLog.debug(<span class="string">"DIR* NameSystem.startFile: added "</span> +</span><br><span class="line">          src + <span class="string">" inode "</span> + newNode.getId() + <span class="string">" "</span> + holder);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> FSDirStatAndListingOp.getFileInfo(fsd, iip, <span class="keyword">false</span>, <span class="keyword">false</span>);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="初始化Streamer"><a href="#初始化Streamer" class="headerlink" title="初始化Streamer"></a>初始化Streamer</h4><p>在newStreamForCreate方法中找到DFSOutputStream初始化。<br>这里会计算PacketChunkSize。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">final</span> DFSOutputStream out;</span><br><span class="line">      <span class="keyword">if</span>(stat.getErasureCodingPolicy() != <span class="keyword">null</span>) &#123;</span><br><span class="line">        out = <span class="keyword">new</span> DFSStripedOutputStream(dfsClient, src, stat,</span><br><span class="line">            flag, progress, checksum, favoredNodes);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        out = <span class="keyword">new</span> DFSOutputStream(dfsClient, src, stat,</span><br><span class="line">            flag, progress, checksum, favoredNodes, <span class="keyword">true</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      out.start();</span><br><span class="line">      <span class="keyword">return</span> out;</span><br><span class="line">   <span class="comment">// 进入new DFSOutputStream()，有两个方法：computePacketChunkSize和new DataStreamer</span></span><br><span class="line">     <span class="function"><span class="keyword">protected</span> <span class="title">DFSOutputStream</span><span class="params">(DFSClient dfsClient, String src,</span></span></span><br><span class="line"><span class="function"><span class="params">      HdfsFileStatus stat, EnumSet&lt;CreateFlag&gt; flag, Progressable progress,</span></span></span><br><span class="line"><span class="function"><span class="params">      DataChecksum checksum, String[] favoredNodes, <span class="keyword">boolean</span> createStreamer)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>(dfsClient, src, flag, progress, stat, checksum);</span><br><span class="line">    <span class="keyword">this</span>.shouldSyncBlock = flag.contains(CreateFlag.SYNC_BLOCK);</span><br><span class="line"></span><br><span class="line">    computePacketChunkSize(dfsClient.getConf().getWritePacketSize(),</span><br><span class="line">        bytesPerChecksum);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (createStreamer) &#123;</span><br><span class="line">      streamer = <span class="keyword">new</span> DataStreamer(stat, <span class="keyword">null</span>, dfsClient, src, progress,</span><br><span class="line">          checksum, cachingStrategy, byteArrayManager, favoredNodes,</span><br><span class="line">          addBlockFlags);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="准备dataQueue"><a href="#准备dataQueue" class="headerlink" title="准备dataQueue"></a>准备dataQueue</h4><p>在newStreamForCreate方法中初始化DFSOutputStream之后，会调用stream.start方法。<br>这里会准备数据队列dataQueue，并处于阻塞状态，等待数据写入。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> ((!shouldStop() &amp;&amp; dataQueue.size() == <span class="number">0</span> &amp;&amp;</span><br><span class="line">    (stage != BlockConstructionStage.DATA_STREAMING ||</span><br><span class="line">        now - lastPacket &lt; halfSocketTimeout)) || doSleep) &#123;</span><br><span class="line">  <span class="keyword">long</span> timeout = halfSocketTimeout - (now-lastPacket);</span><br><span class="line">  timeout = timeout &lt;= <span class="number">0</span> ? <span class="number">1000</span> : timeout;</span><br><span class="line">  timeout = (stage == BlockConstructionStage.DATA_STREAMING)?</span><br><span class="line">      timeout : <span class="number">1000</span>;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    dataQueue.wait(timeout);</span><br><span class="line">  &#125; <span class="keyword">catch</span> (InterruptedException  e) &#123;</span><br><span class="line">    LOG.warn(<span class="string">"Caught exception"</span>, e);</span><br><span class="line">  &#125;</span><br><span class="line">  doSleep = <span class="keyword">false</span>;</span><br><span class="line">  now = Time.monotonicNow();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="write写流程"><a href="#write写流程" class="headerlink" title="write写流程"></a>write写流程</h3><h4 id="packet入队"><a href="#packet入队" class="headerlink" title="packet入队"></a>packet入队</h4><p>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 根据write方法找到实现类org.apache.hadoop.fs.FSOutputSummer中的write实现方法。</span></span><br><span class="line">  <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">write</span><span class="params">(<span class="keyword">int</span> b)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    buf[count++] = (<span class="keyword">byte</span>)b;</span><br><span class="line">    <span class="keyword">if</span>(count == buf.length) &#123;</span><br><span class="line">      flushBuffer();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 调用flushBuffer方法，里面有一个writeChecksumChunks(buf, 0, lenToFlush);方法。</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">synchronized</span> <span class="keyword">int</span> <span class="title">flushBuffer</span><span class="params">(<span class="keyword">boolean</span> keep,</span></span></span><br><span class="line"><span class="function"><span class="params">      <span class="keyword">boolean</span> flushPartial)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> bufLen = count;</span><br><span class="line">    <span class="keyword">int</span> partialLen = bufLen % sum.getBytesPerChecksum();</span><br><span class="line">    <span class="keyword">int</span> lenToFlush = flushPartial ? bufLen : bufLen - partialLen;</span><br><span class="line">    <span class="keyword">if</span> (lenToFlush != <span class="number">0</span>) &#123;</span><br><span class="line">      writeChecksumChunks(buf, <span class="number">0</span>, lenToFlush);</span><br><span class="line">      <span class="keyword">if</span> (!flushPartial || keep) &#123;</span><br><span class="line">        count = partialLen;</span><br><span class="line">        System.arraycopy(buf, bufLen - count, buf, <span class="number">0</span>, count);</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        count = <span class="number">0</span>;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// total bytes left minus unflushed bytes left</span></span><br><span class="line">    <span class="keyword">return</span> count - (bufLen - lenToFlush);</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 进入writeChecksumChunks方法，找到writeChunk方法。</span></span><br><span class="line"> <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">writeChecksumChunks</span><span class="params">(<span class="keyword">byte</span> b[], <span class="keyword">int</span> off, <span class="keyword">int</span> len)</span></span></span><br><span class="line"><span class="function">  <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    sum.calculateChunkedSums(b, off, len, checksum, <span class="number">0</span>);</span><br><span class="line">    TraceScope scope = createWriteTraceScope();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; len; i += sum.getBytesPerChecksum()) &#123;</span><br><span class="line">        <span class="keyword">int</span> chunkLen = Math.min(sum.getBytesPerChecksum(), len - i);</span><br><span class="line">        <span class="keyword">int</span> ckOffset = i / sum.getBytesPerChecksum() * getChecksumSize();</span><br><span class="line">        writeChunk(b, off + i, chunkLen, checksum, ckOffset,</span><br><span class="line">            getChecksumSize());</span><br><span class="line">      &#125;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (scope != <span class="keyword">null</span>) &#123;</span><br><span class="line">        scope.close();</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 继续寻找，找到具体的实现方法。</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">  <span class="function"><span class="keyword">protected</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title">writeChunk</span><span class="params">(<span class="keyword">byte</span>[] b, <span class="keyword">int</span> offset, <span class="keyword">int</span> len,</span></span></span><br><span class="line"><span class="function"><span class="params">      <span class="keyword">byte</span>[] checksum, <span class="keyword">int</span> ckoff, <span class="keyword">int</span> cklen)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    writeChunkPrepare(len, ckoff, cklen);</span><br><span class="line"></span><br><span class="line">    currentPacket.writeChecksum(checksum, ckoff, cklen);</span><br><span class="line">    currentPacket.writeData(b, offset, len);</span><br><span class="line">    currentPacket.incNumChunks();</span><br><span class="line">    getStreamer().incBytesCurBlock(len);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// If packet is full, enqueue it for transmission</span></span><br><span class="line">    <span class="keyword">if</span> (currentPacket.getNumChunks() == currentPacket.getMaxChunks() ||</span><br><span class="line">        getStreamer().getBytesCurBlock() == blockSize) &#123;</span><br><span class="line">      enqueueCurrentPacketFull();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// 进入enqueueCurrentPacketFull();方法，packet有个入队操作，入队完成之后唤醒线程。</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">queuePacket</span><span class="params">(DFSPacket packet)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (dataQueue) &#123;</span><br><span class="line">      <span class="keyword">if</span> (packet == <span class="keyword">null</span>) <span class="keyword">return</span>;</span><br><span class="line">      packet.addTraceParent(Tracer.getCurrentSpanId());</span><br><span class="line">      dataQueue.addLast(packet);</span><br><span class="line">      lastQueuedSeqno = packet.getSeqno();</span><br><span class="line">      LOG.debug(<span class="string">"Queued &#123;&#125;, &#123;&#125;"</span>, packet, <span class="keyword">this</span>);</span><br><span class="line">      dataQueue.notifyAll();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h4 id="建立-Pipeline"><a href="#建立-Pipeline" class="headerlink" title="建立 Pipeline"></a>建立 Pipeline</h4><p>获取block块信息</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">setPipeline(nextBlockOutputStream());</span><br></pre></td></tr></table></figure>
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2023/01/05/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9AHDFS%E5%86%99%E6%B5%81%E7%A8%8B/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop%E8%BF%9B%E9%98%B6/" rel="tag">Hadoop进阶</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2023/01/31/Spark/Spark%20SQL%E8%B0%83%E4%BC%98/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Spark SQL调优
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2023/01/03/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9ADataNode%E5%90%AF%E5%8A%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Hadoop源码学习：DataNode启动</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2023
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+
+<!-- 复制 -->
+
+  
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+
+    
+  </div>
+</body>
+
+</html>

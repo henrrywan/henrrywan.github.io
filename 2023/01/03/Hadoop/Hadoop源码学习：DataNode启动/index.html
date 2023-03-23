@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Hadoop源码学习：DataNode启动 |  大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-Hadoop/Hadoop源码学习：DataNode启动" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Hadoop源码学习：DataNode启动
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2023/01/03/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9ADataNode%E5%90%AF%E5%8A%A8/" class="article-date">
+  <time datetime="2023-01-03T02:00:00.000Z" itemprop="datePublished">2023-01-03</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.2k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">6 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Hadoop源码学习：DataNode启动"><a href="#Hadoop源码学习：DataNode启动" class="headerlink" title="Hadoop源码学习：DataNode启动"></a>Hadoop源码学习：DataNode启动</h1><p>流程图：</p>
+<img src="/2023/01/03/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9ADataNode%E5%90%AF%E5%8A%A8/DataNode%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B.png" class="">
+
+<p>根据流程图，总结流程：</p>
+<ol>
+<li>初始化DataXceiverServer服务</li>
+<li>初始化HTTP服务</li>
+<li>初始化DataNode的RPC服务端</li>
+<li>DataNode向NameNode注册（包括发送心跳）</li>
+</ol>
+<h2 id="源码解析"><a href="#源码解析" class="headerlink" title="源码解析"></a>源码解析</h2><h3 id="程序入口"><a href="#程序入口" class="headerlink" title="程序入口"></a>程序入口</h3><p>找到程序入口：<code>org.apache.hadoop.hdfs.server.datanode.DataNode</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line">  <span class="comment">// 进入main方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">secureMain</span><span class="params">(String args[], SecureResources resources)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">int</span> errorCode = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    StringUtils.startupShutdownMessage(DataNode<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>, <span class="title">LOG</span>)</span>;</span><br><span class="line">    DataNode datanode = createDataNode(args, <span class="keyword">null</span>, resources);</span><br><span class="line">    <span class="keyword">if</span> (datanode != <span class="keyword">null</span>) &#123;</span><br><span class="line">      datanode.join();</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      errorCode = <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">    LOG.error(<span class="string">"Exception in secureMain"</span>, e);</span><br><span class="line">    terminate(<span class="number">1</span>, e);</span><br><span class="line">  &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">    <span class="comment">// We need to terminate the process here because either shutdown was called</span></span><br><span class="line">    <span class="comment">// or some disk related conditions like volumes tolerated or volumes required</span></span><br><span class="line">    <span class="comment">// condition was not met. Also, In secure mode, control will go to Jsvc</span></span><br><span class="line">    <span class="comment">// and Datanode process hangs if it does not exit.</span></span><br><span class="line">    LOG.warn(<span class="string">"Exiting Datanode"</span>);</span><br><span class="line">    terminate(errorCode);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">  </span><br><span class="line"><span class="comment">// 进入createDataNode方法，找到instantiateDataNode方法</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> DataNode <span class="title">createDataNode</span><span class="params">(String args[], Configuration conf,</span></span></span><br><span class="line"><span class="function"><span class="params">    SecureResources resources)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  DataNode dn = instantiateDataNode(args, conf, resources);</span><br><span class="line">  <span class="keyword">if</span> (dn != <span class="keyword">null</span>) &#123;</span><br><span class="line">    dn.runDatanodeDaemon();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> dn;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 进入instantiateDataNode方法，这里主要是参数解析和DataNode实例化。</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> DataNode <span class="title">instantiateDataNode</span><span class="params">(String args [], Configuration conf,</span></span></span><br><span class="line"><span class="function"><span class="params">    SecureResources resources)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (conf == <span class="keyword">null</span>)</span><br><span class="line">    conf = <span class="keyword">new</span> HdfsConfiguration();</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (args != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">// parse generic hadoop options</span></span><br><span class="line">    GenericOptionsParser hParser = <span class="keyword">new</span> GenericOptionsParser(conf, args);</span><br><span class="line">    args = hParser.getRemainingArgs();</span><br><span class="line">  &#125;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">if</span> (!parseArguments(args, conf)) &#123;</span><br><span class="line">    printUsage(System.err);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">  &#125;</span><br><span class="line">  Collection&lt;StorageLocation&gt; dataLocations = getStorageLocations(conf);</span><br><span class="line">  UserGroupInformation.setConfiguration(conf);</span><br><span class="line">  SecurityUtil.login(conf, DFS_DATANODE_KEYTAB_FILE_KEY,</span><br><span class="line">      DFS_DATANODE_KERBEROS_PRINCIPAL_KEY, getHostName(conf));</span><br><span class="line">  <span class="keyword">return</span> makeInstance(dataLocations, conf, resources);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 进入makeInstance，继续寻找，直到找到startDataNode方法。</span></span><br><span class="line">startDataNode(dataDirs, resources);</span><br></pre></td></tr></table></figure>
+<h3 id="startDataNode方法（核心源码）"><a href="#startDataNode方法（核心源码）" class="headerlink" title="startDataNode方法（核心源码）"></a>startDataNode方法（核心源码）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">startDataNode</span><span class="params">(List&lt;StorageLocation&gt; dataDirectories,</span></span></span><br><span class="line"><span class="function"><span class="params">                   SecureResources resources</span></span></span><br><span class="line"><span class="function"><span class="params">                   )</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line"></span><br><span class="line">  <span class="comment">// TODO</span></span><br><span class="line"></span><br><span class="line">  storage = <span class="keyword">new</span> DataStorage();</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// global DN settings</span></span><br><span class="line">  registerMXBean();</span><br><span class="line">  <span class="comment">// 初始化DataXceiverServer</span></span><br><span class="line">  initDataXceiver();</span><br><span class="line">  <span class="comment">// 初始化HTTP服务</span></span><br><span class="line">  startInfoServer();</span><br><span class="line">  pauseMonitor = <span class="keyword">new</span> JvmPauseMonitor();</span><br><span class="line">  pauseMonitor.init(getConf());</span><br><span class="line">  pauseMonitor.start();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// BlockPoolTokenSecretManager is required to create ipc server.</span></span><br><span class="line">  <span class="keyword">this</span>.blockPoolTokenSecretManager = <span class="keyword">new</span> BlockPoolTokenSecretManager();</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Login is done by now. Set the DN user name.</span></span><br><span class="line">  dnUserName = UserGroupInformation.getCurrentUser().getUserName();</span><br><span class="line">  LOG.info(<span class="string">"dnUserName = &#123;&#125;"</span>, dnUserName);</span><br><span class="line">  LOG.info(<span class="string">"supergroup = &#123;&#125;"</span>, supergroup);</span><br><span class="line">  <span class="comment">// 初始化DataNode的RPC服务</span></span><br><span class="line">  initIpcServer();</span><br><span class="line"></span><br><span class="line">  metrics = DataNodeMetrics.create(getConf(), getDisplayName());</span><br><span class="line">  peerMetrics = dnConf.peerStatsEnabled ?</span><br><span class="line">      DataNodePeerMetrics.create(getDisplayName(), getConf()) : <span class="keyword">null</span>;</span><br><span class="line">  metrics.getJvmMetrics().setPauseMonitor(pauseMonitor);</span><br><span class="line"></span><br><span class="line">  ecWorker = <span class="keyword">new</span> ErasureCodingWorker(getConf(), <span class="keyword">this</span>);</span><br><span class="line">  blockRecoveryWorker = <span class="keyword">new</span> BlockRecoveryWorker(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">  blockPoolManager = <span class="keyword">new</span> BlockPoolManager(<span class="keyword">this</span>);</span><br><span class="line">  <span class="comment">// DataNode向NameNode注册（发送心跳）</span></span><br><span class="line">  blockPoolManager.refreshNamenodes(getConf());</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Create the ReadaheadPool from the DataNode context so we can</span></span><br><span class="line">  <span class="comment">// exit without having to explicitly shutdown its thread pool.</span></span><br><span class="line">  readaheadPool = ReadaheadPool.getInstance();</span><br><span class="line">  saslClient = <span class="keyword">new</span> SaslDataTransferClient(dnConf.getConf(),</span><br><span class="line">      dnConf.saslPropsResolver, dnConf.trustedChannelResolver);</span><br><span class="line">  saslServer = <span class="keyword">new</span> SaslDataTransferServer(dnConf, blockPoolTokenSecretManager);</span><br><span class="line">  startMetricsLogger();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (dnConf.diskStatsEnabled) &#123;</span><br><span class="line">    diskMetrics = <span class="keyword">new</span> DataNodeDiskMetrics(<span class="keyword">this</span>,</span><br><span class="line">        dnConf.outliersReportIntervalMs);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="初始化DataXceiverServer服务"><a href="#初始化DataXceiverServer服务" class="headerlink" title="初始化DataXceiverServer服务"></a>初始化DataXceiverServer服务</h4><p>DataXceiverServer服务作用：DataNode用来接收客户端和其它DataNode发送过来的数据服务。<br>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initDataXceiver</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="comment">// find free port or use privileged port provided</span></span><br><span class="line">  TcpPeerServer tcpPeerServer;</span><br><span class="line">  <span class="keyword">if</span> (secureResources != <span class="keyword">null</span>) &#123;</span><br><span class="line">    tcpPeerServer = <span class="keyword">new</span> TcpPeerServer(secureResources);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">int</span> backlogLength = getConf().getInt(</span><br><span class="line">        CommonConfigurationKeysPublic.IPC_SERVER_LISTEN_QUEUE_SIZE_KEY,</span><br><span class="line">        CommonConfigurationKeysPublic.IPC_SERVER_LISTEN_QUEUE_SIZE_DEFAULT);</span><br><span class="line">    tcpPeerServer = <span class="keyword">new</span> TcpPeerServer(dnConf.socketWriteTimeout,</span><br><span class="line">        DataNode.getStreamingAddr(getConf()), backlogLength);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (dnConf.getTransferSocketRecvBufferSize() &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    tcpPeerServer.setReceiveBufferSize(</span><br><span class="line">        dnConf.getTransferSocketRecvBufferSize());</span><br><span class="line">  &#125;</span><br><span class="line">  streamingAddr = tcpPeerServer.getStreamingAddr();</span><br><span class="line">  LOG.info(<span class="string">"Opened streaming server at &#123;&#125;"</span>, streamingAddr);</span><br><span class="line">  <span class="keyword">this</span>.threadGroup = <span class="keyword">new</span> ThreadGroup(<span class="string">"dataXceiverServer"</span>);</span><br><span class="line">  xserver = <span class="keyword">new</span> DataXceiverServer(tcpPeerServer, getConf(), <span class="keyword">this</span>);</span><br><span class="line">  <span class="keyword">this</span>.dataXceiverServer = <span class="keyword">new</span> Daemon(threadGroup, xserver);</span><br><span class="line">  <span class="keyword">this</span>.threadGroup.setDaemon(<span class="keyword">true</span>); <span class="comment">// auto destroy when empty</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (getConf().getBoolean(</span><br><span class="line">      HdfsClientConfigKeys.Read.ShortCircuit.KEY,</span><br><span class="line">      HdfsClientConfigKeys.Read.ShortCircuit.DEFAULT) ||</span><br><span class="line">      getConf().getBoolean(</span><br><span class="line">          HdfsClientConfigKeys.DFS_CLIENT_DOMAIN_SOCKET_DATA_TRAFFIC,</span><br><span class="line">          HdfsClientConfigKeys</span><br><span class="line">            .DFS_CLIENT_DOMAIN_SOCKET_DATA_TRAFFIC_DEFAULT)) &#123;</span><br><span class="line">    DomainPeerServer domainPeerServer =</span><br><span class="line">              getDomainPeerServer(getConf(), streamingAddr.getPort());</span><br><span class="line">    <span class="keyword">if</span> (domainPeerServer != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">this</span>.localDataXceiverServer = <span class="keyword">new</span> Daemon(threadGroup,</span><br><span class="line">          <span class="keyword">new</span> DataXceiverServer(domainPeerServer, getConf(), <span class="keyword">this</span>));</span><br><span class="line">      LOG.info(<span class="string">"Listening on UNIX domain socket: &#123;&#125;"</span>,</span><br><span class="line">          domainPeerServer.getBindPath());</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">this</span>.shortCircuitRegistry = <span class="keyword">new</span> ShortCircuitRegistry(getConf());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="初始化HTTP服务"><a href="#初始化HTTP服务" class="headerlink" title="初始化HTTP服务"></a>初始化HTTP服务</h4><p>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">startInfoServer</span><span class="params">()</span></span></span><br><span class="line"><span class="function">  <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  <span class="comment">// SecureDataNodeStarter will bind the privileged port to the channel if</span></span><br><span class="line">  <span class="comment">// the DN is started by JSVC, pass it along.</span></span><br><span class="line">  ServerSocketChannel httpServerChannel = secureResources != <span class="keyword">null</span> ?</span><br><span class="line">      secureResources.getHttpServerChannel() : <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">  httpServer = <span class="keyword">new</span> DatanodeHttpServer(getConf(), <span class="keyword">this</span>, httpServerChannel);</span><br><span class="line">  httpServer.start();</span><br><span class="line">  <span class="keyword">if</span> (httpServer.getHttpAddress() != <span class="keyword">null</span>) &#123;</span><br><span class="line">    infoPort = httpServer.getHttpAddress().getPort();</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">if</span> (httpServer.getHttpsAddress() != <span class="keyword">null</span>) &#123;</span><br><span class="line">    infoSecurePort = httpServer.getHttpsAddress().getPort();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="初始化DataNode的RPC服务端"><a href="#初始化DataNode的RPC服务端" class="headerlink" title="初始化DataNode的RPC服务端"></a>初始化DataNode的RPC服务端</h4><p>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">initIpcServer</span><span class="params">()</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">  InetSocketAddress ipcAddr = NetUtils.createSocketAddr(</span><br><span class="line">      getConf().getTrimmed(DFS_DATANODE_IPC_ADDRESS_KEY));</span><br><span class="line">  </span><br><span class="line">  <span class="comment">// Add all the RPC protocols that the Datanode implements    </span></span><br><span class="line">  RPC.setProtocolEngine(getConf(), ClientDatanodeProtocolPB<span class="class">.<span class="keyword">class</span>,</span></span><br><span class="line"><span class="class">      <span class="title">ProtobufRpcEngine</span>.<span class="title">class</span>)</span>;</span><br><span class="line">  ClientDatanodeProtocolServerSideTranslatorPB clientDatanodeProtocolXlator = </span><br><span class="line">        <span class="keyword">new</span> ClientDatanodeProtocolServerSideTranslatorPB(<span class="keyword">this</span>);</span><br><span class="line">  BlockingService service = ClientDatanodeProtocolService</span><br><span class="line">      .newReflectiveBlockingService(clientDatanodeProtocolXlator);</span><br><span class="line">  ipcServer = <span class="keyword">new</span> RPC.Builder(getConf())</span><br><span class="line">      .setProtocol(ClientDatanodeProtocolPB<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">      .<span class="title">setInstance</span>(<span class="title">service</span>)</span></span><br><span class="line"><span class="class">      .<span class="title">setBindAddress</span>(<span class="title">ipcAddr</span>.<span class="title">getHostName</span>())</span></span><br><span class="line"><span class="class">      .<span class="title">setPort</span>(<span class="title">ipcAddr</span>.<span class="title">getPort</span>())</span></span><br><span class="line"><span class="class">      .<span class="title">setNumHandlers</span>(</span></span><br><span class="line"><span class="class">          <span class="title">getConf</span>().<span class="title">getInt</span>(<span class="title">DFS_DATANODE_HANDLER_COUNT_KEY</span>,</span></span><br><span class="line"><span class="class">              <span class="title">DFS_DATANODE_HANDLER_COUNT_DEFAULT</span>)).<span class="title">setVerbose</span>(<span class="title">false</span>)</span></span><br><span class="line"><span class="class">      .<span class="title">setSecretManager</span>(<span class="title">blockPoolTokenSecretManager</span>).<span class="title">build</span>()</span>;</span><br><span class="line"></span><br><span class="line">  ReconfigurationProtocolServerSideTranslatorPB reconfigurationProtocolXlator</span><br><span class="line">      = <span class="keyword">new</span> ReconfigurationProtocolServerSideTranslatorPB(<span class="keyword">this</span>);</span><br><span class="line">  service = ReconfigurationProtocolService</span><br><span class="line">      .newReflectiveBlockingService(reconfigurationProtocolXlator);</span><br><span class="line">  DFSUtil.addPBProtocol(getConf(), ReconfigurationProtocolPB<span class="class">.<span class="keyword">class</span>, <span class="title">service</span>,</span></span><br><span class="line"><span class="class">      <span class="title">ipcServer</span>)</span>;</span><br><span class="line"></span><br><span class="line">  InterDatanodeProtocolServerSideTranslatorPB interDatanodeProtocolXlator = </span><br><span class="line">      <span class="keyword">new</span> InterDatanodeProtocolServerSideTranslatorPB(<span class="keyword">this</span>);</span><br><span class="line">  service = InterDatanodeProtocolService</span><br><span class="line">      .newReflectiveBlockingService(interDatanodeProtocolXlator);</span><br><span class="line">  DFSUtil.addPBProtocol(getConf(), InterDatanodeProtocolPB<span class="class">.<span class="keyword">class</span>, <span class="title">service</span>,</span></span><br><span class="line"><span class="class">      <span class="title">ipcServer</span>)</span>;</span><br><span class="line"></span><br><span class="line">  TraceAdminProtocolServerSideTranslatorPB traceAdminXlator =</span><br><span class="line">      <span class="keyword">new</span> TraceAdminProtocolServerSideTranslatorPB(<span class="keyword">this</span>);</span><br><span class="line">  BlockingService traceAdminService = TraceAdminService</span><br><span class="line">      .newReflectiveBlockingService(traceAdminXlator);</span><br><span class="line">  DFSUtil.addPBProtocol(</span><br><span class="line">      getConf(),</span><br><span class="line">      TraceAdminProtocolPB<span class="class">.<span class="keyword">class</span>,</span></span><br><span class="line"><span class="class">      <span class="title">traceAdminService</span>,</span></span><br><span class="line"><span class="class">      <span class="title">ipcServer</span>)</span>;</span><br><span class="line"></span><br><span class="line">  LOG.info(<span class="string">"Opened IPC server at &#123;&#125;"</span>, ipcServer.getListenerAddress());</span><br><span class="line"></span><br><span class="line">  <span class="comment">// set service-level authorization security policy</span></span><br><span class="line">  <span class="keyword">if</span> (getConf().getBoolean(</span><br><span class="line">      CommonConfigurationKeys.HADOOP_SECURITY_AUTHORIZATION, <span class="keyword">false</span>)) &#123;</span><br><span class="line">    ipcServer.refreshServiceAcl(getConf(), <span class="keyword">new</span> HDFSPolicyProvider());</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="DataNode向NameNode注册（包括发送心跳）"><a href="#DataNode向NameNode注册（包括发送心跳）" class="headerlink" title="DataNode向NameNode注册（包括发送心跳）"></a>DataNode向NameNode注册（包括发送心跳）</h4><p>源码如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line">   <span class="comment">// 每一个DataNode创建createBPOS</span></span><br><span class="line"><span class="keyword">for</span> (String nsToAdd : toAdd) &#123;</span><br><span class="line">         Map&lt;String, InetSocketAddress&gt; nnIdToAddr = addrMap.get(nsToAdd);</span><br><span class="line">         Map&lt;String, InetSocketAddress&gt; nnIdToLifelineAddr =</span><br><span class="line">             lifelineAddrMap.get(nsToAdd);</span><br><span class="line">         ArrayList&lt;InetSocketAddress&gt; addrs =</span><br><span class="line">             Lists.newArrayListWithCapacity(nnIdToAddr.size());</span><br><span class="line">         ArrayList&lt;InetSocketAddress&gt; lifelineAddrs =</span><br><span class="line">             Lists.newArrayListWithCapacity(nnIdToAddr.size());</span><br><span class="line">         <span class="keyword">for</span> (String nnId : nnIdToAddr.keySet()) &#123;</span><br><span class="line">           addrs.add(nnIdToAddr.get(nnId));</span><br><span class="line">           lifelineAddrs.add(nnIdToLifelineAddr != <span class="keyword">null</span> ?</span><br><span class="line">               nnIdToLifelineAddr.get(nnId) : <span class="keyword">null</span>);</span><br><span class="line">         &#125;</span><br><span class="line">         BPOfferService bpos = createBPOS(nsToAdd, addrs, lifelineAddrs);</span><br><span class="line">         bpByNameserviceId.put(nsToAdd, bpos);</span><br><span class="line">         offerServices.add(bpos);</span><br><span class="line">       &#125;</span><br><span class="line">     <span class="comment">// TODO</span></span><br><span class="line">     <span class="comment">// 对每一个DataNode开启线程注册</span></span><br><span class="line">     startAll();</span><br><span class="line">     </span><br><span class="line">     <span class="comment">// 通过startAll找到run方法。</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">   LOG.info(<span class="keyword">this</span> + <span class="string">" starting to offer service"</span>);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">try</span> &#123;</span><br><span class="line">     <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</span><br><span class="line">       <span class="comment">// init stuff</span></span><br><span class="line">       <span class="keyword">try</span> &#123;</span><br><span class="line">         <span class="comment">// setup storage</span></span><br><span class="line">       <span class="comment">// 向注册NN</span></span><br><span class="line">         connectToNNAndHandshake();</span><br><span class="line">         <span class="keyword">break</span>;</span><br><span class="line">       &#125; <span class="keyword">catch</span> (IOException ioe) &#123;</span><br><span class="line">         <span class="comment">// Initial handshake, storage recovery or registration failed</span></span><br><span class="line">         runningState = RunningState.INIT_FAILED;</span><br><span class="line">         <span class="keyword">if</span> (shouldRetryInit()) &#123;</span><br><span class="line">           <span class="comment">// Retry until all namenode's of BPOS failed initialization</span></span><br><span class="line">           LOG.error(<span class="string">"Initialization failed for "</span> + <span class="keyword">this</span> + <span class="string">" "</span></span><br><span class="line">               + ioe.getLocalizedMessage());</span><br><span class="line">           sleepAndLogInterrupts(<span class="number">5000</span>, <span class="string">"initializing"</span>);</span><br><span class="line">         &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">           runningState = RunningState.FAILED;</span><br><span class="line">           LOG.error(<span class="string">"Initialization failed for "</span> + <span class="keyword">this</span> + <span class="string">". Exiting. "</span>, ioe);</span><br><span class="line">           <span class="keyword">return</span>;</span><br><span class="line">         &#125;</span><br><span class="line">       &#125;</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     runningState = RunningState.RUNNING;</span><br><span class="line">     <span class="keyword">if</span> (initialRegistrationComplete != <span class="keyword">null</span>) &#123;</span><br><span class="line">       initialRegistrationComplete.countDown();</span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">     <span class="keyword">while</span> (shouldRun()) &#123;</span><br><span class="line">       <span class="keyword">try</span> &#123;</span><br><span class="line">  <span class="comment">// 发送心跳</span></span><br><span class="line">         offerService();</span><br><span class="line">       &#125; <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">         LOG.error(<span class="string">"Exception in BPOfferService for "</span> + <span class="keyword">this</span>, ex);</span><br><span class="line">         sleepAndLogInterrupts(<span class="number">5000</span>, <span class="string">"offering service"</span>);</span><br><span class="line">       &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     runningState = RunningState.EXITED;</span><br><span class="line">   &#125; <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">     LOG.warn(<span class="string">"Unexpected exception in block pool "</span> + <span class="keyword">this</span>, ex);</span><br><span class="line">     runningState = RunningState.FAILED;</span><br><span class="line">   &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">     LOG.warn(<span class="string">"Ending block pool service for: "</span> + <span class="keyword">this</span>);</span><br><span class="line">     cleanUp();</span><br><span class="line">   &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2023/01/03/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9ADataNode%E5%90%AF%E5%8A%A8/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop%E8%BF%9B%E9%98%B6/" rel="tag">Hadoop进阶</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2023/01/05/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9AHDFS%E5%86%99%E6%B5%81%E7%A8%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Hadoop源码学习：HDFS写流程
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2023/01/01/Hadoop/Hadoop%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0%EF%BC%9ANameNode%E5%90%AF%E5%8A%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Hadoop源码学习：NameNode启动</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2023
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+
+<!-- 复制 -->
+
+  
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+
+    
+  </div>
+</body>
+
+</html>
