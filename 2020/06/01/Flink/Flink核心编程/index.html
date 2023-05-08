@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+
+
+<head>
+  <meta charset="utf-8" />
+   
+  <meta name="keywords" content="hadoop,hive,spark" />
+   
+  <meta name="description" content="try everything!" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Flink核心编程 |  大数据学习笔记
+  </title>
+  <meta name="generator" content="hexo-theme-ayer">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/dist/main.css">
+
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Shen-Yu/cdn/css/remixicon.min.css">
+
+  
+<link rel="stylesheet" href="/css/custom.css">
+
+  
+  
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+  
+  
+
+  
+
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content on">
+      <section class="outer">
+  <article id="post-Flink/Flink核心编程" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Flink核心编程
+</h1>
+ 
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/06/01/Flink/Flink%E6%A0%B8%E5%BF%83%E7%BC%96%E7%A8%8B/" class="article-date">
+  <time datetime="2020-06-01T02:00:00.000Z" itemprop="datePublished">2020-06-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Flink/">Flink</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">4k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">16 分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Flink核心编程"><a href="#Flink核心编程" class="headerlink" title="Flink核心编程"></a>Flink核心编程</h1><p>基于Flink1.13。</p>
+<h2 id="pom依赖"><a href="#pom依赖" class="headerlink" title="pom依赖"></a>pom依赖</h2><p>Flink不同版本pom文件依赖差别较大，这里仅适用于Flink1.13相关编程。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">project.build.sourceEncoding</span>&gt;</span>UTF-8<span class="tag">&lt;/<span class="name">project.build.sourceEncoding</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">java.version</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">java.version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">maven.compiler.source</span>&gt;</span>$&#123;java.version&#125;<span class="tag">&lt;/<span class="name">maven.compiler.source</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">maven.compiler.target</span>&gt;</span>$&#123;java.version&#125;<span class="tag">&lt;/<span class="name">maven.compiler.target</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">flink.version</span>&gt;</span>1.13.0<span class="tag">&lt;/<span class="name">flink.version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">scala.binary.version</span>&gt;</span>2.12<span class="tag">&lt;/<span class="name">scala.binary.version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">fastjson</span>&gt;</span>1.2.70<span class="tag">&lt;/<span class="name">fastjson</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">&lt;!--Fling 核心依赖--&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--Flink客户端--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-clients_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">&lt;!--scala版本--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-scala_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--java版本--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">&lt;!--streaming的scala版本--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-streaming-scala_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--streaming的java版本--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-streaming-java_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">&lt;!--Flink Table API&amp;SQL依赖--&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--“桥接器”（bridge）:主要负责 Table API 和下层 DataStream API 的连接支持 --&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--计划器”（planner）:Table API 的核心组件，负责提供运行时环境，并生成程序的执行计划--&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--bridge的scala版本--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-table-api-scala-bridge_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--bridge的java版本--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-table-api-java-bridge_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--planner--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-table-planner-blink_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">&lt;!--Flink Table API读取不同格式文件所需依赖--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-json<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-csv<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;flink.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">&lt;!--其它依赖--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>fastjson<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;fastjson&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="流程规范"><a href="#流程规范" class="headerlink" title="流程规范"></a>流程规范</h2><p>一个基本的Flink程序处理任务的流程如下：</p>
+<ol>
+<li>创建执行环境（Environment）</li>
+<li>加载数据源（Source）</li>
+<li>数据转换操作（Transformations）</li>
+<li>数据输出（Sink）</li>
+<li>触发程序执行（execute）</li>
+</ol>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建执行环境</span></span><br><span class="line"><span class="keyword">val</span> env: <span class="type">StreamExecutionEnvironment</span> = <span class="type">StreamExecutionEnvironment</span>.getExecutionEnvironment</span><br><span class="line"><span class="comment">// 设置Mode。Flink1.2之后批流一体</span></span><br><span class="line">env.setRuntimeMode(<span class="type">RuntimeExecutionMode</span>.<span class="type">STREAMING</span>)</span><br><span class="line"><span class="comment">// 设置并行度，方便调试</span></span><br><span class="line">env.setParallelism(<span class="number">1</span>)</span><br><span class="line"><span class="comment">// TODO</span></span><br><span class="line"><span class="comment">// 触发任务执行</span></span><br><span class="line">env.execute(<span class="string">"Flink Test"</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="时间语义"><a href="#时间语义" class="headerlink" title="时间语义"></a>时间语义</h2><p>时间（Time）可以分为两类：</p>
+<ul>
+<li>事件时间（Event Time）：数据产生的时间。</li>
+<li>处理时间（Processing Time）：数据被真正处理的时间。</li>
+</ul>
+<p>在Flink的流式计算中，绝大部分的业务都会使用Event Time。一般只有在Event Time无法使用时，才会被迫使用Ingestion Time和Processing Time。<br>注意：Flink1.12之后默认的时间语义就是TimeCharacteristic.EventTime。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  @deprecated 已过时。</span></span><br><span class="line">env.setStreamTimeCharacteristic(<span class="type">TimeCharacteristic</span>.<span class="type">ProcessingTime</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="水位线"><a href="#水位线" class="headerlink" title="水位线"></a>水位线</h2><p>在Flink中，用来衡量事件时间（Event Time）进展的标记被称为水位线（Watermark）。<br>Watermark可以看作一条特殊的数据记录，它是插入到数据流中的一个标记点，主要内容就是一个时间戳，用来指示当前的事件事件。Watermark的基于数据的时间戳生成的，必须单调递增，可以通过设置延迟，来保证正确处理乱序数据。</p>
+<h3 id="水位线生成策略"><a href="#水位线生成策略" class="headerlink" title="水位线生成策略"></a>水位线生成策略</h3><p>Flink的DataStream API中提供了一个单独用于生成Watermark的方法：</p>
+<p>Watermark Strategy包含两部分：<br>时间戳分配器（TimestampAssigner）：主要负责从流中数据元素的某个字段中提取时间戳，并分配给元素。时间戳的分配是生成水位线的基础。<br>水位线生成器（WatermarkGenerator）：主要负责按照既定的方式，基于时间戳生成水位线。在WatermarkGenerator接口中，主要有两个方法：onEvent()和 onPeriodicEmit()。其中onEvent方法为每个事件（数据）到来都会调用的方法，它的参数有当前事件、时间戳，以及允许发出水位线的一个 WatermarkOutput，可以基于事件做各种操作。onPeriodicEmit为周期性调用的方法，可以由 WatermarkOutput 发出水位线。周期时间为处理时间，可以调用环境配置的 setAutoWatermarkInterval()方法来设置，默认为200ms。</p>
+<h3 id="内置WatermarkGenerator"><a href="#内置WatermarkGenerator" class="headerlink" title="内置WatermarkGenerator"></a>内置WatermarkGenerator</h3><p>Flink提供了两个内置的水位线生成器，可以通过调用Watermark Strategy的静态辅助方法来创建。他们都是周期性生成水位线的，分别对应着处理有序流和乱序流的场景。</p>
+<h4 id="有序流"><a href="#有序流" class="headerlink" title="有序流"></a>有序流</h4><p>主要特点是时间戳单调递增（Monotonously Increasing Timestamps），永远不会出现迟到数据的情况。这是周期性生成水位线的最简单的场景，直接拿当前的最大时间戳作为水位线就可以了。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 有序流时间戳分配器</span></span><br><span class="line"><span class="keyword">val</span> timeAssignStream: <span class="type">DataStream</span>[<span class="type">Student</span>] = sourceDS.assignTimestampsAndWatermarks(</span><br><span class="line">  <span class="type">WatermarkStrategy</span>.forMonotonousTimestamps[<span class="type">Student</span>]()</span><br><span class="line">    .withTimestampAssigner(</span><br><span class="line">      <span class="keyword">new</span> <span class="type">SerializableTimestampAssigner</span>[<span class="type">Student</span>] &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">extractTimestamp</span></span>(student: <span class="type">Student</span>, recordTimestamp: <span class="type">Long</span>):</span><br><span class="line">        <span class="type">Long</span> = student.age</span><br><span class="line">      &#125;</span><br><span class="line">    )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h4 id="乱序流"><a href="#乱序流" class="headerlink" title="乱序流"></a>乱序流</h4><p>由于乱序流中需要等待延迟数据，所以必须设置一个固定的延迟时间（Fixed Amount of Lateness）。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 乱序流时间戳分配器</span></span><br><span class="line">    <span class="keyword">val</span> timeAssignStream: <span class="type">DataStream</span>[<span class="type">Student</span>] = sourceDS.assignTimestampsAndWatermarks(</span><br><span class="line">      <span class="type">WatermarkStrategy</span>.forBoundedOutOfOrderness(<span class="type">Duration</span>.ofSeconds(<span class="number">2</span>))</span><br><span class="line">        .withTimestampAssigner(<span class="keyword">new</span> <span class="type">SerializableTimestampAssigner</span>[<span class="type">Student</span>] &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">extractTimestamp</span></span>(student: <span class="type">Student</span>, recordTimestamp: <span class="type">Long</span>): <span class="type">Long</span> = &#123;</span><br><span class="line">          <span class="comment">// 指定哪一个字段为时间戳</span></span><br><span class="line">          student.age</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+
+<h3 id="自定义WatermarkGenerator"><a href="#自定义WatermarkGenerator" class="headerlink" title="自定义WatermarkGenerator"></a>自定义WatermarkGenerator</h3><p>一般来说，Flink内置的WatermarkGenerator就可以满足应用需求了。在 WatermarkStrategy 中，时间戳分配器 TimestampAssigner 都是大同小异的，指定字段提取时间戳就可以了；而不同策略的关键就在于 WatermarkGenerator 的实现。<br>整体说来，Flink有两种不同的生成水位线的方式：一种是周期性的（Periodic），另一种是断点式的（Punctuated）。</p>
+<ul>
+<li>周期性水位线生成器（Periodic Generator）：周期性生成器一般是通过 onEvent()观察判断输入的事件，而在 onPeriodicEmit()里发出水位线。</li>
+<li>断点式水位线生成器（Punctuated Generator）：断点式生成器会不停地检测 onEvent()中的事件，当发现带有水位线信息的特殊事件时，就立即发出水位线。一般来说，断点式生成器不会通过onPeriodicEmit()发出水位线。</li>
+</ul>
+<h2 id="窗口"><a href="#窗口" class="headerlink" title="窗口"></a>窗口</h2><p>在流处理中，一个很重要也很常见的操作就是窗口（Window）。所谓的窗口，一般就是划定的一段时间范围，也就是时间窗，对在这个范围内的数据进行处理，就是所谓的窗口计算。</p>
+<h3 id="类型"><a href="#类型" class="headerlink" title="类型"></a>类型</h3><p>窗口可以分为两类：</p>
+<ul>
+<li>计算窗口（CountWindow）：按照指定的数据条数生成一个Window，与时间无关</li>
+<li>时间窗口（TimeWindow）：按照时间生成Window</li>
+</ul>
+<p>对于时间窗口，可以根据窗口实现原理的不同分成三类：滚动窗口（Tumbling Window）、滑动窗口（Slibing Window）和会话窗口（Session Window）。</p>
+<table>
+<thead>
+<tr>
+<th>窗口类型</th>
+<th>特点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>滚动窗口</td>
+<td>时间对齐，窗口长度固定，没有重叠。</td>
+<td>适合做每个时间段的聚合统计。</td>
+</tr>
+<tr>
+<td>滑动窗口</td>
+<td>时间对齐，窗口长度固定，可以有重叠。</td>
+<td>对最近一个时间段内的统计。</td>
+</tr>
+<tr>
+<td>会话窗口</td>
+<td>时间无对齐。</td>
+<td>更加精确的刻画用户行为，如刷抖音。</td>
+</tr>
+</tbody></table>
+<h3 id="按键分区-非按键分区窗口（Keyed-Windows-amp-Non-Keyed-Windows）"><a href="#按键分区-非按键分区窗口（Keyed-Windows-amp-Non-Keyed-Windows）" class="headerlink" title="按键分区/非按键分区窗口（Keyed Windows &amp; Non-Keyed Windows）"></a>按键分区/非按键分区窗口（Keyed Windows &amp; Non-Keyed Windows）</h3><p>在定义窗口操作之前，首先需要确定到底是基于按键分区的数据流KeyedSteam还是直接在没有按键分区的数据流DataStream上开窗。</p>
+<h4 id="按键分区窗口（通用）"><a href="#按键分区窗口（通用）" class="headerlink" title="按键分区窗口（通用）"></a>按键分区窗口（通用）</h4><p>经过按键分区 keyBy()操作后，数据流会按照 key 被分为多条逻辑流（logical streams），这就是 KeyedStream。基于 KeyedStream 进行窗口操作时, 窗口计算会在多个并行子任务上同时执行。相同 key 的数据会被发送到同一个并行子任务，而窗口操作会基于每个 key 进行单独的处理。所以可以认为每个 key 上都定义了一组窗口，各自独立地进行统计计算。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 加载数据源</span></span><br><span class="line"> <span class="keyword">val</span> sourceDS: <span class="type">DataStream</span>[<span class="type">Student</span>] = env.fromCollection(<span class="type">List</span>(<span class="type">Student</span>(<span class="string">"zhangsan"</span>, <span class="number">18</span>), <span class="type">Student</span>(<span class="string">"lisi"</span>, <span class="number">20</span>)))</span><br><span class="line"> <span class="comment">// 根据username按键分区</span></span><br><span class="line"> <span class="keyword">val</span> stuKeyedStream: <span class="type">KeyedStream</span>[<span class="type">Student</span>, <span class="type">String</span>] = sourceDS.keyBy(student =&gt; student.username)</span><br></pre></td></tr></table></figure>
+
+<h4 id="非按键分区窗口（不推荐）"><a href="#非按键分区窗口（不推荐）" class="headerlink" title="非按键分区窗口（不推荐）"></a>非按键分区窗口（不推荐）</h4><p>如果没有进行 keyBy()，那么原始的 DataStream 就不会分成多条逻辑流。这时窗口逻辑只能在一个任务（task）上执行，就相当于并行度变成了 1。所以在实际应用中一般不推荐使用这种方式。<br>注意：对于非按键分区的窗口操作，手动调大窗口算子的并行度也是无效的，windowAll 本身就是一个非并行的操作。</p>
+<h3 id="窗口分配器"><a href="#窗口分配器" class="headerlink" title="窗口分配器"></a>窗口分配器</h3><p>窗口分配器（Window Assigners）其实就是在指定窗口的类型。<br>窗口分配器最通用的定义方式，就是调用 window()方法。这个方法需要传入一个WindowAssigner 作为参数，返回WindowedStream。如果是非按键分区窗口，那么直接调用windowAll()方法，同样传入一个 WindowAssigner，返回的是 AllWindowedStream。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 定义一个2s的滚动窗口</span></span><br><span class="line">    <span class="keyword">val</span> tumbWinStream: <span class="type">WindowedStream</span>[<span class="type">Student</span>, <span class="type">String</span>, <span class="type">TimeWindow</span>] = stuKeyedStream.window(<span class="type">TumblingEventTimeWindows</span>.of(<span class="type">Time</span>.seconds(<span class="number">2</span>)))</span><br></pre></td></tr></table></figure>
+
+<h3 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a>窗口函数</h3><p>经窗口分配器处理之后，数据可以分配到对应的窗口中，而数据流经过转换得到的数据类型是 WindowedStream。这个类型并不是 DataStream，所以并不能直接进行其他转换，而必须进一步调用窗口函数（Window Functions），对收集到的数据进行处理计算之后才能最终再次得到 DataStream。</p>
+<p>窗口函数定义了要对窗口中收集的数据做的计算操作。主要可以分为两类：</p>
+<ul>
+<li>增量聚合函数（incremental aggregation functions））：每条数据到来就计算，保持一个简单的状态。典型的增量聚合函数有ReduceFunction、AggregateFunction。</li>
+<li>全窗口函数（full window functions）：先把窗口所有数据收集起来，等到计算的时候会遍历所有数据。典型的全窗口函数有ProcessWindowFunction。</li>
+</ul>
+<h4 id="ReduceFunction"><a href="#ReduceFunction" class="headerlink" title="ReduceFunction"></a>ReduceFunction</h4><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对windowedStream进行业务操作</span></span><br><span class="line"> tumbWinStream.reduce((stu1,stu2) =&gt; <span class="type">Student</span>(stu1.username,stu1.age + stu2.age))</span><br></pre></td></tr></table></figure>
+
+<h4 id="AggregateFunction"><a href="#AggregateFunction" class="headerlink" title="AggregateFunction"></a>AggregateFunction</h4><p>ReduceFunction 可以解决大多数归约聚合的问题，但是这个接口有一个限制，就是聚合状态的类型、输出结果的类型都必须和输入数据类型一样。为了更加灵活地处理窗口计算，Flink的Window API提供了更加一般化的aggregate()方法。直接基于 WindowedStream 调用 aggregate()方法，就可以定义更加灵活的窗口聚合操作。<br>AggregateFunction 可以看作是 ReduceFunction 的通用版本，这里有三种类型：<br>输入类型（IN）：输入流中元素的数据类型<br>累加器类型（ACC）：进行聚合的中间状态类型<br>输出类型（OUT）：最终计算结果的数据类型</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对windowedStream进行业务操作</span></span><br><span class="line"><span class="keyword">val</span> resultDataStream: <span class="type">DataStream</span>[<span class="type">String</span>] = tumbWinStream.aggregate(<span class="keyword">new</span> <span class="type">UdfAggreagteFunction</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UdfAggreagteFunction</span> <span class="keyword">extends</span> <span class="title">AggregateFunction</span>[<span class="type">Student</span>, <span class="type">Long</span>, <span class="type">String</span>] </span>&#123;</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">createAccumulator</span></span>(): <span class="type">Long</span> = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">add</span></span>(value: <span class="type">Student</span>, accumulator: <span class="type">Long</span>): <span class="type">Long</span> = accumulator + value.age</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getResult</span></span>(accumulator: <span class="type">Long</span>): <span class="type">String</span> = <span class="string">"age:"</span> + accumulator</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">merge</span></span>(a: <span class="type">Long</span>, b: <span class="type">Long</span>): <span class="type">Long</span> = a + b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="ProcessWindowFunction"><a href="#ProcessWindowFunction" class="headerlink" title="ProcessWindowFunction"></a>ProcessWindowFunction</h4><p>在 Flink 中，全窗口函数有两种：WindowFunction 和 ProcessWindowFunction。WindowFunction 字面上就是“窗口函数”，它其实是老版本的通用窗口函数接口。WindowFunction 能提供的上下文信息较少，也没有更高级的功能。事实上，它的作用可以被 ProcessWindowFunction 全覆盖，所以之后可能会逐渐弃用。一般在实际应用，直接使用 ProcessWindowFunction 就可以了。</p>
+<h4 id="增量聚合函数和全窗口聚合函数结合"><a href="#增量聚合函数和全窗口聚合函数结合" class="headerlink" title="增量聚合函数和全窗口聚合函数结合"></a>增量聚合函数和全窗口聚合函数结合</h4><p>我们之前在调用 WindowedStream 的 reduce()和 aggregate()方法时，只是简单地直接传入了一个 ReduceFunction 或 AggregateFunction 进行增量聚合。除此之外，其实还可以传入第二个参数：一个全窗口函数，可以是 WindowFunction 或者 ProcessWindowFunction。</p>
+<p>这样调用的处理机制是：基于第一个参数（增量聚合函数）来处理窗口数据，每来一个数据就做一次聚合；等到窗口需要触发计算时，则调用第二个参数（全窗口函数）的处理逻辑输出结果。需要注意的是，这里的全窗口函数就不再缓存所有数据了，而是直接将增量聚合函数的结果拿来当作了 Iterable 类型的输入。一般情况下，这时的可迭代集合中就只有一个元素了。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对windowedStream进行业务操作</span></span><br><span class="line">tumbWinStream.aggregate(<span class="keyword">new</span> <span class="type">UdfAggreagteFunction</span>,<span class="keyword">new</span> <span class="type">UdfProcessFunction</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UdfAggreagteFunction</span> <span class="keyword">extends</span> <span class="title">AggregateFunction</span>[<span class="type">Student</span>, <span class="type">Long</span>, <span class="type">Long</span>] </span>&#123;</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">createAccumulator</span></span>(): <span class="type">Long</span> = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">add</span></span>(value: <span class="type">Student</span>, accumulator: <span class="type">Long</span>): <span class="type">Long</span> = accumulator + value.age</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getResult</span></span>(accumulator: <span class="type">Long</span>): <span class="type">Long</span> = accumulator</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">merge</span></span>(a: <span class="type">Long</span>, b: <span class="type">Long</span>): <span class="type">Long</span> = a + b</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UdfProcessFunction</span> <span class="keyword">extends</span> <span class="title">ProcessWindowFunction</span>[<span class="type">Long</span>, <span class="type">String</span>, <span class="type">String</span>, <span class="type">TimeWindow</span>] </span>&#123;</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">process</span></span>(key: <span class="type">String</span>, context: <span class="type">Context</span>, elements: <span class="type">Iterable</span>[<span class="type">Long</span>], out: <span class="type">Collector</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</span><br><span class="line">    out.collect(elements.iterator.next().toString + <span class="string">"窗口开始时间："</span> + context.window.getStart + <span class="string">"窗口结束时间 ： "</span> + context.window.getEnd)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="状态"><a href="#状态" class="headerlink" title="状态"></a>状态</h2><p>在Flink中，算子任务可以分为无状态和有状态两种情况。<br><strong><em>无状态算子</em></strong>：无状态的算子任务只需要观察每个独立事件，根据当前输入的数据直接转换输出结果，基本转换算子如map、filter、flatMap都属于无状态的算子。<br><strong><em>有状态算子</em></strong>：有状态的算子除当前数据外，还需要一些其他数据来得到计算结果。这里的其他数据，就是所谓的状态。最常见的就是之前到达的数据或者由之前数据计算出的某个结果。比如求和计算时，需要保存之前所有数据的和，这就是状态。</p>
+<h3 id="状态分类"><a href="#状态分类" class="headerlink" title="状态分类"></a>状态分类</h3><p>Flink的状态有两种：</p>
+<ul>
+<li>托管状态（Managed State）：由Flink统一管理。</li>
+<li>原始状态（Raw State）：全部需要自定义。</li>
+</ul>
+<p>托管状态又可以分为两类：算子状态和键控状态。</p>
+<h4 id="算子状态（Operator-State）"><a href="#算子状态（Operator-State）" class="headerlink" title="算子状态（Operator State）"></a>算子状态（Operator State）</h4><p>算子状态可以用在所有算子上，使用的时候和一个本地变量没什么区别。<br>算子状态支持的结构类型有：</p>
+<ul>
+<li>列表状态（List State）：将需要保存的数据，以列表的形式保存。</li>
+<li>联合列表状态（Union List State）</li>
+<li>广播状态（BroadcastState）</li>
+</ul>
+<h4 id="键控状态（Keyed-State）"><a href="#键控状态（Keyed-State）" class="headerlink" title="键控状态（Keyed State）"></a>键控状态（Keyed State）</h4><p>键控状态是根据输入流中定义的Key来维护和访问的，所以只能定义在KeyedStream中。<br>键控状态支持的结构类型有：</p>
+<ul>
+<li>值状态（Value State）：状态中只保存一个值。这个值可以是任意数据类型。</li>
+<li>列表状态（List State）：将需要保存的数据，以列表的形式保存。</li>
+<li>映射状态（Map State）：将需要保存的数据，以键值对的形式保存。</li>
+<li>归约状态（Reducing State）：类似于值状态，将归约聚合之后的值作为状态保存下来。</li>
+<li>聚合状态（Aggregating State）：与归约状态类似，将聚合之后的值作为状态保存下来，但是更加灵活。</li>
+</ul>
+<h3 id="状态后端（state-backend）"><a href="#状态后端（state-backend）" class="headerlink" title="状态后端（state backend）"></a>状态后端（state backend）</h3><p>Flink对状态进行持久化的方式就是将当前所有分布式状态进行快照保存，写入一个检查点（Checkpoint）或者保存点（Savapoint）保存到外部存储系统中。<br>在Flink中，状态的存储、访问以及维护，都是由一个可插拔的组件决定的，这个组件就叫做状态后端。Flink提供了两种不同类型的状态后端：</p>
+<ul>
+<li>哈希表状态后端（HashMapStateBackend）：状态存放在内存中。</li>
+<li>内嵌 RocksDB 状态后端（EmbeddedRocksDBStateBackend）：状态持久化到本地硬盘。</li>
+</ul>
+<p>注意：如果想在 IDE 中使用 EmbeddedRocksDBStateBackend，需要添加依赖。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line"> 	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.flink<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>flink-statebackend-rocksdb_2.11<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"> 	<span class="tag">&lt;<span class="name">version</span>&gt;</span>1.13.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong>
+              本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=http://yoursite.com/2020/06/01/Flink/Flink%E6%A0%B8%E5%BF%83%E7%BC%96%E7%A8%8B/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Flink%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" rel="tag">Flink入门学习</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2020/10/01/Flink/Flink%E5%AE%98%E7%BD%91DataStream%20API%E6%A1%88%E4%BE%8B%EF%BC%9A%E6%AC%BA%E8%AF%88%E6%A3%80%E6%B5%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Flink官网DataStream API案例：欺诈检测
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2020/06/01/Kafka/Kafka%E5%BF%85%E7%9F%A5%E5%BF%85%E4%BC%9A/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Kafka必知必会</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2015-2023
+        <i class="ri-heart-fill heart_icon"></i> henrrywan
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        
+        由 <a href="https://hexo.io" target="_blank">Hexo</a> 强力驱动
+        <span class="division">|</span>
+        主题 - <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="float_btns">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+      </div>
+    </main>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="大数据学习笔记"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <script>
+      if (window.matchMedia("(max-width: 768px)").matches) {
+        document.querySelector('.content').classList.remove('on');
+        document.querySelector('.sidebar').classList.remove('on');
+      }
+    </script>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto'
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+
+<!-- 复制 -->
+
+  
+<link rel="stylesheet" href="/css/clipboard.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+
+
+
+
+    
+  </div>
+</body>
+
+</html>
