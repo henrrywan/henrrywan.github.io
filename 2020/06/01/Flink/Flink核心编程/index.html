@@ -77,7 +77,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">1.6k</span>
+            <span class="post-count">1.2k</span>
         </span>
     </span>
 
@@ -86,7 +86,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">6 分钟</span>
+            <span class="post-count">4 分钟</span>
         </span>
     </span>
 </div>
@@ -112,16 +112,6 @@
 
       
       <h1 id="Flink核心编程"><a href="#Flink核心编程" class="headerlink" title="Flink核心编程"></a>Flink核心编程</h1><p>基于Flink1.13。</p>
-<h3 id="窗口函数"><a href="#窗口函数" class="headerlink" title="窗口函数"></a>窗口函数</h3><p>经窗口分配器处理之后，数据可以分配到对应的窗口中，而数据流经过转换得到的数据类型是 WindowedStream。这个类型并不是 DataStream，所以并不能直接进行其他转换，而必须进一步调用窗口函数（Window Functions），对收集到的数据进行处理计算之后才能最终再次得到 DataStream。</p>
-<p>窗口函数定义了要对窗口中收集的数据做的计算操作。主要可以分为两类：</p>
-<ul>
-<li>增量聚合函数（incremental aggregation functions））：每条数据到来就计算，保持一个简单的状态。典型的增量聚合函数有ReduceFunction、AggregateFunction。</li>
-<li>全窗口函数（full window functions）：先把窗口所有数据收集起来，等到计算的时候会遍历所有数据。典型的全窗口函数有ProcessWindowFunction。</li>
-</ul>
-<h4 id="ReduceFunction"><a href="#ReduceFunction" class="headerlink" title="ReduceFunction"></a>ReduceFunction</h4><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对windowedStream进行业务操作</span></span><br><span class="line"> tumbWinStream.reduce((stu1,stu2) =&gt; <span class="type">Student</span>(stu1.username,stu1.age + stu2.age))</span><br></pre></td></tr></table></figure>
-
-<h4 id="AggregateFunction"><a href="#AggregateFunction" class="headerlink" title="AggregateFunction"></a>AggregateFunction</h4><p>ReduceFunction 可以解决大多数归约聚合的问题，但是这个接口有一个限制，就是聚合状态的类型、输出结果的类型都必须和输入数据类型一样。为了更加灵活地处理窗口计算，Flink的Window API提供了更加一般化的aggregate()方法。直接基于 WindowedStream 调用 aggregate()方法，就可以定义更加灵活的窗口聚合操作。<br>AggregateFunction 可以看作是 ReduceFunction 的通用版本，这里有三种类型：<br>输入类型（IN）：输入流中元素的数据类型<br>累加器类型（ACC）：进行聚合的中间状态类型<br>输出类型（OUT）：最终计算结果的数据类型</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对windowedStream进行业务操作</span></span><br><span class="line"><span class="keyword">val</span> resultDataStream: <span class="type">DataStream</span>[<span class="type">String</span>] = tumbWinStream.aggregate(<span class="keyword">new</span> <span class="type">UdfAggreagteFunction</span>)</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UdfAggreagteFunction</span> <span class="keyword">extends</span> <span class="title">AggregateFunction</span>[<span class="type">Student</span>, <span class="type">Long</span>, <span class="type">String</span>] </span>&#123;</span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">createAccumulator</span></span>(): <span class="type">Long</span> = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">add</span></span>(value: <span class="type">Student</span>, accumulator: <span class="type">Long</span>): <span class="type">Long</span> = accumulator + value.age</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getResult</span></span>(accumulator: <span class="type">Long</span>): <span class="type">String</span> = <span class="string">"age:"</span> + accumulator</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">merge</span></span>(a: <span class="type">Long</span>, b: <span class="type">Long</span>): <span class="type">Long</span> = a + b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h4 id="ProcessWindowFunction"><a href="#ProcessWindowFunction" class="headerlink" title="ProcessWindowFunction"></a>ProcessWindowFunction</h4><p>在 Flink 中，全窗口函数有两种：WindowFunction 和 ProcessWindowFunction。WindowFunction 字面上就是“窗口函数”，它其实是老版本的通用窗口函数接口。WindowFunction 能提供的上下文信息较少，也没有更高级的功能。事实上，它的作用可以被 ProcessWindowFunction 全覆盖，所以之后可能会逐渐弃用。一般在实际应用，直接使用 ProcessWindowFunction 就可以了。</p>
 <h4 id="增量聚合函数和全窗口聚合函数结合"><a href="#增量聚合函数和全窗口聚合函数结合" class="headerlink" title="增量聚合函数和全窗口聚合函数结合"></a>增量聚合函数和全窗口聚合函数结合</h4><p>我们之前在调用 WindowedStream 的 reduce()和 aggregate()方法时，只是简单地直接传入了一个 ReduceFunction 或 AggregateFunction 进行增量聚合。除此之外，其实还可以传入第二个参数：一个全窗口函数，可以是 WindowFunction 或者 ProcessWindowFunction。</p>
 <p>这样调用的处理机制是：基于第一个参数（增量聚合函数）来处理窗口数据，每来一个数据就做一次聚合；等到窗口需要触发计算时，则调用第二个参数（全窗口函数）的处理逻辑输出结果。需要注意的是，这里的全窗口函数就不再缓存所有数据了，而是直接将增量聚合函数的结果拿来当作了 Iterable 类型的输入。一般情况下，这时的可迭代集合中就只有一个元素了。</p>
